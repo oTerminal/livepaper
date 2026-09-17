@@ -1,0 +1,21 @@
+# Xcode / XcodeGen (the project is generated from project.yml)
+*.xcodeproj
+*.xcworkspace
+xcuserdata/
+DerivedData/
+build/
+
+# SwiftPM
+.build/
+.swiftpm/
+Package.resolved
+
+# macOS
+.DS_Store
+
+# Workspace-local agent scratch space
+.context/
+
+# Built helper binaries (built from source by Helpers/ffmpeg/build.sh)
+Helpers/ffmpeg/out/
+Helpers/ffmpeg/src/
