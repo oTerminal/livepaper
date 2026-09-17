@@ -1,0 +1,9 @@
+2026-09-17 13:39:46.860 Df Livepaper[54420:a650b] [app.livepaper.spike:spike] s1: wrote a-1080p30-h264.mp4 and config generation 3 to ~/Library/Containers/app.livepaper.spike.extension/Data/Documents/library in 0.03 s
+2026-09-17 13:39:46.860 Df LivepaperExtension[51874:a484e] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 13:39:46.860 Df LivepaperExtension[51874:a484e] [app.livepaper.spike:spike] extension: config generation 3 mode video video a-1080p30-h264.mp4 from ~/Library/Containers/app.livepaper.spike.extension/Data/Documents/library
+2026-09-17 13:39:46.863 Df LivepaperExtension[51874:a4c21] [app.livepaper.spike:spike] extension: surface 66C7D2BA-D877-477C-AF12-400E30C6D311 display 1 now on a-1080p30-h264.mp4 (generation 3)
+2026-09-17 13:39:46.863 Df LivepaperExtension[51874:a486f] [app.livepaper.spike:spike] extension: surface 4B9207C2-10CE-4856-AE8A-2CD337486DBB display 1 now on a-1080p30-h264.mp4 (generation 3)
+2026-09-17 13:39:48.289 Df Livepaper[54420:a650b] [app.livepaper.spike:spike] app: heartbeat from extension: generation 3, loops 19 (extension -> app notification works)
+2026-09-17 13:39:50.289 Df Livepaper[54420:a650b] [app.livepaper.spike:spike] app: heartbeat from extension: generation 3, loops 20 (extension -> app notification works)
+2026-09-17 13:39:52.289 Df Livepaper[54420:a650b] [app.livepaper.spike:spike] app: heartbeat from extension: generation 3, loops 20 (extension -> app notification works)
+2026-09-17 13:39:54.288 Df Livepaper[54420:a650b] [app.livepaper.spike:spike] app: heartbeat from extension: generation 3, loops 20 (extension -> app notification works)

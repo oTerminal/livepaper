@@ -1,0 +1,245 @@
+2026-09-17 13:26:35.943 Df launchd[1:95af0] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:26:35.988 Df launchd[1:95af0] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:28:11.419 Df LivepaperExtension[35849:97e84] [app.livepaper.spike:spike] extension: INIT pid 35849 build 20260917132516 path <repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 13:31:49.812 Df launchd[1:9b022] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:31:49.812 Df WallpaperAgent[34730:9ab63] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 13:31:54.013 Df LivepaperExtension[40621:9b5ae] [app.livepaper.spike:spike] extension: INIT pid 40621 build 20260917132516 path <repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 13:32:15.658 Df launchd[1:9b3b1] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:32:15.658 Df WallpaperAgent[40617:9bd58] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 13:32:19.856 Df LivepaperExtension[41263:9bef0] [app.livepaper.spike:spike] extension: INIT pid 41263 build 20260917132516 path <repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 13:32:34.989 Df launchd[1:9b3b1] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:32:34.998 Df WallpaperAgent[41259:9bee0] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 13:32:39.383 Df LivepaperExtension[41781:9c76a] [app.livepaper.spike:spike] extension: INIT pid 41781 build 20260917132516 path <repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 13:32:54.494 Df launchd[1:9c9d7] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:32:54.499 Df WallpaperAgent[41777:9cdc3] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 13:32:58.809 Df LivepaperExtension[42377:9cff7] [app.livepaper.spike:spike] extension: INIT pid 42377 build 20260917132516 path <repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 13:33:13.725 Df launchd[1:9cfed] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:33:13.725 Df WallpaperAgent[42373:9cfe1] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 13:33:18.130 Df LivepaperExtension[42940:9d8fe] [app.livepaper.spike:spike] extension: INIT pid 42940 build 20260917132516 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 13:33:33.161 Df launchd[1:9d8f3] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:33:33.162 Df WallpaperAgent[42934:9dff7] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 13:33:33.320 Df launchd[1:9d8f3] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:33:37.461 Df LivepaperExtension[43407:9e12f] [app.livepaper.spike:spike] extension: INIT pid 43407 build 20260917132516 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 13:33:52.651 Df launchd[1:9e7d8] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:33:52.654 Df WallpaperAgent[43403:9e812] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 13:33:52.772 Df launchd[1:9e7d8] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:33:57.085 Df LivepaperExtension[44001:9ea72] [app.livepaper.spike:spike] extension: INIT pid 44001 build 20260917132516 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 13:34:12.250 Df launchd[1:9e7d8] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:34:12.252 Df WallpaperAgent[43997:9f1df] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 13:34:12.438 Df launchd[1:9e7d8] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:34:16.608 Df LivepaperExtension[44696:9f474] [app.livepaper.spike:spike] extension: INIT pid 44696 build 20260917132516 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 13:35:01.547 Df launchd[1:a0041] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:35:01.549 Df WallpaperAgent[44692:a00a1] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 13:35:01.698 Df launchd[1:9fc7f] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:35:05.855 Df launchd[1:9fe94] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:35:05.891 Df Livepaper[46145:a0310] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 13:35:22.831 Df launchd[1:a0758] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:35:23.020 Df launchd[1:a0758] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:35:27.743 Df LivepaperExtension[46835:a0da1] [app.livepaper.spike:spike] extension: INIT pid 46835 build 20260917133517 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 13:35:41.517 Df Livepaper[47214:a1163] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 13:35:41.549 Df launchd[1:a049f] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:35:41.549 Df WallpaperAgent[46768:a0d94] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 13:35:50.517 Df Livepaper[47513:a1459] [app.livepaper.spike:spike] login: status = notRegistered for /Applications/Livepaper.app
+2026-09-17 13:35:50.592 Df launchd[1:9fe94] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:35:50.653 Df launchd[1:9fe94] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:35:54.974 Df Livepaper[47681:a176a] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 13:35:54.985 Df launchd[1:a1375] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:35:57.883 Df launchd[1:a17c1] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:35:58.081 Df launchd[1:a17c1] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:35:58.131 Df launchd[1:a17c3] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:36:02.240 Df launchd[1:a17c5] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:36:02.269 Df Livepaper[47941:a1b05] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 13:36:57.094 Df launchd[1:a29e1] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:36:57.272 Df launchd[1:a229e] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:37:01.696 Df LivepaperExtension[49702:a2f98] [app.livepaper.spike:spike] extension: INIT pid 49702 build 20260917133555 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 13:37:22.588 Df launchd[1:a3237] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:37:22.592 Df WallpaperAgent[49698:a2f88] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 13:38:14.274 Df LivepaperExtension[51874:a484e] [app.livepaper.spike:spike] extension: INIT pid 51874 build 20260917133555 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 13:38:22.202 Df launchd[1:a4810] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:38:22.295 Df Livepaper[51998:a4a34] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 13:38:26.302 Df launchd[1:a4a79] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:38:26.313 Df Livepaper[52110:a4b9a] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 13:38:49.858 Df launchd[1:a4e7b] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:38:49.953 Df Livepaper[52831:a5292] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 13:38:54.931 Df launchd[1:a4a79] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:38:55.032 Df Livepaper[52951:a544b] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 13:39:00.048 Df launchd[1:a4e74] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:39:00.124 Df Livepaper[53137:a562c] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 13:39:28.500 Df launchd[1:a5a5c] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:39:46.825 Df launchd[1:a6508] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:40:10.871 Df launchd[1:a6508] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:40:55.765 Df launchd[1:a7297] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:42:21.202 Df launchd[1:a89e2] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:42:21.788 Df launchd[1:a91a0] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:42:27.154 Df launchd[1:a919d] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:42:27.169 Df launchd[1:a919d] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:42:35.815 Df launchd[1:a89e2] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:42:56.972 Df launchd[1:a9e0f] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:42:57.563 Df launchd[1:a9e15] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:43:45.962 Df launchd[1:aac41] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:43:46.544 Df launchd[1:aac41] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:59:15.097 Df launchd[1:b1afc] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:59:15.100 Df launchd[1:b1afc] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:59:33.777 Df launchd[1:b1afc] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:00:51.112 Df launchd[1:b38b5] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:00:51.698 Df launchd[1:b38b3] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:03:30.553 Df launchd[1:b4973] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:03:30.567 Df launchd[1:b66ee] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:04:20.117 Df launchd[1:b6dd7] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:04:20.138 Df launchd[1:b7945] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:04:26.281 Df launchd[1:b7945] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:04:26.293 Df launchd[1:b6dd7] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:04:43.189 Df launchd[1:b7ee5] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:04:43.208 Df launchd[1:b7945] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:05:06.347 Df launchd[1:b84b6] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:05:06.369 Df launchd[1:b8797] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:05:29.314 Df launchd[1:b8fdf] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:05:52.321 Df launchd[1:b932b] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:05:52.337 Df launchd[1:b932b] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:07:49.004 Df launchd[1:bb98a] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:07:49.608 Df launchd[1:bb99f] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:08:12.732 Df launchd[1:bbc44] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:08:35.683 Df launchd[1:bc62a] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:08:35.708 Df launchd[1:bc62d] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:08:58.752 Df launchd[1:bd06e] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:10:18.631 Df launchd[1:be169] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:10:18.634 Df launchd[1:bdc43] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:10:36.994 Df launchd[1:be7d6] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:10:55.709 Df launchd[1:bf492] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:10:55.727 Df launchd[1:bf492] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:12:19.261 Df launchd[1:c0a7b] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:12:19.851 Df launchd[1:c0ee5] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:14:30.820 Df launchd[1:c3478] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:14:31.418 Df launchd[1:c36ac] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:14:54.420 Df launchd[1:c3479] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:15:55.570 Df launchd[1:c4eb2] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:16:06.184 Df launchd[1:c521b] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:16:06.197 Df launchd[1:c5177] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:18:51.303 Df launchd[1:c85fc] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:18:51.936 Df launchd[1:c88ee] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:19:16.619 Df launchd[1:c91b0] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:19:16.713 Df launchd[1:c91b0] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:19:16.767 Df launchd[1:c919b] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:19:21.235 Df LivepaperExtension[7993:c974d] [app.livepaper.spike:spike] extension: INIT pid 7993 build 20260917141846 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 14:19:40.039 Df launchd[1:c88f1] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:19:46.277 Df launchd[1:c88f1] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:19:46.277 Df WallpaperAgent[7990:c9d50] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 14:19:52.629 Df launchd[1:c88f1] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:21:03.453 Df LivepaperExtension[11393:cba49] [app.livepaper.spike:spike] extension: INIT pid 11393 build 20260917141846 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 14:21:04.413 Df launchd[1:cb2a2] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:21:11.697 Df launchd[1:cba18] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:21:55.241 Df launchd[1:cd0ae] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:36:18.288 Df launchd[1:deb93] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:36:18.311 Df launchd[1:de716] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:37:56.191 Df launchd[1:df200] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:37:56.220 Df launchd[1:e100d] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:39:35.040 Df launchd[1:e3021] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:39:35.083 Df launchd[1:e3021] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:41:13.745 Df launchd[1:e5aac] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:41:13.792 Df launchd[1:e5578] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:44:20.366 Df launchd[1:ea0e5] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:45:03.311 Df launchd[1:eb049] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:45:55.887 Df launchd[1:ec52d] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:45:56.495 Df launchd[1:ec52c] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:46:34.241 Df launchd[1:ed6ab] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:46:34.858 Df launchd[1:ec82c] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:46:35.697 Df launchd[1:ed6ae] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:46:35.802 Df launchd[1:ed6ae] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:46:35.870 Df launchd[1:ed6aa] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:46:40.048 Df LivepaperExtension[70643:edf02] [app.livepaper.spike:spike] extension: INIT pid 70643 build 20260917144629 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 14:46:55.220 Df launchd[1:ed6aa] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:46:55.232 Df WallpaperAgent[70639:edef2] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 14:46:55.343 Df launchd[1:ed9f1] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:46:55.349 Df launchd[1:ed6aa] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:46:55.352 Df launchd[1:ed9f1] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:46:59.668 Df LivepaperExtension[71583:eeb18] [app.livepaper.spike:spike] extension: INIT pid 71583 build 20260917144629 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 14:47:23.241 Df launchd[1:ed6a9] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:47:23.252 Df WallpaperAgent[71554:eeb05] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 14:47:23.253 Df Livepaper[72506:ef381] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 14:47:27.640 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: INIT pid 72717 build 20260917144629 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 14:47:38.770 Df launchd[1:ef273] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:47:45.164 Df launchd[1:ed6a9] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:47:51.570 Df launchd[1:efa5b] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:47:57.911 Df launchd[1:efa5b] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:48:04.303 Df launchd[1:f0659] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:48:10.734 Df launchd[1:f03f2] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:49:01.166 Df launchd[1:f20f8] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:49:01.298 Df launchd[1:f20fb] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:49:01.318 Df launchd[1:f20f8] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:49:01.376 Df launchd[1:f20fb] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:49:01.402 Df launchd[1:f20fb] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:49:05.645 Df launchd[1:f20fb] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:49:05.654 Df Livepaper[77128:f273c] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 14:49:05.809 Df LivepaperExtension[77135:f278c] [app.livepaper.spike:spike] extension: INIT pid 77135 build 20260917144855 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 14:49:16.769 Df launchd[1:f2393] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:49:16.779 Df WallpaperAgent[77131:f277a] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 14:49:33.158 Df launchd[1:f33d4] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:49:37.470 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: INIT pid 78431 build 20260917144855 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 14:50:20.698 Df launchd[1:f3bb5] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:50:37.072 Df launchd[1:f50b0] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:51:02.809 Df launchd[1:f5bf5] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:51:02.884 Df launchd[1:f5bf5] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:51:07.315 Df LivepaperExtension[82417:f61ad] [app.livepaper.spike:spike] extension: INIT pid 82417 build 20260917145059 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 14:51:07.526 Df launchd[1:f5d3b] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:51:07.537 Df Livepaper[82420:f61de] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 14:51:09.657 Df LivepaperExtension[82533:f6311] [app.livepaper.spike:spike] extension: INIT pid 82533 build 20260917145059 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 14:51:09.887 Df launchd[1:f5d39] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:51:09.887 Df WallpaperAgent[82488:f62f2] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 14:51:09.902 Df Livepaper[82620:f63e8] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 14:51:13.117 Df LivepaperExtension[82639:f6685] [app.livepaper.spike:spike] extension: INIT pid 82639 build 20260917145059 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 14:51:33.031 Df launchd[1:f6c02] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:53:04.599 Df launchd[1:f8e2c] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:53:04.610 Df Livepaper[87385:f942f] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 14:53:09.728 Df launchd[1:f8e2c] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:53:09.737 Df Livepaper[87642:f9710] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 14:53:14.856 Df launchd[1:f8e2c] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:53:14.869 Df Livepaper[87887:f99a1] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 14:53:19.982 Df launchd[1:f8e2c] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:53:19.994 Df Livepaper[88190:f9c19] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 14:53:25.120 Df launchd[1:f7b9b] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:53:25.129 Df Livepaper[88393:f9e59] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 14:53:30.286 Df launchd[1:f8e2c] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:53:30.294 Df Livepaper[88586:fa081] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 14:53:35.440 Df launchd[1:f7b9b] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:53:35.451 Df Livepaper[88841:fa288] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 14:53:40.588 Df launchd[1:f7b9b] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:53:40.594 Df Livepaper[89035:fa474] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 14:53:45.743 Df launchd[1:fa493] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:53:45.752 Df Livepaper[89228:fa687] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 14:53:50.900 Df launchd[1:fa493] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:53:50.914 Df Livepaper[89484:fa919] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 14:53:56.064 Df launchd[1:fa493] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:53:56.071 Df Livepaper[89678:faafc] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 14:54:01.221 Df launchd[1:fa6c6] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:54:01.229 Df Livepaper[89871:facd8] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 14:54:06.382 Df launchd[1:fa6c6] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:54:06.394 Df Livepaper[90126:faf17] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 14:54:11.536 Df launchd[1:fa6c6] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:54:11.547 Df Livepaper[90320:fb0ea] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 14:56:11.183 Df launchd[1:fe3bd] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:56:41.541 Df LivepaperExtension[96782:ff15d] [app.livepaper.spike:spike] extension: INIT pid 96782 build 20260917145059 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 14:58:07.358 Df LivepaperExtension[1101:10135b] [app.livepaper.spike:spike] extension: INIT pid 1101 build 20260917145059 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 14:59:56.367 Df launchd[1:104087] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:59:56.381 Df launchd[1:104087] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 15:00:42.040 Df launchd[1:104dad] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 15:01:27.691 Df launchd[1:1064fd] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 15:01:27.703 Df launchd[1:1064fd] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 15:04:49.399 Df launchd[1:10af7b] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 15:05:21.480 Df launchd[1:10bf0d] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 15:29:02.071 Df launchd[1:119622] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 15:29:02.530 Df launchd[1:119814] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 15:29:02.535 Df launchd[1:119814] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 15:29:02.736 Df launchd[1:119817] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 15:29:02.761 Df launchd[1:119814] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 15:29:02.854 Df launchd[1:119813] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 15:29:02.907 Df launchd[1:119817] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 15:29:02.926 Df launchd[1:119817] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 15:29:03.005 Df launchd[1:119813] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 15:29:07.142 Df LivepaperExtension[42045:119ac5] [app.livepaper.spike:spike] extension: INIT pid 42045 build 20260917152856 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 15:29:07.339 Df launchd[1:119812] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 15:29:07.357 Df Livepaper[42048:119afb] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 15:29:09.512 Df LivepaperExtension[42057:119b4b] [app.livepaper.spike:spike] extension: INIT pid 42057 build 20260917152856 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 15:29:21.268 Df launchd[1:119d4b] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 15:29:21.275 Df WallpaperAgent[42051:119b39] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 15:29:27.772 Df LivepaperExtension[42438:11a262] [app.livepaper.spike:spike] extension: INIT pid 42438 build 20260917152856 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 15:29:47.738 Df launchd[1:11a3d7] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly

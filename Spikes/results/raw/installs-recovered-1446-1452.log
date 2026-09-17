@@ -1,0 +1,706 @@
+2026-09-17 14:46:34.241 Df launchd[1:ed6ab] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:46:34.241 Df launchd[1:ed6ab] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:46:34.484 E  WallpaperAgent[11388:ec7a5] [com.apple.extensionkit:discovery] Extension is not entitled to run in the App Sandbox : <_EXExtensionIdentity: 0x755ac48510>
+2026-09-17 14:46:34.484 E  WallpaperAgent[11388:ec7a5] [com.apple.extensionkit:discovery] Extension is not entitled to run in the App Sandbox : <_EXExtensionIdentity: 0x755ac48540>
+2026-09-17 14:46:34.858 Df launchd[1:ec82c] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:46:34.858 Df launchd[1:ec82c] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:46:35.114 E  WallpaperAgent[11388:ed842] [com.apple.extensionkit:discovery] Extension is not entitled to run in the App Sandbox : <_EXExtensionIdentity: 0x755ac48780>
+2026-09-17 14:46:35.697 Df launchd[1:ed6ae] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:46:35.697 Df launchd[1:ed6ae] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:46:35.802 Df launchd[1:ed6ae] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:46:35.802 Df launchd[1:ed6ae] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:46:35.843 I  amfid[373:eda8b] Entering OSX path for /Applications/Livepaper.app/Contents/MacOS/Livepaper
+2026-09-17 14:46:35.845 Df amfid[373:eda8b] /Applications/Livepaper.app/Contents/MacOS/Livepaper not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file:///Applications/Livepaper.app/Contents/MacOS/Livepaper, NSLocalizedDescription=The file is adhoc signed or signed by an unknown certificate chain}
+2026-09-17 14:46:35.869 Df launchd[1:ed6aa] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:46:35.870 Df launchd[1:ed6aa] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:46:35.964 Df WallpaperAgent[11388:ec7a5] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 14:46:35.964 Df WallpaperAgent[11388:ec7a5] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 14:46:35.964 Df WallpaperAgent[11388:ec7a5] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 14:46:40.005 Df WallpaperAgent[70639:edeec] [com.apple.wallpaper:export-controller] Successfully read existing exported wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>'
+2026-09-17 14:46:40.007 E  WallpaperAgent[70639:edef0] [com.apple.wallpaper:assetManager] Could not find translator for: app.livepaper.spike.extension; eagerly assuming it's an extension with the same identifier
+2026-09-17 14:46:40.007 Df WallpaperAgent[70639:edee5] [com.apple.wallpaper:catalog] Found 12 Wallpaper extensions at initialization time
+2026-09-17 14:46:40.007 Df WallpaperAgent[70639:edeef] [com.apple.wallpaper:catalog] 026E1568: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:46:40.007 Df WallpaperAgent[70639:edef1] [com.apple.wallpaper:catalog] Notifying about 12 new Wallpaper extensions
+2026-09-17 14:46:40.011 Df WallpaperAgent[70639:edeef] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 14:46:40.011 Df WallpaperAgent[70639:edeee] [com.apple.wallpaper:extension-proxy] 1B10BD30: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:46:40.011 Df WallpaperAgent[70639:edeee] [com.apple.wallpaper:extension-proxy] 9BDB0375: BEGIN - [app.livepaper.spike.extension] connect
+2026-09-17 14:46:40.028 Df WallpaperAgent[70639:edeef] [com.apple.extensionkit:launch] Launching process with config: identity: RecordIdentity(record: ExtensionFoundation.Database._ExtensionRecord(lsRecord: <LSApplicationExtensionRecord 0x7b92c2dec0> { bundleID: app.livepaper.spike.extension, URL: file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/, super: <LSApplicati
+2026-09-17 14:46:40.034 I  amfid[373:eda8b] Entering OSX path for /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/LivepaperExtension
+2026-09-17 14:46:40.035 Df amfid[373:eda8b] /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/LivepaperExtension not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/Livep
+2026-09-17 14:46:40.037 Df WallpaperAgent[70639:edeef] [com.apple.wallpaper:extension-proxy] 9BDB0375: END - [app.livepaper.spike.extension] connect
+2026-09-17 14:46:40.048 Df LivepaperExtension[70643:edf02] [app.livepaper.spike:spike] extension: INIT pid 70643 build 20260917144629 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 14:46:40.049 Df LivepaperExtension[70643:edf02] [app.livepaper.spike:spike] bridge: WallpaperExtensionKit loaded, all 15 payload classes present
+2026-09-17 14:46:40.049 Df LivepaperExtension[70643:edf02] [app.livepaper.spike:spike] s1: NSHomeDirectory = ~/Library/Containers/app.livepaper.spike.extension/Data; real home = ~
+2026-09-17 14:46:40.050 Df LivepaperExtension[70643:edf02] [app.livepaper.spike:spike] s1: location a (Application Support + exception): READABLE, 3 entries, config 91 bytes
+2026-09-17 14:46:40.050 Df LivepaperExtension[70643:edf02] [app.livepaper.spike:spike] s1: location b (own container): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 14:46:40.073 Df LivepaperExtension[70643:edf05] [app.livepaper.spike:spike] extension: accepted connection from pid 70639
+2026-09-17 14:46:40.074 Df LivepaperExtension[70643:edf02] [app.livepaper.spike:spike] extension: config generation 7 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:46:40.079 Df LivepaperExtension[70643:edf02] [app.livepaper.spike:spike] extension: ACQUIRE new surface 57FB0C0E-620A-41BC-BAE8-CDB5EEA529A9 ctx 65162639 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview false pid 70639 (1 surfaces)
+2026-09-17 14:46:40.146 Df LivepaperExtension[70643:edf02] [app.livepaper.spike:spike] extension: surface 57FB0C0E-620A-41BC-BAE8-CDB5EEA529A9 display 1 now on a-1080p30-h264.mp4 (generation 7)
+2026-09-17 14:46:40.146 Df WallpaperAgent[70639:edef1] [com.apple.wallpaper:extension-proxy] 1B10BD30: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:46:40.146 Df WallpaperAgent[70639:edef1] [com.apple.wallpaper:extension] Scheduling disconnection for 5 minutes from now for app.livepaper.spike.extension
+2026-09-17 14:46:40.146 Df WallpaperAgent[70639:edee5] [com.apple.wallpaper:catalog] 026E1568: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:46:40.149 Df WallpaperAgent[70639:edeec] [com.apple.wallpaper:catalog] 2C851866: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:46:40.149 Df WallpaperAgent[70639:edeec] [com.apple.wallpaper:extension-proxy] 0539CE3F: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:46:40.156 Df LivepaperExtension[70643:edf02] [app.livepaper.spike:spike] extension: ACQUIRE new surface FB40C9CD-FF99-484D-9E85-4A787E29CD2E ctx 4159395706 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview true pid 70639 (2 surfaces)
+2026-09-17 14:46:40.165 Df LivepaperExtension[70643:edf02] [app.livepaper.spike:spike] extension: surface FB40C9CD-FF99-484D-9E85-4A787E29CD2E display 1 now on a-1080p30-h264.mp4 (generation 7)
+2026-09-17 14:46:40.165 Df WallpaperAgent[70639:edeef] [com.apple.wallpaper:extension-proxy] 0539CE3F: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:46:40.166 Df WallpaperAgent[70639:edeee] [com.apple.wallpaper:catalog] 2C851866: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:46:55.220 Df launchd[1:ed6aa] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:46:55.220 Df launchd[1:ed6aa] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:46:55.232 Df WallpaperAgent[70639:edef2] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 14:46:55.246 Df WallpaperAgent[70639:edef2] [com.apple.wallpaper:extension-proxy] onInterruption handler called for app.livepaper.spike.extension
+2026-09-17 14:46:55.337 I  amfid[373:eda8b] Entering OSX path for /Applications/Livepaper.app/Contents/MacOS/Livepaper
+2026-09-17 14:46:55.342 Df launchd[1:ed9f1] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:46:55.343 Df launchd[1:ed9f1] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:46:55.349 Df launchd[1:ed6aa] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:46:55.349 Df launchd[1:ed6aa] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:46:55.352 Df launchd[1:ed9f1] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:46:55.352 Df launchd[1:ed9f1] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:46:55.482 E  taskgated-helper[71378:ee8df] [com.apple.ManagedClient:ProvisioningProfiles] Disallowing: app.livepaper.spike
+2026-09-17 14:46:55.483 Df amfid[373:eda8b] /Applications/Livepaper.app/Contents/MacOS/Livepaper not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file:///Applications/Livepaper.app/Contents/MacOS/Livepaper, NSLocalizedDescription=The file is adhoc signed or signed by an unknown certificate chain}
+2026-09-17 14:46:55.491 Df WallpaperAgent[70639:edef2] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 14:46:55.491 Df WallpaperAgent[70639:edef2] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 14:46:55.491 Df WallpaperAgent[70639:edef2] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 14:46:59.600 Df WallpaperAgent[71554:eeb03] [com.apple.wallpaper:export-controller] Successfully read existing exported wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>'
+2026-09-17 14:46:59.602 E  WallpaperAgent[71554:eeaff] [com.apple.wallpaper:assetManager] Could not find translator for: app.livepaper.spike.extension; eagerly assuming it's an extension with the same identifier
+2026-09-17 14:46:59.603 Df WallpaperAgent[71554:eeaff] [com.apple.wallpaper:catalog] 2FD10AD3: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:46:59.603 Df WallpaperAgent[71554:eeaf4] [com.apple.wallpaper:catalog] Found 12 Wallpaper extensions at initialization time
+2026-09-17 14:46:59.603 Df WallpaperAgent[71554:eeb00] [com.apple.wallpaper:catalog] Notifying about 12 new Wallpaper extensions
+2026-09-17 14:46:59.606 Df WallpaperAgent[71554:eeb03] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 14:46:59.606 Df WallpaperAgent[71554:eeaf4] [com.apple.wallpaper:extension-proxy] 113F2B63: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:46:59.606 Df WallpaperAgent[71554:eeb03] [com.apple.wallpaper:extension-proxy] 1DC999F7: BEGIN - [app.livepaper.spike.extension] connect
+2026-09-17 14:46:59.623 Df WallpaperAgent[71554:eeb03] [com.apple.extensionkit:launch] Launching process with config: identity: RecordIdentity(record: ExtensionFoundation.Database._ExtensionRecord(lsRecord: <LSApplicationExtensionRecord 0x758ec2dbc0> { bundleID: app.livepaper.spike.extension, URL: file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/, super: <LSApplicati
+2026-09-17 14:46:59.630 I  amfid[373:ee8da] Entering OSX path for /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/LivepaperExtension
+2026-09-17 14:46:59.654 E  taskgated-helper[71378:ee8df] [com.apple.ManagedClient:ProvisioningProfiles] Disallowing: app.livepaper.spike.extension
+2026-09-17 14:46:59.654 Df amfid[373:ee8da] /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/LivepaperExtension not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/Livep
+2026-09-17 14:46:59.657 Df WallpaperAgent[71554:eeaf4] [com.apple.wallpaper:extension-proxy] 1DC999F7: END - [app.livepaper.spike.extension] connect
+2026-09-17 14:46:59.668 Df LivepaperExtension[71583:eeb18] [app.livepaper.spike:spike] extension: INIT pid 71583 build 20260917144629 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 14:46:59.668 Df LivepaperExtension[71583:eeb18] [app.livepaper.spike:spike] bridge: WallpaperExtensionKit loaded, all 15 payload classes present
+2026-09-17 14:46:59.668 Df LivepaperExtension[71583:eeb18] [app.livepaper.spike:spike] s1: NSHomeDirectory = ~/Library/Containers/app.livepaper.spike.extension/Data; real home = ~
+2026-09-17 14:46:59.669 Df LivepaperExtension[71583:eeb18] [app.livepaper.spike:spike] s1: location a (Application Support + exception): READABLE, 3 entries, config 91 bytes
+2026-09-17 14:46:59.669 Df LivepaperExtension[71583:eeb18] [app.livepaper.spike:spike] s1: location b (own container): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 14:46:59.685 Df LivepaperExtension[71583:eeb23] [app.livepaper.spike:spike] extension: accepted connection from pid 71554
+2026-09-17 14:46:59.686 Df LivepaperExtension[71583:eeb18] [app.livepaper.spike:spike] extension: config generation 7 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:46:59.692 Df LivepaperExtension[71583:eeb18] [app.livepaper.spike:spike] extension: ACQUIRE new surface C0BB210A-7DA0-46FC-AAD6-DCBEE0A3477B ctx 1721738322 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview false pid 71554 (1 surfaces)
+2026-09-17 14:46:59.754 Df LivepaperExtension[71583:eeb18] [app.livepaper.spike:spike] extension: surface C0BB210A-7DA0-46FC-AAD6-DCBEE0A3477B display 1 now on a-1080p30-h264.mp4 (generation 7)
+2026-09-17 14:46:59.754 Df WallpaperAgent[71554:eeaf3] [com.apple.wallpaper:extension-proxy] 113F2B63: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:46:59.754 Df WallpaperAgent[71554:eeaf3] [com.apple.wallpaper:extension] Scheduling disconnection for 5 minutes from now for app.livepaper.spike.extension
+2026-09-17 14:46:59.754 Df WallpaperAgent[71554:eeafe] [com.apple.wallpaper:catalog] 2FD10AD3: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:46:59.757 Df WallpaperAgent[71554:eeafe] [com.apple.wallpaper:catalog] 3C758A48: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:46:59.757 Df WallpaperAgent[71554:eeafe] [com.apple.wallpaper:extension-proxy] B8B32452: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:46:59.758 Df LivepaperExtension[71583:eeb18] [app.livepaper.spike:spike] extension: ACQUIRE new surface 6B65C79C-D632-4CB6-9F1E-06C4472D0BB5 ctx 2146564588 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview true pid 71554 (2 surfaces)
+2026-09-17 14:46:59.774 Df LivepaperExtension[71583:eeb18] [app.livepaper.spike:spike] extension: surface 6B65C79C-D632-4CB6-9F1E-06C4472D0BB5 display 1 now on a-1080p30-h264.mp4 (generation 7)
+2026-09-17 14:46:59.775 Df WallpaperAgent[71554:eeb02] [com.apple.wallpaper:extension-proxy] B8B32452: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:46:59.775 Df WallpaperAgent[71554:eeafe] [com.apple.wallpaper:catalog] 3C758A48: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:47:23.241 Df launchd[1:ed6a9] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:47:23.241 Df launchd[1:ed6a9] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:47:23.252 Df WallpaperAgent[71554:eeb05] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 14:47:23.253 Df Livepaper[72506:ef381] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 14:47:23.269 Df WallpaperAgent[71554:ef3fc] [com.apple.wallpaper:extension-proxy] onInterruption handler called for app.livepaper.spike.extension
+2026-09-17 14:47:23.514 Df WallpaperAgent[71554:eeb05] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 14:47:23.514 Df WallpaperAgent[71554:eeb05] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 14:47:23.514 Df WallpaperAgent[71554:eeb05] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 14:47:27.603 Df WallpaperAgent[72713:ef674] [com.apple.wallpaper:export-controller] Successfully read existing exported wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>'
+2026-09-17 14:47:27.605 E  WallpaperAgent[72713:ef676] [com.apple.wallpaper:assetManager] Could not find translator for: app.livepaper.spike.extension; eagerly assuming it's an extension with the same identifier
+2026-09-17 14:47:27.605 Df WallpaperAgent[72713:ef672] [com.apple.wallpaper:catalog] 57A527C6: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:47:27.605 Df WallpaperAgent[72713:ef66d] [com.apple.wallpaper:catalog] Found 12 Wallpaper extensions at initialization time
+2026-09-17 14:47:27.605 Df WallpaperAgent[72713:ef672] [com.apple.wallpaper:catalog] Notifying about 12 new Wallpaper extensions
+2026-09-17 14:47:27.609 Df WallpaperAgent[72713:ef66c] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 14:47:27.609 Df WallpaperAgent[72713:ef66f] [com.apple.wallpaper:extension-proxy] 6ADAE740: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:47:27.609 Df WallpaperAgent[72713:ef66f] [com.apple.wallpaper:extension-proxy] 74B96A24: BEGIN - [app.livepaper.spike.extension] connect
+2026-09-17 14:47:27.622 Df WallpaperAgent[72713:ef66f] [com.apple.extensionkit:launch] Launching process with config: identity: RecordIdentity(record: ExtensionFoundation.Database._ExtensionRecord(lsRecord: <LSApplicationExtensionRecord 0x771ac2da40> { bundleID: app.livepaper.spike.extension, URL: file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/, super: <LSApplicati
+2026-09-17 14:47:27.630 Df WallpaperAgent[72713:ef66f] [com.apple.wallpaper:extension-proxy] 74B96A24: END - [app.livepaper.spike.extension] connect
+2026-09-17 14:47:27.640 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: INIT pid 72717 build 20260917144629 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 14:47:27.641 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] bridge: WallpaperExtensionKit loaded, all 15 payload classes present
+2026-09-17 14:47:27.641 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] s1: NSHomeDirectory = ~/Library/Containers/app.livepaper.spike.extension/Data; real home = ~
+2026-09-17 14:47:27.641 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] s1: location a (Application Support + exception): READABLE, 8 entries, config 91 bytes
+2026-09-17 14:47:27.641 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] s1: location b (own container): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 14:47:27.660 Df LivepaperExtension[72717:ef68c] [app.livepaper.spike:spike] extension: accepted connection from pid 72713
+2026-09-17 14:47:27.661 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 7 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:47:27.665 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: ACQUIRE new surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 ctx 278860244 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview false pid 72713 (1 surfaces)
+2026-09-17 14:47:27.725 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 7)
+2026-09-17 14:47:27.725 Df WallpaperAgent[72713:ef678] [com.apple.wallpaper:extension-proxy] 6ADAE740: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:47:27.725 Df WallpaperAgent[72713:ef678] [com.apple.wallpaper:extension] Scheduling disconnection for 5 minutes from now for app.livepaper.spike.extension
+2026-09-17 14:47:27.725 Df WallpaperAgent[72713:ef66d] [com.apple.wallpaper:catalog] 57A527C6: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:47:27.728 Df WallpaperAgent[72713:ef678] [com.apple.wallpaper:catalog] EE5745A5: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:47:27.728 Df WallpaperAgent[72713:ef678] [com.apple.wallpaper:extension-proxy] A533C5F8: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:47:27.730 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: ACQUIRE new surface C3BB61B1-DB37-4CB9-9535-52368C973E58 ctx 1809903845 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview true pid 72713 (2 surfaces)
+2026-09-17 14:47:27.746 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 7)
+2026-09-17 14:47:27.746 Df WallpaperAgent[72713:ef66c] [com.apple.wallpaper:extension-proxy] A533C5F8: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:47:27.746 Df WallpaperAgent[72713:ef66c] [com.apple.wallpaper:catalog] EE5745A5: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:47:38.770 Df launchd[1:ef273] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:47:38.770 Df launchd[1:ef273] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:47:38.781 Df Livepaper[73168:efd0d] [app.livepaper.spike:spike] config: generation 8 mode video video a-1080p30-h264.mp4 crossfade false
+2026-09-17 14:47:38.783 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 8 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:47:38.783 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 8)
+2026-09-17 14:47:38.783 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 8)
+2026-09-17 14:47:39.040 Df WallpaperAgent[72713:ef676] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 14:47:39.040 Df WallpaperAgent[72713:ef676] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 14:47:39.040 Df WallpaperAgent[72713:ef676] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 14:47:45.164 Df launchd[1:ed6a9] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:47:45.164 Df launchd[1:ed6a9] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:47:45.174 Df Livepaper[73544:f0095] [app.livepaper.spike:spike] config: generation 9 mode video video b-1080p30-h264.mp4 crossfade true
+2026-09-17 14:47:45.174 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 9 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:47:45.436 Df WallpaperAgent[72713:efd6b] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 14:47:45.436 Df WallpaperAgent[72713:efd6b] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 14:47:45.437 Df WallpaperAgent[72713:efd6b] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 14:47:46.406 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on b-1080p30-h264.mp4 (generation 9)
+2026-09-17 14:47:46.433 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on b-1080p30-h264.mp4 (generation 9)
+2026-09-17 14:47:51.535 Df Livepaper[73803:f036c] [app.livepaper.spike:spike] config: generation 10 mode video video a-1080p30-h264.mp4 crossfade true
+2026-09-17 14:47:51.539 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 10 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:47:51.570 Df launchd[1:efa5b] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:47:51.570 Df launchd[1:efa5b] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:47:51.795 Df WallpaperAgent[72713:f0114] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 14:47:51.795 Df WallpaperAgent[72713:f0114] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 14:47:51.795 Df WallpaperAgent[72713:f0114] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 14:47:52.783 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 10)
+2026-09-17 14:47:52.815 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 10)
+2026-09-17 14:47:57.911 Df launchd[1:efa5b] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:47:57.911 Df launchd[1:efa5b] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:47:57.925 Df Livepaper[73997:f05e3] [app.livepaper.spike:spike] config: generation 11 mode video video b-1080p30-h264.mp4 crossfade true
+2026-09-17 14:47:57.925 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 11 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:47:58.181 Df WallpaperAgent[72713:f03fa] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 14:47:58.181 Df WallpaperAgent[72713:f03fa] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 14:47:58.181 Df WallpaperAgent[72713:f03fa] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 14:47:59.241 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on b-1080p30-h264.mp4 (generation 11)
+2026-09-17 14:47:59.243 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on b-1080p30-h264.mp4 (generation 11)
+2026-09-17 14:48:04.303 Df launchd[1:f0659] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:48:04.303 Df launchd[1:f0659] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:48:04.308 Df Livepaper[74250:f0869] [app.livepaper.spike:spike] config: generation 12 mode video video a-1080p30-h264.mp4 crossfade true
+2026-09-17 14:48:04.309 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 12 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:04.567 Df WallpaperAgent[72713:f065e] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 14:48:04.567 Df WallpaperAgent[72713:f065e] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 14:48:04.567 Df WallpaperAgent[72713:f065e] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 14:48:05.582 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 12)
+2026-09-17 14:48:05.584 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 12)
+2026-09-17 14:48:10.734 Df launchd[1:f03f2] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:48:10.734 Df launchd[1:f03f2] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:48:10.910 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 13 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:10.910 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 13)
+2026-09-17 14:48:10.910 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 13)
+2026-09-17 14:48:10.955 Df WallpaperAgent[72713:f09f3] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 14:48:10.955 Df WallpaperAgent[72713:f09f3] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 14:48:10.955 Df WallpaperAgent[72713:f09f3] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 14:48:11.109 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 14 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:11.114 Df LivepaperExtension[72717:f091f] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on b-1080p30-h264.mp4 (generation 14)
+2026-09-17 14:48:11.114 Df LivepaperExtension[72717:f091e] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on b-1080p30-h264.mp4 (generation 14)
+2026-09-17 14:48:11.310 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 15 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:11.316 Df LivepaperExtension[72717:f03ef] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 15)
+2026-09-17 14:48:11.316 Df LivepaperExtension[72717:f0cac] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 15)
+2026-09-17 14:48:11.509 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 16 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:11.515 Df LivepaperExtension[72717:f03ef] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on b-1080p30-h264.mp4 (generation 16)
+2026-09-17 14:48:11.515 Df LivepaperExtension[72717:f0917] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on b-1080p30-h264.mp4 (generation 16)
+2026-09-17 14:48:11.710 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 17 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:11.716 Df LivepaperExtension[72717:f0917] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 17)
+2026-09-17 14:48:11.716 Df LivepaperExtension[72717:f0105] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 17)
+2026-09-17 14:48:11.910 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 18 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:11.915 Df LivepaperExtension[72717:f0105] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on b-1080p30-h264.mp4 (generation 18)
+2026-09-17 14:48:11.916 Df LivepaperExtension[72717:f0cab] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on b-1080p30-h264.mp4 (generation 18)
+2026-09-17 14:48:12.110 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 19 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:12.115 Df LivepaperExtension[72717:f0cb0] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 19)
+2026-09-17 14:48:12.116 Df LivepaperExtension[72717:f091e] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 19)
+2026-09-17 14:48:12.311 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 20 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:12.318 Df LivepaperExtension[72717:f03ef] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on b-1080p30-h264.mp4 (generation 20)
+2026-09-17 14:48:12.318 Df LivepaperExtension[72717:f0cb1] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on b-1080p30-h264.mp4 (generation 20)
+2026-09-17 14:48:12.510 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 21 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:12.516 Df LivepaperExtension[72717:f0cab] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 21)
+2026-09-17 14:48:12.516 Df LivepaperExtension[72717:f0cb1] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 21)
+2026-09-17 14:48:12.710 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 22 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:12.717 Df LivepaperExtension[72717:f091e] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on b-1080p30-h264.mp4 (generation 22)
+2026-09-17 14:48:12.717 Df LivepaperExtension[72717:f03ef] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on b-1080p30-h264.mp4 (generation 22)
+2026-09-17 14:48:12.910 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 23 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:12.914 Df LivepaperExtension[72717:f0cb0] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 23)
+2026-09-17 14:48:12.916 Df LivepaperExtension[72717:f0cb1] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 23)
+2026-09-17 14:48:13.110 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 24 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:13.115 Df LivepaperExtension[72717:f0cac] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on b-1080p30-h264.mp4 (generation 24)
+2026-09-17 14:48:13.115 Df LivepaperExtension[72717:f0cb1] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on b-1080p30-h264.mp4 (generation 24)
+2026-09-17 14:48:13.310 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 25 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:13.314 Df LivepaperExtension[72717:f091f] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 25)
+2026-09-17 14:48:13.316 Df LivepaperExtension[72717:f0cac] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 25)
+2026-09-17 14:48:13.510 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 26 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:13.515 Df LivepaperExtension[72717:f0cb0] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on b-1080p30-h264.mp4 (generation 26)
+2026-09-17 14:48:13.516 Df LivepaperExtension[72717:f091f] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on b-1080p30-h264.mp4 (generation 26)
+2026-09-17 14:48:13.708 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 27 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:13.715 Df LivepaperExtension[72717:f0cb0] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 27)
+2026-09-17 14:48:13.715 Df LivepaperExtension[72717:f0917] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 27)
+2026-09-17 14:48:13.909 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 28 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:13.913 Df LivepaperExtension[72717:f0cab] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on b-1080p30-h264.mp4 (generation 28)
+2026-09-17 14:48:13.914 Df LivepaperExtension[72717:f091e] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on b-1080p30-h264.mp4 (generation 28)
+2026-09-17 14:48:14.110 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 29 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:14.115 Df LivepaperExtension[72717:f03ef] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 29)
+2026-09-17 14:48:14.115 Df LivepaperExtension[72717:f091e] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 29)
+2026-09-17 14:48:14.308 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 30 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:14.314 Df LivepaperExtension[72717:f0cab] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on b-1080p30-h264.mp4 (generation 30)
+2026-09-17 14:48:14.314 Df LivepaperExtension[72717:f0cac] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on b-1080p30-h264.mp4 (generation 30)
+2026-09-17 14:48:14.508 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 31 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:14.513 Df LivepaperExtension[72717:f091f] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 31)
+2026-09-17 14:48:14.513 Df LivepaperExtension[72717:f0cab] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 31)
+2026-09-17 14:48:14.709 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 32 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:14.715 Df LivepaperExtension[72717:f0cab] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on b-1080p30-h264.mp4 (generation 32)
+2026-09-17 14:48:14.715 Df LivepaperExtension[72717:f0917] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on b-1080p30-h264.mp4 (generation 32)
+2026-09-17 14:48:14.909 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 33 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:14.915 Df LivepaperExtension[72717:f03ef] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 33)
+2026-09-17 14:48:14.916 Df LivepaperExtension[72717:f0917] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 33)
+2026-09-17 14:48:15.110 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 34 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:15.115 Df LivepaperExtension[72717:f0cb0] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on b-1080p30-h264.mp4 (generation 34)
+2026-09-17 14:48:15.117 Df LivepaperExtension[72717:f091e] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on b-1080p30-h264.mp4 (generation 34)
+2026-09-17 14:48:15.309 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 35 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:15.315 Df LivepaperExtension[72717:f03ef] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 35)
+2026-09-17 14:48:15.316 Df LivepaperExtension[72717:f0917] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 35)
+2026-09-17 14:48:15.511 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 36 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:15.515 Df LivepaperExtension[72717:f0cac] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on b-1080p30-h264.mp4 (generation 36)
+2026-09-17 14:48:15.516 Df LivepaperExtension[72717:f091e] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on b-1080p30-h264.mp4 (generation 36)
+2026-09-17 14:48:15.710 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 37 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:15.716 Df LivepaperExtension[72717:f0cab] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 37)
+2026-09-17 14:48:15.716 Df LivepaperExtension[72717:f0917] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 37)
+2026-09-17 14:48:15.910 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 38 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:15.916 Df LivepaperExtension[72717:f0cb1] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on b-1080p30-h264.mp4 (generation 38)
+2026-09-17 14:48:15.916 Df LivepaperExtension[72717:f091e] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on b-1080p30-h264.mp4 (generation 38)
+2026-09-17 14:48:16.110 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 39 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:16.115 Df LivepaperExtension[72717:f091e] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 39)
+2026-09-17 14:48:16.116 Df LivepaperExtension[72717:f0917] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 39)
+2026-09-17 14:48:16.310 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 40 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:16.316 Df LivepaperExtension[72717:f0cb1] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on b-1080p30-h264.mp4 (generation 40)
+2026-09-17 14:48:16.316 Df LivepaperExtension[72717:f0cb0] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on b-1080p30-h264.mp4 (generation 40)
+2026-09-17 14:48:16.510 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 41 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:16.516 Df LivepaperExtension[72717:f0cb1] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 41)
+2026-09-17 14:48:16.516 Df LivepaperExtension[72717:f0105] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 41)
+2026-09-17 14:48:16.710 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 42 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:16.715 Df LivepaperExtension[72717:f03eb] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on b-1080p30-h264.mp4 (generation 42)
+2026-09-17 14:48:16.717 Df LivepaperExtension[72717:f0cb2] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on b-1080p30-h264.mp4 (generation 42)
+2026-09-17 14:48:16.910 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 43 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:16.916 Df LivepaperExtension[72717:f03eb] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 43)
+2026-09-17 14:48:16.917 Df LivepaperExtension[72717:f091e] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 43)
+2026-09-17 14:48:17.110 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 44 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:17.116 Df LivepaperExtension[72717:f0cb0] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on b-1080p30-h264.mp4 (generation 44)
+2026-09-17 14:48:17.116 Df LivepaperExtension[72717:f0cb1] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on b-1080p30-h264.mp4 (generation 44)
+2026-09-17 14:48:17.309 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 45 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:17.314 Df LivepaperExtension[72717:f03eb] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 45)
+2026-09-17 14:48:17.317 Df LivepaperExtension[72717:f0cb1] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 45)
+2026-09-17 14:48:17.509 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 46 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:17.515 Df LivepaperExtension[72717:f0cb1] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on b-1080p30-h264.mp4 (generation 46)
+2026-09-17 14:48:17.515 Df LivepaperExtension[72717:f0cae] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on b-1080p30-h264.mp4 (generation 46)
+2026-09-17 14:48:17.710 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 47 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:17.716 Df LivepaperExtension[72717:f03ef] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 47)
+2026-09-17 14:48:17.716 Df LivepaperExtension[72717:f0cb0] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 47)
+2026-09-17 14:48:17.910 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 48 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:17.916 Df LivepaperExtension[72717:f0cac] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on b-1080p30-h264.mp4 (generation 48)
+2026-09-17 14:48:17.916 Df LivepaperExtension[72717:f0cb2] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on b-1080p30-h264.mp4 (generation 48)
+2026-09-17 14:48:18.110 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 49 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:18.115 Df LivepaperExtension[72717:f03ef] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 49)
+2026-09-17 14:48:18.116 Df LivepaperExtension[72717:f0cac] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 49)
+2026-09-17 14:48:18.310 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 50 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:18.314 Df LivepaperExtension[72717:f0cac] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on b-1080p30-h264.mp4 (generation 50)
+2026-09-17 14:48:18.315 Df LivepaperExtension[72717:f0cb2] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on b-1080p30-h264.mp4 (generation 50)
+2026-09-17 14:48:18.510 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 51 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:18.515 Df LivepaperExtension[72717:f0cb2] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 51)
+2026-09-17 14:48:18.515 Df LivepaperExtension[72717:f0cb0] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 51)
+2026-09-17 14:48:18.710 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 52 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:18.715 Df LivepaperExtension[72717:f0105] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on b-1080p30-h264.mp4 (generation 52)
+2026-09-17 14:48:18.715 Df LivepaperExtension[72717:f0917] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on b-1080p30-h264.mp4 (generation 52)
+2026-09-17 14:48:18.910 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 53 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:18.915 Df LivepaperExtension[72717:f0105] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 53)
+2026-09-17 14:48:18.915 Df LivepaperExtension[72717:f0cac] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 53)
+2026-09-17 14:48:19.109 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 54 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:19.113 Df LivepaperExtension[72717:f03ef] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on b-1080p30-h264.mp4 (generation 54)
+2026-09-17 14:48:19.113 Df LivepaperExtension[72717:f0cac] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on b-1080p30-h264.mp4 (generation 54)
+2026-09-17 14:48:19.308 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 55 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:19.313 Df LivepaperExtension[72717:f03eb] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 55)
+2026-09-17 14:48:19.313 Df LivepaperExtension[72717:f091f] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 55)
+2026-09-17 14:48:19.507 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 56 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:19.512 Df LivepaperExtension[72717:f091e] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on b-1080p30-h264.mp4 (generation 56)
+2026-09-17 14:48:19.513 Df LivepaperExtension[72717:f0cae] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on b-1080p30-h264.mp4 (generation 56)
+2026-09-17 14:48:19.709 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 57 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:19.715 Df LivepaperExtension[72717:f091f] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 57)
+2026-09-17 14:48:19.715 Df LivepaperExtension[72717:f0917] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 57)
+2026-09-17 14:48:19.909 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 58 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:19.913 Df LivepaperExtension[72717:f03eb] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on b-1080p30-h264.mp4 (generation 58)
+2026-09-17 14:48:19.913 Df LivepaperExtension[72717:f0cb2] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on b-1080p30-h264.mp4 (generation 58)
+2026-09-17 14:48:20.110 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 59 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:20.116 Df LivepaperExtension[72717:f0105] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 59)
+2026-09-17 14:48:20.116 Df LivepaperExtension[72717:f0cac] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 59)
+2026-09-17 14:48:20.310 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 60 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:20.315 Df LivepaperExtension[72717:f0cac] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on b-1080p30-h264.mp4 (generation 60)
+2026-09-17 14:48:20.315 Df LivepaperExtension[72717:f0105] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on b-1080p30-h264.mp4 (generation 60)
+2026-09-17 14:48:20.510 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 61 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:20.516 Df LivepaperExtension[72717:f0917] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on a-1080p30-h264.mp4 (generation 61)
+2026-09-17 14:48:20.517 Df LivepaperExtension[72717:f091f] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on a-1080p30-h264.mp4 (generation 61)
+2026-09-17 14:48:20.709 Df Livepaper[74634:f0c31] [app.livepaper.spike:spike] s7: sent 50 switches in 10.0 s; last was generation 62 -> b-1080p30-h264.mp4
+2026-09-17 14:48:20.709 Df LivepaperExtension[72717:ef689] [app.livepaper.spike:spike] extension: config generation 62 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:48:20.714 Df LivepaperExtension[72717:f0105] [app.livepaper.spike:spike] extension: surface CBC09EEC-899C-4B4B-BADF-A5DF180272F8 display 1 now on b-1080p30-h264.mp4 (generation 62)
+2026-09-17 14:48:20.715 Df LivepaperExtension[72717:f0cae] [app.livepaper.spike:spike] extension: surface C3BB61B1-DB37-4CB9-9535-52368C973E58 display 1 now on b-1080p30-h264.mp4 (generation 62)
+2026-09-17 14:48:27.008 Df Livepaper[74634:f0c31] [app.livepaper.spike:spike] s7: extension reports generation 62: PASS, ended on the last request  (check `log show` for the 'now on' line too)
+2026-09-17 14:49:01.005 E  WallpaperAgent[72713:f1e13] [com.apple.extensionkit:discovery] Extension is not entitled to run in the App Sandbox : <_EXExtensionIdentity: 0x771ac483f0>
+2026-09-17 14:49:01.166 Df launchd[1:f20f8] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:49:01.166 Df launchd[1:f20f8] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:49:01.298 Df launchd[1:f20fb] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:49:01.298 Df launchd[1:f20fb] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:49:01.318 Df launchd[1:f20f8] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:49:01.318 Df launchd[1:f20f8] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:49:01.376 Df launchd[1:f20fb] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:49:01.376 Df launchd[1:f20fb] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:49:01.402 Df launchd[1:f20fb] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:49:01.402 Df launchd[1:f20fb] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:49:01.414 I  amfid[373:efb71] Entering OSX path for /Applications/Livepaper.app/Contents/MacOS/Livepaper
+2026-09-17 14:49:01.434 Df WallpaperAgent[72713:f14d4] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 14:49:01.434 Df WallpaperAgent[72713:f14d4] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 14:49:01.434 Df WallpaperAgent[72713:f14d4] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 14:49:01.547 E  taskgated-helper[76871:f24ee] [com.apple.ManagedClient:ProvisioningProfiles] Disallowing: app.livepaper.spike
+2026-09-17 14:49:01.548 Df amfid[373:efb71] /Applications/Livepaper.app/Contents/MacOS/Livepaper not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file:///Applications/Livepaper.app/Contents/MacOS/Livepaper, NSLocalizedDescription=The file is adhoc signed or signed by an unknown certificate chain}
+2026-09-17 14:49:05.645 Df launchd[1:f20fb] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:49:05.645 Df launchd[1:f20fb] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:49:05.654 Df Livepaper[77128:f273c] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 14:49:05.751 Df WallpaperAgent[77131:f2769] [com.apple.wallpaper:catalog] Found 12 Wallpaper extensions at initialization time
+2026-09-17 14:49:05.751 Df WallpaperAgent[77131:f277a] [com.apple.wallpaper:catalog] Notifying about 12 new Wallpaper extensions
+2026-09-17 14:49:05.751 Df WallpaperAgent[77131:f2769] [com.apple.wallpaper:export-controller] Successfully read existing exported wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>'
+2026-09-17 14:49:05.753 Df WallpaperAgent[77131:f2775] [com.apple.wallpaper:catalog] 68E45D6A: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:49:05.755 Df WallpaperAgent[77131:f2779] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 14:49:05.755 Df WallpaperAgent[77131:f2779] [com.apple.wallpaper:extension-proxy] 15E054F7: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:49:05.755 Df WallpaperAgent[77131:f277a] [com.apple.wallpaper:extension-proxy] 2BBD9B43: BEGIN - [app.livepaper.spike.extension] connect
+2026-09-17 14:49:05.768 Df WallpaperAgent[77131:f277a] [com.apple.extensionkit:launch] Launching process with config: identity: RecordIdentity(record: ExtensionFoundation.Database._ExtensionRecord(lsRecord: <LSApplicationExtensionRecord 0x7960c2dda0> { bundleID: app.livepaper.spike.extension, URL: file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/, super: <LSApplicati
+2026-09-17 14:49:05.773 I  amfid[373:efb71] Entering OSX path for /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/LivepaperExtension
+2026-09-17 14:49:05.796 E  taskgated-helper[76871:f24ee] [com.apple.ManagedClient:ProvisioningProfiles] Disallowing: app.livepaper.spike.extension
+2026-09-17 14:49:05.797 Df amfid[373:efb71] /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/LivepaperExtension not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/Livep
+2026-09-17 14:49:05.798 Df WallpaperAgent[77131:f277a] [com.apple.wallpaper:extension-proxy] 2BBD9B43: END - [app.livepaper.spike.extension] connect
+2026-09-17 14:49:05.809 Df LivepaperExtension[77135:f278c] [app.livepaper.spike:spike] extension: INIT pid 77135 build 20260917144855 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 14:49:05.809 Df LivepaperExtension[77135:f278c] [app.livepaper.spike:spike] bridge: WallpaperExtensionKit loaded, all 15 payload classes present
+2026-09-17 14:49:05.809 Df LivepaperExtension[77135:f278c] [app.livepaper.spike:spike] s1: NSHomeDirectory = ~/Library/Containers/app.livepaper.spike.extension/Data; real home = ~
+2026-09-17 14:49:05.810 Df LivepaperExtension[77135:f278c] [app.livepaper.spike:spike] s1: location a (Application Support + exception): READABLE, 8 entries, config 79 bytes
+2026-09-17 14:49:05.810 Df LivepaperExtension[77135:f278c] [app.livepaper.spike:spike] s1: location b (own container): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 14:49:05.826 Df LivepaperExtension[77135:f2795] [app.livepaper.spike:spike] extension: accepted connection from pid 77131
+2026-09-17 14:49:05.827 Df LivepaperExtension[77135:f278c] [app.livepaper.spike:spike] extension: config generation 62 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:49:05.830 Df LivepaperExtension[77135:f278c] [app.livepaper.spike:spike] extension: ACQUIRE new surface 7D7AE640-91A9-40D9-BDA9-9059D6811F93 ctx 3026377724 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview true pid 77131 (1 surfaces)
+2026-09-17 14:49:05.885 Df LivepaperExtension[77135:f278c] [app.livepaper.spike:spike] extension: surface 7D7AE640-91A9-40D9-BDA9-9059D6811F93 display 1 now on b-1080p30-h264.mp4 (generation 62)
+2026-09-17 14:49:05.885 Df WallpaperAgent[77131:f2779] [com.apple.wallpaper:extension-proxy] 15E054F7: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:49:05.885 Df WallpaperAgent[77131:f2779] [com.apple.wallpaper:extension] Scheduling disconnection for 5 minutes from now for app.livepaper.spike.extension
+2026-09-17 14:49:05.885 Df WallpaperAgent[77131:f2779] [com.apple.wallpaper:catalog] 68E45D6A: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:49:05.887 Df WallpaperAgent[77131:f277a] [com.apple.wallpaper:catalog] 13273180: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:49:05.887 Df WallpaperAgent[77131:f277a] [com.apple.wallpaper:extension-proxy] 2BA39442: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:49:05.889 Df LivepaperExtension[77135:f278c] [app.livepaper.spike:spike] extension: ACQUIRE new surface 0474B5AF-3153-4D3C-8CB1-E87A68DB731D ctx 1035838068 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview false pid 77131 (2 surfaces)
+2026-09-17 14:49:05.898 Df LivepaperExtension[77135:f278c] [app.livepaper.spike:spike] extension: surface 0474B5AF-3153-4D3C-8CB1-E87A68DB731D display 1 now on b-1080p30-h264.mp4 (generation 62)
+2026-09-17 14:49:05.898 Df WallpaperAgent[77131:f2775] [com.apple.wallpaper:extension-proxy] 2BA39442: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:49:05.898 Df WallpaperAgent[77131:f2779] [com.apple.wallpaper:catalog] 13273180: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:49:16.769 Df launchd[1:f2393] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:49:16.769 Df launchd[1:f2393] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:49:16.779 Df WallpaperAgent[77131:f277a] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 14:49:16.787 Df WallpaperAgent[77131:f277a] [com.apple.wallpaper:extension-proxy] onInterruption handler called for app.livepaper.spike.extension
+2026-09-17 14:49:17.035 Df WallpaperAgent[77131:f2769] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 14:49:17.035 Df WallpaperAgent[77131:f2769] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 14:49:17.035 Df WallpaperAgent[77131:f2769] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 14:49:26.776 Df Livepaper[77529:f2dbb] [app.livepaper.spike:spike] s7: sent 50 switches in 10.0 s; last was generation 112 -> b-1080p30-h264.mp4
+2026-09-17 14:49:33.074 Df Livepaper[77529:f2dbb] [app.livepaper.spike:spike] s7: extension reports generation 62: FAIL  (check `log show` for the 'now on' line too)
+2026-09-17 14:49:33.158 Df launchd[1:f33d4] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:49:33.158 Df launchd[1:f33d4] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:49:33.414 Df WallpaperAgent[77131:f2e30] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 14:49:33.414 Df WallpaperAgent[77131:f2e30] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 14:49:33.414 Df WallpaperAgent[77131:f2e30] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 14:49:37.432 Df WallpaperAgent[78425:f3636] [com.apple.wallpaper:export-controller] Successfully read existing exported wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>'
+2026-09-17 14:49:37.434 E  WallpaperAgent[78425:f3636] [com.apple.wallpaper:assetManager] Could not find translator for: app.livepaper.spike.extension; eagerly assuming it's an extension with the same identifier
+2026-09-17 14:49:37.434 Df WallpaperAgent[78425:f362f] [com.apple.wallpaper:catalog] Found 12 Wallpaper extensions at initialization time
+2026-09-17 14:49:37.434 Df WallpaperAgent[78425:f362e] [com.apple.wallpaper:catalog] 7E03EE7A: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:49:37.434 Df WallpaperAgent[78425:f362e] [com.apple.wallpaper:catalog] Notifying about 12 new Wallpaper extensions
+2026-09-17 14:49:37.438 Df WallpaperAgent[78425:f3633] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 14:49:37.438 Df WallpaperAgent[78425:f3633] [com.apple.wallpaper:extension-proxy] 62DCB70C: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:49:37.438 Df WallpaperAgent[78425:f3633] [com.apple.wallpaper:extension-proxy] B5E4AEB1: BEGIN - [app.livepaper.spike.extension] connect
+2026-09-17 14:49:37.452 Df WallpaperAgent[78425:f3636] [com.apple.extensionkit:launch] Launching process with config: identity: RecordIdentity(record: ExtensionFoundation.Database._ExtensionRecord(lsRecord: <LSApplicationExtensionRecord 0x79a8c2dda0> { bundleID: app.livepaper.spike.extension, URL: file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/, super: <LSApplicati
+2026-09-17 14:49:37.459 Df WallpaperAgent[78425:f3636] [com.apple.wallpaper:extension-proxy] B5E4AEB1: END - [app.livepaper.spike.extension] connect
+2026-09-17 14:49:37.470 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: INIT pid 78431 build 20260917144855 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 14:49:37.470 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] bridge: WallpaperExtensionKit loaded, all 15 payload classes present
+2026-09-17 14:49:37.470 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] s1: NSHomeDirectory = ~/Library/Containers/app.livepaper.spike.extension/Data; real home = ~
+2026-09-17 14:49:37.471 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] s1: location a (Application Support + exception): READABLE, 8 entries, config 80 bytes
+2026-09-17 14:49:37.471 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] s1: location b (own container): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 14:49:37.488 Df LivepaperExtension[78431:f364b] [app.livepaper.spike:spike] extension: accepted connection from pid 78425
+2026-09-17 14:49:37.489 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 112 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:49:37.494 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: ACQUIRE new surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 ctx 3489952925 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview false pid 78425 (1 surfaces)
+2026-09-17 14:49:37.555 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 112)
+2026-09-17 14:49:37.555 Df WallpaperAgent[78425:f3631] [com.apple.wallpaper:extension-proxy] 62DCB70C: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:49:37.555 Df WallpaperAgent[78425:f3631] [com.apple.wallpaper:extension] Scheduling disconnection for 5 minutes from now for app.livepaper.spike.extension
+2026-09-17 14:49:37.555 Df WallpaperAgent[78425:f3631] [com.apple.wallpaper:catalog] 7E03EE7A: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:49:37.557 Df WallpaperAgent[78425:f3636] [com.apple.wallpaper:catalog] A18C683D: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:49:37.557 Df WallpaperAgent[78425:f3636] [com.apple.wallpaper:extension-proxy] 56E6F944: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:49:37.559 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: ACQUIRE new surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA ctx 696425355 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview true pid 78425 (2 surfaces)
+2026-09-17 14:49:37.567 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 112)
+2026-09-17 14:49:37.567 Df WallpaperAgent[78425:f3634] [com.apple.wallpaper:extension-proxy] 56E6F944: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:49:37.567 Df WallpaperAgent[78425:f3633] [com.apple.wallpaper:catalog] A18C683D: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:50:20.698 Df launchd[1:f3bb5] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:50:20.698 Df launchd[1:f3bb5] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:50:20.886 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 113 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:20.890 Df LivepaperExtension[78431:f3656] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 113)
+2026-09-17 14:50:20.890 Df LivepaperExtension[78431:f39c8] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 113)
+2026-09-17 14:50:20.944 Df WallpaperAgent[78425:f3a39] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 14:50:20.944 Df WallpaperAgent[78425:f3a39] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 14:50:20.944 Df WallpaperAgent[78425:f3a39] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 14:50:21.085 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 114 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:21.088 Df LivepaperExtension[78431:f3660] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 114)
+2026-09-17 14:50:21.088 Df LivepaperExtension[78431:f49ce] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 114)
+2026-09-17 14:50:21.286 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 115 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:21.290 Df LivepaperExtension[78431:f49ce] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 115)
+2026-09-17 14:50:21.290 Df LivepaperExtension[78431:f49d2] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 115)
+2026-09-17 14:50:21.486 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 116 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:21.490 Df LivepaperExtension[78431:f49d0] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 116)
+2026-09-17 14:50:21.490 Df LivepaperExtension[78431:f49ce] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 116)
+2026-09-17 14:50:21.687 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 117 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:21.691 Df LivepaperExtension[78431:f39c8] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 117)
+2026-09-17 14:50:21.691 Df LivepaperExtension[78431:f3656] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 117)
+2026-09-17 14:50:21.886 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 118 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:21.889 Df LivepaperExtension[78431:f49d0] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 118)
+2026-09-17 14:50:21.890 Df LivepaperExtension[78431:f3660] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 118)
+2026-09-17 14:50:22.086 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 119 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:22.090 Df LivepaperExtension[78431:f3663] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 119)
+2026-09-17 14:50:22.090 Df LivepaperExtension[78431:f49ce] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 119)
+2026-09-17 14:50:22.287 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 120 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:22.290 Df LivepaperExtension[78431:f3663] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 120)
+2026-09-17 14:50:22.291 Df LivepaperExtension[78431:f49bf] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 120)
+2026-09-17 14:50:22.487 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 121 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:22.491 Df LivepaperExtension[78431:f49cd] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 121)
+2026-09-17 14:50:22.491 Df LivepaperExtension[78431:f3656] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 121)
+2026-09-17 14:50:22.685 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 122 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:22.689 Df LivepaperExtension[78431:f49cd] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 122)
+2026-09-17 14:50:22.689 Df LivepaperExtension[78431:f364b] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 122)
+2026-09-17 14:50:22.885 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 123 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:22.889 Df LivepaperExtension[78431:f39c8] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 123)
+2026-09-17 14:50:22.889 Df LivepaperExtension[78431:f49ce] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 123)
+2026-09-17 14:50:23.087 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 124 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:23.091 Df LivepaperExtension[78431:f49d2] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 124)
+2026-09-17 14:50:23.091 Df LivepaperExtension[78431:f3656] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 124)
+2026-09-17 14:50:23.287 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 125 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:23.291 Df LivepaperExtension[78431:f3663] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 125)
+2026-09-17 14:50:23.291 Df LivepaperExtension[78431:f3660] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 125)
+2026-09-17 14:50:23.486 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 126 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:23.490 Df LivepaperExtension[78431:f3663] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 126)
+2026-09-17 14:50:23.490 Df LivepaperExtension[78431:f49cd] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 126)
+2026-09-17 14:50:23.687 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 127 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:23.690 Df LivepaperExtension[78431:f3660] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 127)
+2026-09-17 14:50:23.690 Df LivepaperExtension[78431:f3663] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 127)
+2026-09-17 14:50:23.887 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 128 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:23.891 Df LivepaperExtension[78431:f49bf] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 128)
+2026-09-17 14:50:23.891 Df LivepaperExtension[78431:f3656] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 128)
+2026-09-17 14:50:24.087 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 129 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:24.091 Df LivepaperExtension[78431:f3656] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 129)
+2026-09-17 14:50:24.091 Df LivepaperExtension[78431:f49d2] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 129)
+2026-09-17 14:50:24.286 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 130 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:24.289 Df LivepaperExtension[78431:f3656] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 130)
+2026-09-17 14:50:24.289 Df LivepaperExtension[78431:f39c8] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 130)
+2026-09-17 14:50:24.485 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 131 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:24.489 Df LivepaperExtension[78431:f49d2] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 131)
+2026-09-17 14:50:24.489 Df LivepaperExtension[78431:f49bf] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 131)
+2026-09-17 14:50:24.685 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 132 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:24.688 Df LivepaperExtension[78431:f49bf] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 132)
+2026-09-17 14:50:24.689 Df LivepaperExtension[78431:f3663] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 132)
+2026-09-17 14:50:24.885 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 133 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:24.888 Df LivepaperExtension[78431:f49d0] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 133)
+2026-09-17 14:50:24.888 Df LivepaperExtension[78431:f49bf] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 133)
+2026-09-17 14:50:25.086 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 134 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:25.090 Df LivepaperExtension[78431:f3660] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 134)
+2026-09-17 14:50:25.090 Df LivepaperExtension[78431:f49cd] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 134)
+2026-09-17 14:50:25.287 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 135 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:25.290 Df LivepaperExtension[78431:f3660] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 135)
+2026-09-17 14:50:25.291 Df LivepaperExtension[78431:f49ce] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 135)
+2026-09-17 14:50:25.486 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 136 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:25.489 Df LivepaperExtension[78431:f3660] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 136)
+2026-09-17 14:50:25.490 Df LivepaperExtension[78431:f49d0] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 136)
+2026-09-17 14:50:25.687 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 137 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:25.690 Df LivepaperExtension[78431:f49cd] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 137)
+2026-09-17 14:50:25.690 Df LivepaperExtension[78431:f4a0d] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 137)
+2026-09-17 14:50:25.886 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 138 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:25.890 Df LivepaperExtension[78431:f4a0d] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 138)
+2026-09-17 14:50:25.890 Df LivepaperExtension[78431:f3660] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 138)
+2026-09-17 14:50:26.086 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 139 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:26.090 Df LivepaperExtension[78431:f3660] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 139)
+2026-09-17 14:50:26.090 Df LivepaperExtension[78431:f3663] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 139)
+2026-09-17 14:50:26.285 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 140 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:26.290 Df LivepaperExtension[78431:f49cd] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 140)
+2026-09-17 14:50:26.290 Df LivepaperExtension[78431:f3656] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 140)
+2026-09-17 14:50:26.486 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 141 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:26.489 Df LivepaperExtension[78431:f4a0d] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 141)
+2026-09-17 14:50:26.489 Df LivepaperExtension[78431:f49d2] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 141)
+2026-09-17 14:50:26.686 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 142 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:26.690 Df LivepaperExtension[78431:f39c8] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 142)
+2026-09-17 14:50:26.690 Df LivepaperExtension[78431:f4a0d] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 142)
+2026-09-17 14:50:26.886 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 143 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:26.890 Df LivepaperExtension[78431:f39c8] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 143)
+2026-09-17 14:50:26.890 Df LivepaperExtension[78431:f49ce] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 143)
+2026-09-17 14:50:27.086 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 144 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:27.090 Df LivepaperExtension[78431:f364b] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 144)
+2026-09-17 14:50:27.091 Df LivepaperExtension[78431:f49d0] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 144)
+2026-09-17 14:50:27.287 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 145 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:27.291 Df LivepaperExtension[78431:f49bf] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 145)
+2026-09-17 14:50:27.291 Df LivepaperExtension[78431:f4a0d] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 145)
+2026-09-17 14:50:27.486 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 146 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:27.489 Df LivepaperExtension[78431:f49d0] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 146)
+2026-09-17 14:50:27.489 Df LivepaperExtension[78431:f39c8] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 146)
+2026-09-17 14:50:27.686 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 147 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:27.690 Df LivepaperExtension[78431:f39c8] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 147)
+2026-09-17 14:50:27.690 Df LivepaperExtension[78431:f49d2] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 147)
+2026-09-17 14:50:27.887 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 148 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:27.891 Df LivepaperExtension[78431:f49bf] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 148)
+2026-09-17 14:50:27.891 Df LivepaperExtension[78431:f39c8] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 148)
+2026-09-17 14:50:28.086 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 149 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:28.091 Df LivepaperExtension[78431:f364b] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 149)
+2026-09-17 14:50:28.091 Df LivepaperExtension[78431:f49d2] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 149)
+2026-09-17 14:50:28.287 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 150 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:28.291 Df LivepaperExtension[78431:f39c8] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 150)
+2026-09-17 14:50:28.291 Df LivepaperExtension[78431:f49d2] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 150)
+2026-09-17 14:50:28.486 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 151 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:28.490 Df LivepaperExtension[78431:f49ce] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 151)
+2026-09-17 14:50:28.490 Df LivepaperExtension[78431:f3660] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 151)
+2026-09-17 14:50:28.687 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 152 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:28.691 Df LivepaperExtension[78431:f3656] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 152)
+2026-09-17 14:50:28.691 Df LivepaperExtension[78431:f4a0d] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 152)
+2026-09-17 14:50:28.887 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 153 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:28.890 Df LivepaperExtension[78431:f364b] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 153)
+2026-09-17 14:50:28.890 Df LivepaperExtension[78431:f3656] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 153)
+2026-09-17 14:50:29.087 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 154 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:29.091 Df LivepaperExtension[78431:f3656] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 154)
+2026-09-17 14:50:29.091 Df LivepaperExtension[78431:f3660] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 154)
+2026-09-17 14:50:29.286 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 155 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:29.291 Df LivepaperExtension[78431:f3656] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 155)
+2026-09-17 14:50:29.291 Df LivepaperExtension[78431:f3663] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 155)
+2026-09-17 14:50:29.485 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 156 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:29.489 Df LivepaperExtension[78431:f49bf] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 156)
+2026-09-17 14:50:29.489 Df LivepaperExtension[78431:f4a0d] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 156)
+2026-09-17 14:50:29.685 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 157 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:29.689 Df LivepaperExtension[78431:f3663] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 157)
+2026-09-17 14:50:29.689 Df LivepaperExtension[78431:f49ce] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 157)
+2026-09-17 14:50:29.885 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 158 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:29.888 Df LivepaperExtension[78431:f39c8] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 158)
+2026-09-17 14:50:29.888 Df LivepaperExtension[78431:f364b] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 158)
+2026-09-17 14:50:30.086 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 159 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:30.089 Df LivepaperExtension[78431:f39c8] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 159)
+2026-09-17 14:50:30.090 Df LivepaperExtension[78431:f3656] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 159)
+2026-09-17 14:50:30.287 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 160 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:30.291 Df LivepaperExtension[78431:f4a0d] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 160)
+2026-09-17 14:50:30.291 Df LivepaperExtension[78431:f3660] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 160)
+2026-09-17 14:50:30.487 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 161 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:30.491 Df LivepaperExtension[78431:f3663] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 161)
+2026-09-17 14:50:30.491 Df LivepaperExtension[78431:f364b] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 161)
+2026-09-17 14:50:30.686 Df Livepaper[80377:f494b] [app.livepaper.spike:spike] s7: sent 50 switches in 10.0 s; last was generation 162 -> b-1080p30-h264.mp4
+2026-09-17 14:50:30.687 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 162 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:30.691 Df LivepaperExtension[78431:f3660] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 162)
+2026-09-17 14:50:30.691 Df LivepaperExtension[78431:f4a0d] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 162)
+2026-09-17 14:50:36.986 Df Livepaper[80377:f494b] [app.livepaper.spike:spike] s7: extension reports generation 162: PASS, ended on the last request  (check `log show` for the 'now on' line too)
+2026-09-17 14:50:37.072 Df launchd[1:f50b0] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:50:37.072 Df launchd[1:f50b0] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:50:37.330 Df WallpaperAgent[78425:f49ca] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 14:50:37.330 Df WallpaperAgent[78425:f49ca] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 14:50:37.330 Df WallpaperAgent[78425:f49ca] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 14:50:39.074 Df LivepaperExtension[78431:f3663] [app.livepaper.spike:spike] s4: after check request: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 on b-1080p30-h264.mp4 showed 61 new pictures in 2 s: PASS
+2026-09-17 14:50:39.074 Df LivepaperExtension[78431:f49bf] [app.livepaper.spike:spike] s4: after check request: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 on b-1080p30-h264.mp4 showed 3 new pictures in 2 s: FAIL
+2026-09-17 14:51:02.650 E  WallpaperAgent[78425:f516a] [com.apple.extensionkit:discovery] Extension is not entitled to run in the App Sandbox : <_EXExtensionIdentity: 0x79a8c48a20>
+2026-09-17 14:51:02.809 Df launchd[1:f5bf5] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:51:02.809 Df launchd[1:f5bf5] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:51:02.883 Df launchd[1:f5bf5] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:51:02.884 Df launchd[1:f5bf5] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:51:03.027 I  amfid[373:f5271] Entering OSX path for /Applications/Livepaper.app/Contents/MacOS/Livepaper
+2026-09-17 14:51:03.081 Df WallpaperAgent[78425:f537e] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 14:51:03.081 Df WallpaperAgent[78425:f537e] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 14:51:03.081 Df WallpaperAgent[78425:f537e] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 14:51:03.122 E  taskgated-helper[76871:f4607] [com.apple.ManagedClient:ProvisioningProfiles] Disallowing: app.livepaper.spike
+2026-09-17 14:51:03.122 Df amfid[373:f5271] /Applications/Livepaper.app/Contents/MacOS/Livepaper not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file:///Applications/Livepaper.app/Contents/MacOS/Livepaper, NSLocalizedDescription=The file is adhoc signed or signed by an unknown certificate chain}
+2026-09-17 14:51:07.258 Df WallpaperAgent[82411:f619d] [com.apple.wallpaper:export-controller] Successfully read existing exported wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>'
+2026-09-17 14:51:07.260 Df WallpaperAgent[82411:f6193] [com.apple.wallpaper:catalog] Found 12 Wallpaper extensions at initialization time
+2026-09-17 14:51:07.260 Df WallpaperAgent[82411:f619a] [com.apple.wallpaper:catalog] Notifying about 12 new Wallpaper extensions
+2026-09-17 14:51:07.260 E  WallpaperAgent[82411:f619b] [com.apple.wallpaper:assetManager] Could not find translator for: app.livepaper.spike.extension; eagerly assuming it's an extension with the same identifier
+2026-09-17 14:51:07.260 Df WallpaperAgent[82411:f619b] [com.apple.wallpaper:catalog] 47F45244: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:51:07.263 Df WallpaperAgent[82411:f619d] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 14:51:07.263 Df WallpaperAgent[82411:f6198] [com.apple.wallpaper:extension-proxy] 045522AB: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:51:07.263 Df WallpaperAgent[82411:f6198] [com.apple.wallpaper:extension-proxy] 23F2DE23: BEGIN - [app.livepaper.spike.extension] connect
+2026-09-17 14:51:07.275 Df WallpaperAgent[82411:f6198] [com.apple.extensionkit:launch] Launching process with config: identity: RecordIdentity(record: ExtensionFoundation.Database._ExtensionRecord(lsRecord: <LSApplicationExtensionRecord 0x7952c2dc80> { bundleID: app.livepaper.spike.extension, URL: file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/, super: <LSApplicati
+2026-09-17 14:51:07.280 I  amfid[373:f5271] Entering OSX path for /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/LivepaperExtension
+2026-09-17 14:51:07.303 E  taskgated-helper[76871:f4607] [com.apple.ManagedClient:ProvisioningProfiles] Disallowing: app.livepaper.spike.extension
+2026-09-17 14:51:07.303 Df amfid[373:f5271] /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/LivepaperExtension not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/Livep
+2026-09-17 14:51:07.304 Df WallpaperAgent[82411:f619b] [com.apple.wallpaper:extension-proxy] 23F2DE23: END - [app.livepaper.spike.extension] connect
+2026-09-17 14:51:07.315 Df LivepaperExtension[82417:f61ad] [app.livepaper.spike:spike] extension: INIT pid 82417 build 20260917145059 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 14:51:07.316 Df LivepaperExtension[82417:f61ad] [app.livepaper.spike:spike] bridge: WallpaperExtensionKit loaded, all 15 payload classes present
+2026-09-17 14:51:07.316 Df LivepaperExtension[82417:f61ad] [app.livepaper.spike:spike] s1: NSHomeDirectory = ~/Library/Containers/app.livepaper.spike.extension/Data; real home = ~
+2026-09-17 14:51:07.316 Df LivepaperExtension[82417:f61ad] [app.livepaper.spike:spike] s1: location a (Application Support + exception): READABLE, 8 entries, config 80 bytes
+2026-09-17 14:51:07.316 Df LivepaperExtension[82417:f61ad] [app.livepaper.spike:spike] s1: location b (own container): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 14:51:07.330 Df LivepaperExtension[82417:f61b9] [app.livepaper.spike:spike] extension: accepted connection from pid 82411
+2026-09-17 14:51:07.331 Df LivepaperExtension[82417:f61ad] [app.livepaper.spike:spike] extension: config generation 162 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:51:07.334 Df LivepaperExtension[82417:f61ad] [app.livepaper.spike:spike] extension: ACQUIRE new surface CF75048A-0931-4FE5-B430-ED344C1A1E52 ctx 4226312383 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview false pid 82411 (1 surfaces)
+2026-09-17 14:51:07.393 Df LivepaperExtension[82417:f61ad] [app.livepaper.spike:spike] extension: surface CF75048A-0931-4FE5-B430-ED344C1A1E52 display 1 now on b-1080p30-h264.mp4 (generation 162)
+2026-09-17 14:51:07.393 Df WallpaperAgent[82411:f619e] [com.apple.wallpaper:extension-proxy] 045522AB: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:51:07.393 Df WallpaperAgent[82411:f619e] [com.apple.wallpaper:extension] Scheduling disconnection for 5 minutes from now for app.livepaper.spike.extension
+2026-09-17 14:51:07.393 Df WallpaperAgent[82411:f6198] [com.apple.wallpaper:catalog] 47F45244: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:51:07.397 Df WallpaperAgent[82411:f619b] [com.apple.wallpaper:catalog] 4DEC08F9: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:51:07.397 Df WallpaperAgent[82411:f619b] [com.apple.wallpaper:extension-proxy] 83ED6FB9: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:51:07.398 Df LivepaperExtension[82417:f61ad] [app.livepaper.spike:spike] extension: ACQUIRE new surface A9749F37-E5E0-40E7-A7B4-44791D8D7151 ctx 3112382356 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview true pid 82411 (2 surfaces)
+2026-09-17 14:51:07.405 Df LivepaperExtension[82417:f61ad] [app.livepaper.spike:spike] extension: surface A9749F37-E5E0-40E7-A7B4-44791D8D7151 display 1 now on b-1080p30-h264.mp4 (generation 162)
+2026-09-17 14:51:07.405 Df WallpaperAgent[82411:f6191] [com.apple.wallpaper:extension-proxy] 83ED6FB9: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:51:07.406 Df WallpaperAgent[82411:f6191] [com.apple.wallpaper:catalog] 4DEC08F9: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:51:07.526 Df launchd[1:f5d3b] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:51:07.526 Df launchd[1:f5d3b] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:51:07.537 Df Livepaper[82420:f61de] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 14:51:07.792 Df WallpaperAgent[82411:f619a] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 14:51:07.792 Df WallpaperAgent[82411:f619a] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 14:51:07.792 Df WallpaperAgent[82411:f619a] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 14:51:09.623 Df WallpaperAgent[82488:f62c5] [com.apple.wallpaper:export-controller] Successfully read existing exported wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>'
+2026-09-17 14:51:09.624 Df WallpaperAgent[82488:f62bf] [com.apple.wallpaper:catalog] Found 12 Wallpaper extensions at initialization time
+2026-09-17 14:51:09.624 Df WallpaperAgent[82488:f62ee] [com.apple.wallpaper:catalog] Notifying about 12 new Wallpaper extensions
+2026-09-17 14:51:09.625 Df WallpaperAgent[82488:f62ed] [com.apple.wallpaper:catalog] 169AF988: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:51:09.627 Df WallpaperAgent[82488:f62ee] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 14:51:09.629 Df WallpaperAgent[82488:f62ee] [com.apple.wallpaper:extension-proxy] 8D7F45B5: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:51:09.629 Df WallpaperAgent[82488:f62ee] [com.apple.wallpaper:extension-proxy] 886B0900: BEGIN - [app.livepaper.spike.extension] connect
+2026-09-17 14:51:09.640 Df WallpaperAgent[82488:f62ee] [com.apple.extensionkit:launch] Launching process with config: identity: RecordIdentity(record: ExtensionFoundation.Database._ExtensionRecord(lsRecord: <LSApplicationExtensionRecord 0x7606c2e040> { bundleID: app.livepaper.spike.extension, URL: file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/, super: <LSApplicati
+2026-09-17 14:51:09.646 Df WallpaperAgent[82488:f62ee] [com.apple.wallpaper:extension-proxy] 886B0900: END - [app.livepaper.spike.extension] connect
+2026-09-17 14:51:09.657 Df LivepaperExtension[82533:f6311] [app.livepaper.spike:spike] extension: INIT pid 82533 build 20260917145059 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 14:51:09.658 Df LivepaperExtension[82533:f6311] [app.livepaper.spike:spike] bridge: WallpaperExtensionKit loaded, all 15 payload classes present
+2026-09-17 14:51:09.658 Df LivepaperExtension[82533:f6311] [app.livepaper.spike:spike] s1: NSHomeDirectory = ~/Library/Containers/app.livepaper.spike.extension/Data; real home = ~
+2026-09-17 14:51:09.658 Df LivepaperExtension[82533:f6311] [app.livepaper.spike:spike] s1: location a (Application Support + exception): READABLE, 8 entries, config 80 bytes
+2026-09-17 14:51:09.658 Df LivepaperExtension[82533:f6311] [app.livepaper.spike:spike] s1: location b (own container): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 14:51:09.678 Df LivepaperExtension[82533:f631c] [app.livepaper.spike:spike] extension: accepted connection from pid 82488
+2026-09-17 14:51:09.679 Df LivepaperExtension[82533:f6311] [app.livepaper.spike:spike] extension: config generation 162 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:51:09.682 Df LivepaperExtension[82533:f6311] [app.livepaper.spike:spike] extension: ACQUIRE new surface 07B46CF2-58EF-4358-A508-4C17A0DF726C ctx 477509856 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview true pid 82488 (1 surfaces)
+2026-09-17 14:51:09.744 Df LivepaperExtension[82533:f6311] [app.livepaper.spike:spike] extension: surface 07B46CF2-58EF-4358-A508-4C17A0DF726C display 1 now on b-1080p30-h264.mp4 (generation 162)
+2026-09-17 14:51:09.744 Df WallpaperAgent[82488:f62ce] [com.apple.wallpaper:extension-proxy] 8D7F45B5: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:51:09.744 Df WallpaperAgent[82488:f62ce] [com.apple.wallpaper:extension] Scheduling disconnection for 5 minutes from now for app.livepaper.spike.extension
+2026-09-17 14:51:09.744 Df WallpaperAgent[82488:f62f2] [com.apple.wallpaper:catalog] 169AF988: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:51:09.748 Df WallpaperAgent[82488:f62ee] [com.apple.wallpaper:catalog] 4E44054F: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:51:09.748 Df WallpaperAgent[82488:f62ee] [com.apple.wallpaper:extension-proxy] B12D4439: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:51:09.750 Df LivepaperExtension[82533:f6311] [app.livepaper.spike:spike] extension: ACQUIRE new surface AA96391A-195C-476A-B59C-DF4058450120 ctx 556479794 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview false pid 82488 (2 surfaces)
+2026-09-17 14:51:09.758 Df LivepaperExtension[82533:f6311] [app.livepaper.spike:spike] extension: surface AA96391A-195C-476A-B59C-DF4058450120 display 1 now on b-1080p30-h264.mp4 (generation 162)
+2026-09-17 14:51:09.758 Df WallpaperAgent[82488:f62f0] [com.apple.wallpaper:extension-proxy] B12D4439: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:51:09.758 Df WallpaperAgent[82488:f62f2] [com.apple.wallpaper:catalog] 4E44054F: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:51:09.887 Df launchd[1:f5d39] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:51:09.887 Df launchd[1:f5d39] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:51:09.887 Df WallpaperAgent[82488:f62f2] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 14:51:09.901 Df WallpaperAgent[82488:f62f0] [com.apple.wallpaper:extension-proxy] onInterruption handler called for app.livepaper.spike.extension
+2026-09-17 14:51:09.902 Df Livepaper[82620:f63e8] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 14:51:10.157 Df WallpaperAgent[82488:f62f2] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 14:51:10.158 Df WallpaperAgent[82488:f62f2] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 14:51:10.158 Df WallpaperAgent[82488:f62f2] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 14:51:13.081 Df WallpaperAgent[82635:f6658] [com.apple.wallpaper:catalog] Found 12 Wallpaper extensions at initialization time
+2026-09-17 14:51:13.081 Df WallpaperAgent[82635:f6676] [com.apple.wallpaper:catalog] Notifying about 12 new Wallpaper extensions
+2026-09-17 14:51:13.082 Df WallpaperAgent[82635:f665a] [com.apple.wallpaper:export-controller] Successfully read existing exported wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>'
+2026-09-17 14:51:13.084 Df WallpaperAgent[82635:f6672] [com.apple.wallpaper:catalog] 16C43C88: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:51:13.086 Df WallpaperAgent[82635:f6679] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 14:51:13.086 Df WallpaperAgent[82635:f6658] [com.apple.wallpaper:extension-proxy] CF03AF5B: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:51:13.086 Df WallpaperAgent[82635:f6658] [com.apple.wallpaper:extension-proxy] 408A49F0: BEGIN - [app.livepaper.spike.extension] connect
+2026-09-17 14:51:13.099 Df WallpaperAgent[82635:f6658] [com.apple.extensionkit:launch] Launching process with config: identity: RecordIdentity(record: ExtensionFoundation.Database._ExtensionRecord(lsRecord: <LSApplicationExtensionRecord 0x7900c2dc20> { bundleID: app.livepaper.spike.extension, URL: file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/, super: <LSApplicati
+2026-09-17 14:51:13.106 Df WallpaperAgent[82635:f6658] [com.apple.wallpaper:extension-proxy] 408A49F0: END - [app.livepaper.spike.extension] connect
+2026-09-17 14:51:13.117 Df LivepaperExtension[82639:f6685] [app.livepaper.spike:spike] extension: INIT pid 82639 build 20260917145059 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 14:51:13.117 Df LivepaperExtension[82639:f6685] [app.livepaper.spike:spike] bridge: WallpaperExtensionKit loaded, all 15 payload classes present
+2026-09-17 14:51:13.117 Df LivepaperExtension[82639:f6685] [app.livepaper.spike:spike] s1: NSHomeDirectory = ~/Library/Containers/app.livepaper.spike.extension/Data; real home = ~
+2026-09-17 14:51:13.118 Df LivepaperExtension[82639:f6685] [app.livepaper.spike:spike] s1: location a (Application Support + exception): READABLE, 8 entries, config 80 bytes
+2026-09-17 14:51:13.118 Df LivepaperExtension[82639:f6685] [app.livepaper.spike:spike] s1: location b (own container): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 14:51:13.133 Df LivepaperExtension[82639:f6688] [app.livepaper.spike:spike] extension: accepted connection from pid 82635
+2026-09-17 14:51:13.134 Df LivepaperExtension[82639:f6685] [app.livepaper.spike:spike] extension: config generation 162 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:51:13.138 Df LivepaperExtension[82639:f6685] [app.livepaper.spike:spike] extension: ACQUIRE new surface 1ABFFCD5-8877-40AC-9243-F0831826340A ctx 2977712927 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview true pid 82635 (1 surfaces)
+2026-09-17 14:51:13.197 Df LivepaperExtension[82639:f6685] [app.livepaper.spike:spike] extension: surface 1ABFFCD5-8877-40AC-9243-F0831826340A display 1 now on b-1080p30-h264.mp4 (generation 162)
+2026-09-17 14:51:13.197 Df WallpaperAgent[82635:f6679] [com.apple.wallpaper:extension-proxy] CF03AF5B: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:51:13.197 Df WallpaperAgent[82635:f6679] [com.apple.wallpaper:extension] Scheduling disconnection for 5 minutes from now for app.livepaper.spike.extension
+2026-09-17 14:51:13.197 Df WallpaperAgent[82635:f6659] [com.apple.wallpaper:catalog] 16C43C88: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:51:13.199 Df WallpaperAgent[82635:f665b] [com.apple.wallpaper:catalog] 3DD50A3A: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:51:13.199 Df WallpaperAgent[82635:f665b] [com.apple.wallpaper:extension-proxy] F5A0753E: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:51:13.201 Df LivepaperExtension[82639:f6685] [app.livepaper.spike:spike] extension: ACQUIRE new surface 844ABFB1-B606-42C7-BDF1-80FB707F9ABA ctx 1834790397 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview false pid 82635 (2 surfaces)
+2026-09-17 14:51:13.209 Df LivepaperExtension[82639:f6685] [app.livepaper.spike:spike] extension: surface 844ABFB1-B606-42C7-BDF1-80FB707F9ABA display 1 now on b-1080p30-h264.mp4 (generation 162)
+2026-09-17 14:51:13.209 Df WallpaperAgent[82635:f6672] [com.apple.wallpaper:extension-proxy] F5A0753E: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:51:13.209 Df WallpaperAgent[82635:f6672] [com.apple.wallpaper:catalog] 3DD50A3A: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:51:33.031 Df launchd[1:f6c02] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 14:51:33.031 Df launchd[1:f6c02] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 14:51:33.302 Df WallpaperAgent[82635:f6a5d] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 14:51:33.302 Df WallpaperAgent[82635:f6a5d] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 14:51:33.302 Df WallpaperAgent[82635:f6a5d] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 14:51:35.037 Df LivepaperExtension[82639:f6687] [app.livepaper.spike:spike] s4: after check request: preview surface 1ABFFCD5-8877-40AC-9243-F0831826340A display 1 on b-1080p30-h264.mp4 showed 4 new pictures in 2 s: FAIL
+2026-09-17 14:51:35.037 Df LivepaperExtension[82639:f66ae] [app.livepaper.spike:spike] s4: after check request: desktop surface 844ABFB1-B606-42C7-BDF1-80FB707F9ABA display 1 on b-1080p30-h264.mp4 showed 61 new pictures in 2 s: PASS

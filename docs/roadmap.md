@@ -122,7 +122,7 @@ After M1, three lanes can run in parallel: A engine (M5), B design system and sc
 | M5 | Production engine, supervisor, render host | Spike tests S2-S7 pass again on product code; inspector preview reuses the engine |
 | M6 | Screens on fakes, then wired | Manual script: drop → tile → hover preview → Set on display → delete → undo |
 | M7 | Login item, hotkeys, Services entry, URL scheme, CLI, Dock/menu-bar drop, rotation driver, onboarding, diagnostics export | Each shown working end to end; login toggle always matches real status |
-| M8 | Hardening | 24 h soak with lid cycles, zero unrecovered stalls; hot-plug loop; idle app ~0% CPU; 4K60 energy within the M1 budget; VoiceOver and keyboard pass |
+| M8 | Hardening | 24 h soak with lid cycles, zero unrecovered stalls; hot-plug loop; idle app ~0% CPU; 4K60 energy within the M1 budget (`Spikes/results/S2.md`, "Energy budget"); VoiceOver and keyboard pass |
 | M9 | Release engineering: inside-out signing script, DMG, Sparkle + appcast, release workflow, samples + provenance, README install steps, move-to-Applications prompt | Second Mac installs from a real download; an N → N+1 Sparkle update keeps login item, extension and assignments |
 | M10 | 1.0 | Checklist for testing each macOS beta seed exists |
 

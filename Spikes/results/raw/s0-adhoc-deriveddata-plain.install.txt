@@ -1,0 +1,21 @@
+  verify: <repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app: valid on disk
+  verify: <repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app: satisfies its Designated Requirement
+  variant: adhoc / plain / entitlements S0
+  Livepaper.app:
+    Identifier=app.livepaper.spike
+    CodeDirectory v=20400 size=876 flags=0x2(adhoc) hashes=21+3 location=embedded
+    Signature=adhoc
+    TeamIdentifier=not set
+# designated => cdhash H"f19d5af7a9f9daa91bc2d7a6f736654dbb9ced2e"
+  LivepaperExtension.appex:
+    Identifier=app.livepaper.spike.extension
+    CodeDirectory v=20400 size=1494 flags=0x2(adhoc) hashes=36+7 location=embedded
+    Signature=adhoc
+    TeamIdentifier=not set
+# designated => cdhash H"54a4670db9210d424c386cabd3e13a8a8e61ccb6"
+  extension entitlements:
+    {
+      "com.apple.security.app-sandbox" => true
+    }
+  pluginkit:
+         app.livepaper.spike.extension(0.0.1)	E1FB6AF5-184B-4964-B5AC-364A2753BA98	2026-09-17 12:26:35 +0000	<repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/Extensions/LivepaperExtension.appex

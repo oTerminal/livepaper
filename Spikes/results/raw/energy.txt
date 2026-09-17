@@ -1,0 +1,30 @@
+== baseline: extension showing the colour, nothing playing
+  WindowServer           cpu  22.10 %   power   34.93   (6 samples)
+  LivepaperExtension     cpu   0.00 %   power    0.00   (6 samples)
+  WallpaperAgent         cpu   0.00 %   power    0.00   (6 samples)
+== window, sbdl, a-1080p30-h264.mp4
+  4154                   cpu   1.33 %   power    2.42   (6 samples)
+  WindowServer           cpu  24.37 %   power   36.18   (6 samples)
+  VTDecoderXPCService    cpu   1.37 %   power    1.45   (6 samples)
+== window, looper, a-1080p30-h264.mp4
+  6198                   cpu   1.40 %   power    2.57   (6 samples)
+  WindowServer           cpu  28.85 %   power   40.88   (6 samples)
+  VTDecoderXPCService    cpu   1.60 %   power    1.67   (6 samples)
+== window, sbdl, a-4k60-hevc.mov
+  8251                   cpu   2.43 %   power    3.35   (6 samples)
+  WindowServer           cpu  40.37 %   power   52.98   (6 samples)
+  VTDecoderXPCService    cpu   3.33 %   power    3.43   (6 samples)
+== window, looper, a-4k60-hevc.mov
+  10276                  cpu   2.45 %   power    3.50   (6 samples)
+  WindowServer           cpu  36.68 %   power   48.07   (6 samples)
+  VTDecoderXPCService    cpu   3.72 %   power    3.80   (6 samples)
+== extension, desktop surface only, a-1080p30-h264.mp4
+  LivepaperExtension     cpu   1.57 %   power    2.55   (6 samples)
+  WindowServer           cpu  35.42 %   power   47.58   (6 samples)
+  WallpaperAgent         cpu   0.00 %   power    0.00   (6 samples)
+  VTDecoderXPCService    cpu   1.60 %   power    1.68   (6 samples)
+== extension, desktop surface only, a-4k60-hevc.mov
+  LivepaperExtension     cpu   2.72 %   power    3.55   (6 samples)
+  WindowServer           cpu  45.13 %   power   56.52   (6 samples)
+  WallpaperAgent         cpu   0.00 %   power    0.00   (6 samples)
+  VTDecoderXPCService    cpu   3.47 %   power    3.55   (6 samples)

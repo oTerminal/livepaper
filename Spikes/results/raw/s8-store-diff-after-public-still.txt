@@ -1,0 +1,40 @@
+17c17
+<       "LastUse" => 2026-09-17 13:56:41 +0000
+---
+>       "LastUse" => 2026-09-17 13:56:57 +0000
+805c805
+<                 "Configuration" => {length = 9, bytes = 0x6c6976657061706572}
+---
+>                 "Configuration" => {length = 151, bytes = 0x62706c6973743030d201020304547479 ... 0000000000000070}
+808c808
+<                 "Provider" => "app.livepaper.spike.extension"
+---
+>                 "Provider" => "com.apple.wallpaper.choice.image"
+811c811
+<             "EncodedOptionValues" => {length = 367, bytes = 0x62706c6973743030d101025676616c75 ... 0000000000000115}
+---
+>             "EncodedOptionValues" => {length = 269, bytes = 0x62706c6973743030d101025676616c75 ... 00000000000000d5}
+814,815c814,815
+<           "LastSet" => 2026-09-17 12:31:09 +0000
+<           "LastUse" => 2026-09-17 13:56:41 +0000
+---
+>           "LastSet" => 2026-09-17 13:56:57 +0000
+>           "LastUse" => 2026-09-17 13:56:57 +0000
+841c841
+<                   "Configuration" => {length = 9, bytes = 0x6c6976657061706572}
+---
+>                   "Configuration" => {length = 151, bytes = 0x62706c6973743030d201020304547479 ... 0000000000000070}
+844c844
+<                   "Provider" => "app.livepaper.spike.extension"
+---
+>                   "Provider" => "com.apple.wallpaper.choice.image"
+847c847
+<               "EncodedOptionValues" => {length = 367, bytes = 0x62706c6973743030d101025676616c75 ... 0000000000000115}
+---
+>               "EncodedOptionValues" => {length = 269, bytes = 0x62706c6973743030d101025676616c75 ... 00000000000000d5}
+850,851c850,851
+<             "LastSet" => 2026-09-17 12:31:09 +0000
+<             "LastUse" => 2026-09-17 13:56:41 +0000
+---
+>             "LastSet" => 2026-09-17 13:56:57 +0000
+>             "LastUse" => 2026-09-17 13:56:57 +0000

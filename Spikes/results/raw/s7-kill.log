@@ -1,0 +1,84 @@
+Filtering the log data using "subsystem == "app.livepaper.spike" OR (process == "LivepaperExtension" AND subsystem == "com.apple.extensionkit") OR (process == "launchd" AND composedMessage CONTAINS "app.livepaper.spike.extension" AND composedMessage CONTAINS "instances") OR (process IN {"pkd", "amfid", "WallpaperAgent", "syspolicyd", "taskgated-helper", "sandboxd", "kernel"} AND composedMessage CONTAINS[c] "livepaper") OR (process == "tccd" AND composedMessage CONTAINS[c] "livepaper" AND composedMessage CONTAINS[c] "prompt")"
+Timestamp               Ty Process[PID:TID]
+2026-09-17 15:29:21.204 Df kernel[0:11a058] [com.apple.xnu:virtual-memory] vm: Livepaper[42283] triggered unnest of range 0x1ea000000->0x1ee000000 of DYLD shared region in VM map 0x86067a965b9f4e6b. While not abnormal for debuggers, this increases system memory footprint until the target exits.
+2026-09-17 15:29:21.271 I  tccd[658:1196c8] [com.apple.TCC:access] sendMessageSyncToSystemTCCD request: {
+	bundleId="app.livepaper.spike"
+	function="TCCAccessCheckIfDisclosurePromptIsNeeded"
+	do_not_forward_to_other_tccd=true
+}
+2026-09-17 15:29:21.274 Df Livepaper[42283:11a058] [app.livepaper.spike:spike] config: generation 171 mode video video b-1080p30-h264.mp4 crossfade false
+2026-09-17 15:29:21.275 Df WallpaperAgent[42051:119b39] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 15:29:21.272 I  tccd[427:119fc5] [com.apple.TCC:access] REQUEST_MSG: msgID=(null), msg={
+	bundleId="app.livepaper.spike"
+	function="TCCAccessCheckIfDisclosurePromptIsNeeded"
+	do_not_forward_to_other_tccd=true
+}
+2026-09-17 15:29:21.289 Df WallpaperAgent[42051:119dd4] [com.apple.wallpaper:extension-proxy] onInterruption handler called for app.livepaper.spike.extension
+2026-09-17 15:29:21.316 E  tccd[427:119fc5] [com.apple.TCC:access] Prompting policy for hardened runtime; service: kTCCServiceAppleEvents requires entitlement com.apple.security.automation.apple-events but it is missing for responsible={TCCDProcess: identifier=com.conductor.app, pid=42283, auid=501, euid=501, responsible_path=/Applications/Conductor.app/Contents/MacOS/conductor, binary_path=/Applications/Livepaper.app/Contents/MacOS/Livepaper}, accessing={TCCDProcess: identifier=app.livepaper.spike, pid=42283, auid=501, euid=501, binary_path=/Applications/Livepaper.app/Contents/MacOS/Livepaper}, requesting={TCCDProcess: identifier=com.apple.appleeventsd, pid=584, auid=55, euid=55, binary_path=/System/Library/CoreServices/appleeventsd},
+2026-09-17 15:29:27.572 Df Livepaper[42283:11a058] [app.livepaper.spike:spike] app: NO heartbeat in 6 s (extension not running, or notifications blocked)
+2026-09-17 15:29:27.733 Df WallpaperAgent[42435:11a24f] [com.apple.wallpaper:export-controller] Successfully read existing exported wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>'
+2026-09-17 15:29:27.735 E  WallpaperAgent[42435:11a24a] [com.apple.wallpaper:assetManager] Could not find translator for: app.livepaper.spike.extension; eagerly assuming it's an extension with the same identifier
+2026-09-17 15:29:27.735 Df WallpaperAgent[42435:11a24a] [com.apple.wallpaper:runtime-resolver] Create new wallpaper in runtime: '[content: <[<ChoiceDescriptor provider=app.livepaper.spike.extension>], useAsBoth:false>, display: 37D8832A-2D66-02CA-B9F7-8F30A301B230]'
+2026-09-17 15:29:27.735 Df WallpaperAgent[42435:11a24a] [com.apple.wallpaper:catalog] C4ED1B1F: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 15:29:27.738 Df WallpaperAgent[42435:11a24f] [com.apple.wallpaper:extension-proxy] B6D04DB8: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 15:29:27.738 Df WallpaperAgent[42435:11a24f] [com.apple.wallpaper:extension-proxy] BDA931E7: BEGIN - [app.livepaper.spike.extension] connect
+2026-09-17 15:29:27.753 Df WallpaperAgent[42435:11a243] [com.apple.extensionkit:launch] Launching process with config: identity: RecordIdentity(record: ExtensionFoundation.Database._ExtensionRecord(lsRecord: <LSApplicationExtensionRecord 0x756ec2d140> { bundleID: app.livepaper.spike.extension, URL: file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/, super: <LSApplicationExtensionRecord 0x756ec2d140> { table: 24, unit: 10c0, attached: yes } })) instance: _InstanceIdentifier(_id: nil)
+2026-09-17 15:29:27.753 I  WallpaperAgent[42435:11a243] [com.apple.runningboard:general] Sending launch request: <RBSLaunchRequest| extension<app.livepaper.spike.extension[config:6E69CA09-34E3-3493-B8FC-B5021E1ACB71]((null):42435)(501)>; "(null)">
+2026-09-17 15:29:27.761 Df WallpaperAgent[42435:11a243] [com.apple.wallpaper:extension-proxy] BDA931E7: END - [app.livepaper.spike.extension] connect
+2026-09-17 15:29:27.761 Df kernel[0:11a262] memorystatus: Denying dirty-tracking opt-in for managed LivepaperExtension [42438]
+2026-09-17 15:29:27.768 Df LivepaperExtension[42438:11a262] [com.apple.extensionkit:default] Extension `LivepaperExtension` of type: `service` launched.
+2026-09-17 15:29:27.768 Df LivepaperExtension[42438:11a262] [com.apple.extensionkit:launch] Extension Type: '<private>' : <private>
+2026-09-17 15:29:27.770 E  kernel[0:11a263] (Sandbox) 14 duplicate reports for Sandbox: LivepaperExtension(42438) deny(1) system-info vfs.disk-space
+2026-09-17 15:29:27.772 Df LivepaperExtension[42438:11a262] [app.livepaper.spike:spike] extension: INIT pid 42438 build 20260917152856 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 15:29:27.772 Df LivepaperExtension[42438:11a262] [app.livepaper.spike:spike] bridge: WallpaperExtensionKit loaded, all 15 payload classes present
+2026-09-17 15:29:27.772 Df LivepaperExtension[42438:11a262] [app.livepaper.spike:spike] s1: NSHomeDirectory = ~/Library/Containers/app.livepaper.spike.extension/Data; real home = ~
+2026-09-17 15:29:27.773 Df LivepaperExtension[42438:11a262] [app.livepaper.spike:spike] s1: location a (Application Support + exception): READABLE, 8 entries, config 94 bytes
+2026-09-17 15:29:27.773 Df LivepaperExtension[42438:11a262] [app.livepaper.spike:spike] s1: location b (own container): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 15:29:27.778 I  tccd[427:119ad7] [com.apple.TCC:access] Handling access request to kTCCServiceListenEvent, from Sub:{app.livepaper.spike.extension}Resp:{TCCDProcess: identifier=app.livepaper.spike.extension, pid=42438, auid=501, euid=501, binary_path=/Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/LivepaperExtension}, ReqResult(Auth Right: Unknown (None), promptType: 1,DB Action:None, UpdateVerifierData)
+2026-09-17 15:29:27.783 I  tccd[427:119ad7] [com.apple.TCC:access] Handling access request to kTCCServiceListenEvent, from Sub:{app.livepaper.spike.extension}Resp:{TCCDProcess: identifier=app.livepaper.spike.extension, pid=42438, auid=501, euid=501, binary_path=/Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/LivepaperExtension}, ReqResult(Auth Right: Unknown (None), promptType: 1,DB Action:None, UpdateVerifierData)
+2026-09-17 15:29:27.790 Df LivepaperExtension[42438:11a265] [app.livepaper.spike:spike] extension: accepted connection from pid 42435
+2026-09-17 15:29:27.791 Df LivepaperExtension[42438:11a262] [app.livepaper.spike:spike] extension: config generation 171 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 15:29:27.798 Df LivepaperExtension[42438:11a262] [app.livepaper.spike:spike] extension: ACQUIRE new surface 7295DC4B-F587-48EC-971A-3890F5CFCA11 ctx 3888017900 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview true pid 42435 (1 surfaces)
+2026-09-17 15:29:27.799 E  kernel[0:11a24a] (Sandbox) 6 duplicate reports for Sandbox: LivepaperExtension(42438) deny(1) system-info vfs.disk-space
+2026-09-17 15:29:27.802 E  kernel[0:11a277] (Sandbox) Sandbox: LivepaperExtension(42438) deny(1) system-info vfs.disk-space
+2026-09-17 15:29:27.839 E  kernel[0:11a289] (Sandbox) 92 duplicate reports for Sandbox: LivepaperExtension(42438) deny(1) system-info vfs.disk-space
+2026-09-17 15:29:27.856 E  kernel[0:11a26f] (Sandbox) Sandbox: LivepaperExtension(42438) deny(1) system-info vfs.disk-space
+2026-09-17 15:29:27.861 E  kernel[0:11a0b3] (Sandbox) 11 duplicate reports for Sandbox: LivepaperExtension(42438) deny(1) system-info vfs.disk-space
+2026-09-17 15:29:27.863 Df LivepaperExtension[42438:11a262] [app.livepaper.spike:spike] extension: surface 7295DC4B-F587-48EC-971A-3890F5CFCA11 display 1 now on b-1080p30-h264.mp4 (generation 171)
+2026-09-17 15:29:27.863 Df WallpaperAgent[42435:11a23f] [com.apple.wallpaper:extension-proxy] B6D04DB8: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 15:29:27.863 Df WallpaperAgent[42435:11a23f] [com.apple.wallpaper:extension] Scheduling disconnection for 5 minutes from now for app.livepaper.spike.extension
+2026-09-17 15:29:27.863 Df WallpaperAgent[42435:11a24f] [com.apple.wallpaper:catalog] C4ED1B1F: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 15:29:27.865 Df WallpaperAgent[42435:11a23a] [com.apple.wallpaper:runtime-resolver] Computed lifecycle action nothing for wallpaper key [content: <ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>, display: 37D8832A].
+2026-09-17 15:29:27.865 Df WallpaperAgent[42435:11a23f] [com.apple.wallpaper:runtime-resolver] Create new wallpaper in runtime: '[content: <[<ChoiceDescriptor provider=app.livepaper.spike.extension>], useAsBoth:false>, display: 37D8832A-2D66-02CA-B9F7-8F30A301B230]'
+2026-09-17 15:29:27.866 Df WallpaperAgent[42435:11a24f] [com.apple.wallpaper:runtime-resolver] Wallpaper updated in runtime: '[content: <ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>, display: 37D8832A]'
+2026-09-17 15:29:27.866 Df WallpaperAgent[42435:11a24f] [com.apple.wallpaper:runtime-resolver] No content change for <ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4> - already resolved to <private>
+2026-09-17 15:29:27.866 Df WallpaperAgent[42435:11a24f] [com.apple.wallpaper:runtime-resolver] No property updates required for [content: <ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>, display: 37D8832A]
+2026-09-17 15:29:27.866 Df WallpaperAgent[42435:11a23f] [com.apple.wallpaper:catalog] 7C6B56B6: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 15:29:27.866 Df WallpaperAgent[42435:11a23f] [com.apple.wallpaper:extension-proxy] C3A14C94: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 15:29:27.867 Df LivepaperExtension[42438:11a262] [app.livepaper.spike:spike] extension: ACQUIRE new surface A2805D23-867C-4536-AE21-4EFBF5C87D68 ctx 2319213647 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview false pid 42435 (2 surfaces)
+2026-09-17 15:29:27.869 E  kernel[0:11a2a0] (Sandbox) Sandbox: LivepaperExtension(42438) deny(1) system-info vfs.disk-space
+2026-09-17 15:29:27.881 Df LivepaperExtension[42438:11a262] [app.livepaper.spike:spike] extension: surface A2805D23-867C-4536-AE21-4EFBF5C87D68 display 1 now on b-1080p30-h264.mp4 (generation 171)
+2026-09-17 15:29:27.882 Df WallpaperAgent[42435:11a251] [com.apple.wallpaper:extension-proxy] C3A14C94: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 15:29:27.882 Df WallpaperAgent[42435:11a24a] [com.apple.wallpaper:catalog] 7C6B56B6: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 15:29:27.882 E  kernel[0:11a1ff] (Sandbox) 25 duplicate reports for Sandbox: LivepaperExtension(42438) deny(1) system-info vfs.disk-space
+2026-09-17 15:29:30.763 E  kernel[0:11a2c2] (Sandbox) Sandbox: LivepaperExtension(42438) deny(1) system-info vfs.disk-space
+2026-09-17 15:29:31.914 E  kernel[0:1b3b] (Sandbox) 25 duplicate reports for Sandbox: LivepaperExtension(42438) deny(1) system-info vfs.disk-space
+2026-09-17 15:29:36.039 E  kernel[0:11a1fb] (Sandbox) 25 duplicate reports for Sandbox: LivepaperExtension(42438) deny(1) system-info vfs.disk-space
+2026-09-17 15:29:41.914 E  kernel[0:1b3b] (Sandbox) 25 duplicate reports for Sandbox: LivepaperExtension(42438) deny(1) system-info vfs.disk-space
+2026-09-17 15:29:46.585 E  kernel[0:11a5c2] (Sandbox) Sandbox: LivepaperExtension(42438) deny(1) system-info vfs.disk-space
+2026-09-17 15:29:46.914 E  kernel[0:1b3b] (Sandbox) 25 duplicate reports for Sandbox: LivepaperExtension(42438) deny(1) system-info vfs.disk-space
+2026-09-17 15:29:47.746 I  tccd[427:11a240] [com.apple.TCC:access] REQUEST_MSG: msgID=(null), msg={
+	bundleId="app.livepaper.spike"
+	function="TCCAccessCheckIfDisclosurePromptIsNeeded"
+	do_not_forward_to_other_tccd=true
+}
+2026-09-17 15:29:47.746 I  tccd[658:119e4f] [com.apple.TCC:access] sendMessageSyncToSystemTCCD request: {
+	bundleId="app.livepaper.spike"
+	function="TCCAccessCheckIfDisclosurePromptIsNeeded"
+	do_not_forward_to_other_tccd=true
+}
+2026-09-17 15:29:47.782 E  tccd[427:11a5d6] [com.apple.TCC:access] Prompting policy for hardened runtime; service: kTCCServiceAppleEvents requires entitlement com.apple.security.automation.apple-events but it is missing for responsible={TCCDProcess: identifier=com.conductor.app, pid=42804, auid=501, euid=501, responsible_path=/Applications/Conductor.app/Contents/MacOS/conductor, binary_path=/Applications/Livepaper.app/Contents/MacOS/Livepaper}, accessing={TCCDProcess: identifier=app.livepaper.spike, pid=42804, auid=501, euid=501, binary_path=/Applications/Livepaper.app/Contents/MacOS/Livepaper}, requesting={TCCDProcess: identifier=com.apple.appleeventsd, pid=584, auid=55, euid=55, binary_path=/System/Library/CoreServices/appleeventsd},
+2026-09-17 15:29:49.748 Df LivepaperExtension[42438:11a266] [app.livepaper.spike:spike] s4: after check request: preview surface 7295DC4B-F587-48EC-971A-3890F5CFCA11 display 1 on b-1080p30-h264.mp4 showed 60 new pictures in 2 s: PASS
+2026-09-17 15:29:49.748 Df LivepaperExtension[42438:11a27f] [app.livepaper.spike:spike] s4: after check request: desktop surface A2805D23-867C-4536-AE21-4EFBF5C87D68 display 1 on b-1080p30-h264.mp4 showed 60 new pictures in 2 s: PASS
+2026-09-17 15:29:50.782 E  kernel[0:11a6df] (Sandbox) Sandbox: LivepaperExtension(42438) deny(1) system-info vfs.disk-space
+2026-09-17 15:29:50.897 E  kernel[0:11a226] (Sandbox) 25 duplicate reports for Sandbox: LivepaperExtension(42438) deny(1) system-info vfs.disk-space

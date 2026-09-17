@@ -1,0 +1,617 @@
+2026-09-17 13:25:23.459 E  WallpaperAgent[668:94f32] [com.apple.extensionkit:discovery] Extension is not entitled to run in the App Sandbox : <_EXExtensionIdentity: 0x7b5cc468b0>
+2026-09-17 13:25:24.838 E  WallpaperAgent[668:94f32] [com.apple.extensionkit:discovery] Extension is not entitled to run in the App Sandbox : <_EXExtensionIdentity: 0x7b5cc44d80>
+2026-09-17 13:25:29.317 E  WallpaperAgent[668:94f32] [com.apple.extensionkit:discovery] Extension is not entitled to run in the App Sandbox : <_EXExtensionIdentity: 0x7b5cc45470>
+2026-09-17 13:26:35.942 Df launchd[1:95af0] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:26:35.943 Df launchd[1:95af0] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:26:35.988 Df launchd[1:95af0] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:26:35.988 Df launchd[1:95af0] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:26:35.991 Df amfid[373:962bb] <repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/MacOS/Livepaper not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file://<repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/MacOS/Livepaper, NSLocalized
+2026-09-17 13:26:36.211 Df WallpaperAgent[668:96276] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:26:36.212 Df WallpaperAgent[668:96276] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 13:27:20.827 Df WallpaperAgent[34730:972a0] [com.apple.wallpaper:catalog] Found 12 Wallpaper extensions at initialization time
+2026-09-17 13:27:20.827 Df WallpaperAgent[34730:972ad] [com.apple.wallpaper:catalog] Notifying about 12 new Wallpaper extensions
+2026-09-17 13:27:20.831 Df WallpaperAgent[34730:972ab] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:28:11.297 Df WallpaperAgent[34730:97e75] [com.apple.wallpaper:extension-proxy] 021D4D44: BEGIN - [app.livepaper.spike.extension] provideSettingsViewModels
+2026-09-17 13:28:11.298 Df WallpaperAgent[34730:97e75] [com.apple.wallpaper:extension-proxy] 1021EFBB: BEGIN - [app.livepaper.spike.extension] connect
+2026-09-17 13:28:11.316 Df WallpaperAgent[34730:97e75] [com.apple.extensionkit:launch] Launching process with config: identity: RecordIdentity(record: ExtensionFoundation.Database._ExtensionRecord(lsRecord: <LSApplicationExtensionRecord 0x7abec2daa0> { bundleID: app.livepaper.spike.extension, URL: file://<repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/Extensions/Livep
+2026-09-17 13:28:11.331 Df amfid[373:970f9] <repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/LivepaperExtension not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file://<repo>/Spikes/build/DerivedData/Build/Products/Relea
+2026-09-17 13:28:11.333 Df WallpaperAgent[34730:97e75] [com.apple.wallpaper:extension-proxy] 1021EFBB: END - [app.livepaper.spike.extension] connect
+2026-09-17 13:28:11.419 Df LivepaperExtension[35849:97e84] [app.livepaper.spike:spike] extension: INIT pid 35849 build 20260917132516 path <repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 13:28:11.420 Df LivepaperExtension[35849:97e84] [app.livepaper.spike:spike] bridge: WallpaperExtensionKit loaded, all 15 payload classes present
+2026-09-17 13:28:11.420 Df LivepaperExtension[35849:97e84] [app.livepaper.spike:spike] s1: NSHomeDirectory = ~/Library/Containers/app.livepaper.spike.extension/Data; real home = ~
+2026-09-17 13:28:11.420 Df LivepaperExtension[35849:97e84] [app.livepaper.spike:spike] s1: location a (Application Support + exception): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 13:28:11.420 Df LivepaperExtension[35849:97e84] [app.livepaper.spike:spike] s1: location b (own container): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 13:28:11.439 Df LivepaperExtension[35849:97e92] [app.livepaper.spike:spike] extension: accepted connection from pid 34730
+2026-09-17 13:28:11.448 Df LivepaperExtension[35849:97e92] [app.livepaper.spike:spike] extension: PROVIDE SETTINGS VIEW MODELS -> 1 group, 1 item (pid 34730)
+2026-09-17 13:28:11.449 Df WallpaperAgent[34730:97e75] [com.apple.wallpaper:extension-proxy] 021D4D44: END - [app.livepaper.spike.extension] provideSettingsViewModels
+2026-09-17 13:28:11.449 Df WallpaperAgent[34730:97e75] [com.apple.wallpaper:extension] Scheduling disconnection for 5 minutes from now for app.livepaper.spike.extension
+2026-09-17 13:31:09.449 Df WallpaperAgent[34730:99e44] [com.apple.wallpaper:extension-proxy] 63767EAB: BEGIN - [app.livepaper.spike.extension] isChoiceDownloaded
+2026-09-17 13:31:09.452 Df WallpaperAgent[34730:9a93e] [com.apple.wallpaper:extension-proxy] invalidationHandler called for app.livepaper.spike.extension
+2026-09-17 13:31:09.454 E  WallpaperAgent[34730:99e44] [com.apple.wallpaper:extension-proxy] 63767EAB: ERROR - [app.livepaper.spike.extension] isChoiceDownloaded: NSCocoaErrorDomain (4099) <private>
+2026-09-17 13:31:09.454 Df WallpaperAgent[34730:99e44] [com.apple.wallpaper:extension] Scheduling disconnection for 5 minutes from now for app.livepaper.spike.extension
+2026-09-17 13:31:09.454 Df WallpaperAgent[34730:99e44] [com.apple.wallpaper:extension] Scheduling disconnection for 5 minutes from now for app.livepaper.spike.extension
+2026-09-17 13:31:09.457 Df WallpaperAgent[34730:9a946] [com.apple.wallpaper:catalog] 5D59FDA9: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:31:09.457 Df WallpaperAgent[34730:9a943] [com.apple.wallpaper:catalog] 9B3B2321: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:31:09.458 Df WallpaperAgent[34730:9a93e] [com.apple.wallpaper:extension-proxy] B22C5244: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:31:09.458 Df WallpaperAgent[34730:9a93e] [com.apple.wallpaper:extension-proxy] 7AD6C4ED: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:31:09.458 Df WallpaperAgent[34730:9a93e] [com.apple.wallpaper:extension-proxy] 509C689D: BEGIN - [app.livepaper.spike.extension] connect
+2026-09-17 13:31:09.459 Df WallpaperAgent[34730:9a93e] [com.apple.extensionkit:launch] Launching process with config: identity: RecordIdentity(record: ExtensionFoundation.Database._ExtensionRecord(lsRecord: <LSApplicationExtensionRecord 0x7abec2daa0> { bundleID: app.livepaper.spike.extension, URL: file://<repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/Extensions/Livep
+2026-09-17 13:31:09.466 Df WallpaperAgent[34730:9a93e] [com.apple.wallpaper:extension-proxy] 509C689D: END - [app.livepaper.spike.extension] connect
+2026-09-17 13:31:09.466 Df LivepaperExtension[35849:9a93f] [app.livepaper.spike:spike] extension: accepted connection from pid 34730
+2026-09-17 13:31:09.474 Df LivepaperExtension[35849:97e84] [app.livepaper.spike:spike] extension: ACQUIRE new surface 2CAB47E4-8A91-4A15-93E3-6D0927A9068A ctx 3671530353 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview false pid 34730 (1 surfaces)
+2026-09-17 13:31:09.474 Df WallpaperAgent[34730:9a93d] [com.apple.wallpaper:extension-proxy] 7AD6C4ED: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:31:09.474 Df WallpaperAgent[34730:9a93e] [com.apple.wallpaper:catalog] 9B3B2321: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:31:09.475 Df LivepaperExtension[35849:97e84] [app.livepaper.spike:spike] extension: ACQUIRE new surface F2A19EDA-54FF-4487-B06E-4B0408FE65B4 ctx 3366943773 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview true pid 34730 (2 surfaces)
+2026-09-17 13:31:09.475 Df WallpaperAgent[34730:9a93e] [com.apple.wallpaper:extension-proxy] B22C5244: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:31:09.475 Df WallpaperAgent[34730:9a93d] [com.apple.wallpaper:catalog] 5D59FDA9: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:31:09.475 Df WallpaperAgent[34730:9a93d] [com.apple.wallpaper:export-controller] AA120DD3: BEGIN - Exporting wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>'
+2026-09-17 13:31:09.475 Df WallpaperAgent[34730:9a93d] [com.apple.wallpaper:export-controller] AA120DD3: LOG - Exporting wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>' - translating
+2026-09-17 13:31:09.475 Df WallpaperAgent[34730:9a93d] [com.apple.wallpaper:export-controller] AA120DD3: LOG - Exporting wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>' - wallpaper lookup
+2026-09-17 13:31:09.475 Df WallpaperAgent[34730:9a93d] [com.apple.wallpaper:export-controller] AA120DD3: LOG - Exporting wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>' - snapshotting
+2026-09-17 13:31:09.475 Df WallpaperAgent[34730:9a93d] [com.apple.wallpaper:extension-proxy] 912ECF27: BEGIN - [app.livepaper.spike.extension] wallpaper(2CAB47E4) snapshot
+2026-09-17 13:31:09.476 Df LivepaperExtension[35849:97e95] [app.livepaper.spike:spike] extension: SNAPSHOT requested by pid 34730
+2026-09-17 13:31:09.482 Df WallpaperAgent[34730:9a944] [com.apple.wallpaper:extension-proxy] 912ECF27: END - [app.livepaper.spike.extension] wallpaper(2CAB47E4) snapshot
+2026-09-17 13:31:09.482 Df WallpaperAgent[34730:9a944] [com.apple.wallpaper:export-controller] AA120DD3: LOG - Exporting wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>' - writing
+2026-09-17 13:31:10.659 Df WallpaperAgent[34730:9a944] [com.apple.wallpaper:export-controller] AA120DD3: END - Exporting wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>'
+2026-09-17 13:31:49.811 Df launchd[1:9b022] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:31:49.812 Df launchd[1:9b022] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:31:49.812 Df WallpaperAgent[34730:9ab63] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 13:31:49.814 Df WallpaperAgent[34730:9af1f] [com.apple.wallpaper:extension-proxy] onInterruption handler called for app.livepaper.spike.extension
+2026-09-17 13:31:49.814 Df WallpaperAgent[34730:9af1f] [com.apple.wallpaper:extension-proxy] onInterruption handler called for app.livepaper.spike.extension
+2026-09-17 13:31:49.827 Df amfid[373:9b19a] <repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/MacOS/Livepaper not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file://<repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/MacOS/Livepaper, NSLocalized
+2026-09-17 13:31:49.905 Df WallpaperAgent[34730:9af1f] [com.apple.wallpaper:extension-proxy] 77270D4B: BEGIN - [app.livepaper.spike.extension] wallpaper(F2A19EDA) update
+2026-09-17 13:31:49.905 E  WallpaperAgent[34730:9b489] [com.apple.wallpaper:extension-proxy] 77270D4B: ERROR - [app.livepaper.spike.extension] wallpaper(F2A19EDA) update: NSCocoaErrorDomain (4099) <private>
+2026-09-17 13:31:50.076 Df WallpaperAgent[34730:9b489] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:31:50.076 Df WallpaperAgent[34730:9b489] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 13:31:50.076 Df WallpaperAgent[34730:9b489] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 13:31:53.965 Df WallpaperAgent[40617:9b594] [com.apple.wallpaper:export-controller] Successfully read existing exported wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>'
+2026-09-17 13:31:53.967 E  WallpaperAgent[40617:9b59a] [com.apple.wallpaper:assetManager] Could not find translator for: app.livepaper.spike.extension; eagerly assuming it's an extension with the same identifier
+2026-09-17 13:31:53.967 Df WallpaperAgent[40617:9b59a] [com.apple.wallpaper:catalog] E1044AD6: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:31:53.968 Df WallpaperAgent[40617:9b58d] [com.apple.wallpaper:catalog] Found 12 Wallpaper extensions at initialization time
+2026-09-17 13:31:53.968 Df WallpaperAgent[40617:9b58e] [com.apple.wallpaper:catalog] Notifying about 12 new Wallpaper extensions
+2026-09-17 13:31:53.971 Df WallpaperAgent[40617:9b595] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:31:53.971 Df WallpaperAgent[40617:9b59a] [com.apple.wallpaper:extension-proxy] FD6CB510: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:31:53.971 Df WallpaperAgent[40617:9b59a] [com.apple.wallpaper:extension-proxy] F01ACD91: BEGIN - [app.livepaper.spike.extension] connect
+2026-09-17 13:31:53.985 Df WallpaperAgent[40617:9b59a] [com.apple.extensionkit:launch] Launching process with config: identity: RecordIdentity(record: ExtensionFoundation.Database._ExtensionRecord(lsRecord: <LSApplicationExtensionRecord 0x7814c2e040> { bundleID: app.livepaper.spike.extension, URL: file://<repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/Extensions/Livep
+2026-09-17 13:31:53.991 Df amfid[373:9b19a] <repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/LivepaperExtension not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file://<repo>/Spikes/build/DerivedData/Build/Products/Relea
+2026-09-17 13:31:53.994 Df WallpaperAgent[40617:9b59a] [com.apple.wallpaper:extension-proxy] F01ACD91: END - [app.livepaper.spike.extension] connect
+2026-09-17 13:31:54.013 Df LivepaperExtension[40621:9b5ae] [app.livepaper.spike:spike] extension: INIT pid 40621 build 20260917132516 path <repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 13:31:54.014 Df LivepaperExtension[40621:9b5ae] [app.livepaper.spike:spike] bridge: WallpaperExtensionKit loaded, all 15 payload classes present
+2026-09-17 13:31:54.014 Df LivepaperExtension[40621:9b5ae] [app.livepaper.spike:spike] s1: NSHomeDirectory = ~/Library/Containers/app.livepaper.spike.extension/Data; real home = ~
+2026-09-17 13:31:54.014 Df LivepaperExtension[40621:9b5ae] [app.livepaper.spike:spike] s1: location a (Application Support + exception): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 13:31:54.014 Df LivepaperExtension[40621:9b5ae] [app.livepaper.spike:spike] s1: location b (own container): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 13:31:54.031 Df LivepaperExtension[40621:9b5bb] [app.livepaper.spike:spike] extension: accepted connection from pid 40617
+2026-09-17 13:31:54.035 Df LivepaperExtension[40621:9b5ae] [app.livepaper.spike:spike] extension: ACQUIRE new surface 3503D7A7-0076-44FF-A2A3-330085AE4E28 ctx 2935601689 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview false pid 40617 (1 surfaces)
+2026-09-17 13:31:54.036 Df WallpaperAgent[40617:9b597] [com.apple.wallpaper:extension-proxy] FD6CB510: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:31:54.036 Df WallpaperAgent[40617:9b597] [com.apple.wallpaper:extension] Scheduling disconnection for 5 minutes from now for app.livepaper.spike.extension
+2026-09-17 13:31:54.036 Df WallpaperAgent[40617:9b597] [com.apple.wallpaper:catalog] E1044AD6: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:31:54.038 Df WallpaperAgent[40617:9b597] [com.apple.wallpaper:catalog] 7FBDC768: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:31:54.038 Df WallpaperAgent[40617:9b597] [com.apple.wallpaper:extension-proxy] 1188A59A: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:31:54.039 Df LivepaperExtension[40621:9b5ae] [app.livepaper.spike:spike] extension: ACQUIRE new surface 156F60FE-DCBC-485A-8F2A-0BADDBE6155D ctx 735235096 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview true pid 40617 (2 surfaces)
+2026-09-17 13:31:54.039 Df WallpaperAgent[40617:9b59a] [com.apple.wallpaper:extension-proxy] 1188A59A: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:31:54.039 Df WallpaperAgent[40617:9b59a] [com.apple.wallpaper:catalog] 7FBDC768: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:32:15.619 Df WallpaperAgent[40617:9ba75] [com.apple.wallpaper:extension-proxy] 1ECAA7BD: BEGIN - [app.livepaper.spike.extension] wallpaper(156F60FE) update
+2026-09-17 13:32:15.620 Df LivepaperExtension[40621:9b956] [app.livepaper.spike:spike] extension: UPDATE presentationMode=idle activityState=active pid 40617
+2026-09-17 13:32:15.620 Df WallpaperAgent[40617:9bd59] [com.apple.wallpaper:extension-proxy] 1ECAA7BD: END - [app.livepaper.spike.extension] wallpaper(156F60FE) update
+2026-09-17 13:32:15.658 Df launchd[1:9b3b1] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:32:15.658 Df launchd[1:9b3b1] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:32:15.658 Df WallpaperAgent[40617:9bd58] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 13:32:15.661 Df WallpaperAgent[40617:9bd59] [com.apple.wallpaper:extension-proxy] onInterruption handler called for app.livepaper.spike.extension
+2026-09-17 13:32:15.663 Df amfid[373:9bb62] <repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/MacOS/Livepaper not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file://<repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/MacOS/Livepaper, NSLocalized
+2026-09-17 13:32:15.739 Df WallpaperAgent[40617:9ba75] [com.apple.wallpaper:extension-proxy] 52E7E46B: BEGIN - [app.livepaper.spike.extension] wallpaper(156F60FE) update
+2026-09-17 13:32:15.740 E  WallpaperAgent[40617:9ba75] [com.apple.wallpaper:extension-proxy] 52E7E46B: ERROR - [app.livepaper.spike.extension] wallpaper(156F60FE) update: NSCocoaErrorDomain (4099) <private>
+2026-09-17 13:32:15.898 Df WallpaperAgent[40617:9ba75] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:32:15.899 Df WallpaperAgent[40617:9ba75] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 13:32:15.899 Df WallpaperAgent[40617:9ba75] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 13:32:19.806 Df WallpaperAgent[41259:9bedd] [com.apple.wallpaper:export-controller] Successfully read existing exported wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>'
+2026-09-17 13:32:19.808 Df WallpaperAgent[41259:9bed2] [com.apple.wallpaper:catalog] Found 12 Wallpaper extensions at initialization time
+2026-09-17 13:32:19.808 E  WallpaperAgent[41259:9bee0] [com.apple.wallpaper:assetManager] Could not find translator for: app.livepaper.spike.extension; eagerly assuming it's an extension with the same identifier
+2026-09-17 13:32:19.808 Df WallpaperAgent[41259:9bed8] [com.apple.wallpaper:catalog] Notifying about 12 new Wallpaper extensions
+2026-09-17 13:32:19.808 Df WallpaperAgent[41259:9bee0] [com.apple.wallpaper:catalog] A3709DC5: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:32:19.812 Df WallpaperAgent[41259:9bed2] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:32:19.812 Df WallpaperAgent[41259:9bed2] [com.apple.wallpaper:extension-proxy] 7412EC09: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:32:19.812 Df WallpaperAgent[41259:9bed2] [com.apple.wallpaper:extension-proxy] CF886902: BEGIN - [app.livepaper.spike.extension] connect
+2026-09-17 13:32:19.828 Df WallpaperAgent[41259:9bed2] [com.apple.extensionkit:launch] Launching process with config: identity: RecordIdentity(record: ExtensionFoundation.Database._ExtensionRecord(lsRecord: <LSApplicationExtensionRecord 0x7876c2dc80> { bundleID: app.livepaper.spike.extension, URL: file://<repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/Extensions/Livep
+2026-09-17 13:32:19.834 Df amfid[373:9bb62] <repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/LivepaperExtension not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file://<repo>/Spikes/build/DerivedData/Build/Products/Relea
+2026-09-17 13:32:19.837 Df WallpaperAgent[41259:9bed2] [com.apple.wallpaper:extension-proxy] CF886902: END - [app.livepaper.spike.extension] connect
+2026-09-17 13:32:19.856 Df LivepaperExtension[41263:9bef0] [app.livepaper.spike:spike] extension: INIT pid 41263 build 20260917132516 path <repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 13:32:19.857 Df LivepaperExtension[41263:9bef0] [app.livepaper.spike:spike] bridge: WallpaperExtensionKit loaded, all 15 payload classes present
+2026-09-17 13:32:19.857 Df LivepaperExtension[41263:9bef0] [app.livepaper.spike:spike] s1: NSHomeDirectory = ~/Library/Containers/app.livepaper.spike.extension/Data; real home = ~
+2026-09-17 13:32:19.857 Df LivepaperExtension[41263:9bef0] [app.livepaper.spike:spike] s1: location a (Application Support + exception): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 13:32:19.857 Df LivepaperExtension[41263:9bef0] [app.livepaper.spike:spike] s1: location b (own container): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 13:32:19.872 Df LivepaperExtension[41263:9befa] [app.livepaper.spike:spike] extension: accepted connection from pid 41259
+2026-09-17 13:32:19.878 Df LivepaperExtension[41263:9bef0] [app.livepaper.spike:spike] extension: ACQUIRE new surface 1B713718-FF86-4E86-844D-E6049ED791C8 ctx 2487757406 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview false pid 41259 (1 surfaces)
+2026-09-17 13:32:19.878 Df WallpaperAgent[41259:9bedd] [com.apple.wallpaper:extension-proxy] 7412EC09: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:32:19.878 Df WallpaperAgent[41259:9bedd] [com.apple.wallpaper:extension] Scheduling disconnection for 5 minutes from now for app.livepaper.spike.extension
+2026-09-17 13:32:19.878 Df WallpaperAgent[41259:9bedd] [com.apple.wallpaper:catalog] A3709DC5: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:32:19.880 Df WallpaperAgent[41259:9bede] [com.apple.wallpaper:catalog] B8FDB191: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:32:19.881 Df WallpaperAgent[41259:9bede] [com.apple.wallpaper:extension-proxy] 0174149D: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:32:19.882 Df LivepaperExtension[41263:9bef0] [app.livepaper.spike:spike] extension: ACQUIRE new surface 3B8EE424-640E-4977-BE43-90B9F1B123B3 ctx 2398047505 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview true pid 41259 (2 surfaces)
+2026-09-17 13:32:19.882 Df WallpaperAgent[41259:9bedd] [com.apple.wallpaper:extension-proxy] 0174149D: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:32:19.882 Df WallpaperAgent[41259:9bedd] [com.apple.wallpaper:catalog] B8FDB191: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:32:34.905 Df WallpaperAgent[41259:9c55e] [com.apple.wallpaper:extension-proxy] F8F4310A: BEGIN - [app.livepaper.spike.extension] wallpaper(3B8EE424) update
+2026-09-17 13:32:34.906 Df LivepaperExtension[41263:9befd] [app.livepaper.spike:spike] extension: UPDATE presentationMode=idle activityState=active pid 41259
+2026-09-17 13:32:34.906 Df WallpaperAgent[41259:9c55f] [com.apple.wallpaper:extension-proxy] F8F4310A: END - [app.livepaper.spike.extension] wallpaper(3B8EE424) update
+2026-09-17 13:32:34.989 Df launchd[1:9b3b1] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:32:34.989 Df launchd[1:9b3b1] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:32:34.998 Df WallpaperAgent[41259:9bee0] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 13:32:35.008 Df WallpaperAgent[41259:9bee0] [com.apple.wallpaper:extension-proxy] onInterruption handler called for app.livepaper.spike.extension
+2026-09-17 13:32:35.174 E  taskgated-helper[41668:9c5ef] [com.apple.ManagedClient:ProvisioningProfiles] Disallowing: app.livepaper.spike
+2026-09-17 13:32:35.175 Df amfid[373:9c361] <repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/MacOS/Livepaper not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file://<repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/MacOS/Livepaper, NSLocalized
+2026-09-17 13:32:35.257 Df WallpaperAgent[41259:9c55f] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:32:35.258 Df WallpaperAgent[41259:9c55f] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 13:32:35.258 Df WallpaperAgent[41259:9c55f] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 13:32:35.260 Df WallpaperAgent[41259:9c618] [com.apple.wallpaper:extension-proxy] 33A49C3A: BEGIN - [app.livepaper.spike.extension] wallpaper(3B8EE424) update
+2026-09-17 13:32:35.262 E  WallpaperAgent[41259:9c616] [com.apple.wallpaper:extension-proxy] 33A49C3A: ERROR - [app.livepaper.spike.extension] wallpaper(3B8EE424) update: NSCocoaErrorDomain (4099) <private>
+2026-09-17 13:32:39.307 Df WallpaperAgent[41777:9c756] [com.apple.wallpaper:export-controller] Successfully read existing exported wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>'
+2026-09-17 13:32:39.309 Df WallpaperAgent[41777:9c74c] [com.apple.wallpaper:catalog] Found 12 Wallpaper extensions at initialization time
+2026-09-17 13:32:39.310 Df WallpaperAgent[41777:9c755] [com.apple.wallpaper:catalog] Notifying about 12 new Wallpaper extensions
+2026-09-17 13:32:39.311 Df WallpaperAgent[41777:9c755] [com.apple.wallpaper:catalog] 5ACF834E: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:32:39.314 Df WallpaperAgent[41777:9c758] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:32:39.314 Df WallpaperAgent[41777:9c758] [com.apple.wallpaper:extension-proxy] 05E6271E: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:32:39.314 Df WallpaperAgent[41777:9c758] [com.apple.wallpaper:extension-proxy] F667B200: BEGIN - [app.livepaper.spike.extension] connect
+2026-09-17 13:32:39.331 Df WallpaperAgent[41777:9c758] [com.apple.extensionkit:launch] Launching process with config: identity: RecordIdentity(record: ExtensionFoundation.Database._ExtensionRecord(lsRecord: <LSApplicationExtensionRecord 0x7c14c2dbc0> { bundleID: app.livepaper.spike.extension, URL: file://<repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/Extensions/Livep
+2026-09-17 13:32:39.361 E  taskgated-helper[41668:9c5ef] [com.apple.ManagedClient:ProvisioningProfiles] Disallowing: app.livepaper.spike.extension
+2026-09-17 13:32:39.362 Df amfid[373:9c361] <repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/LivepaperExtension not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file://<repo>/Spikes/build/DerivedData/Build/Products/Relea
+2026-09-17 13:32:39.365 Df WallpaperAgent[41777:9c756] [com.apple.wallpaper:extension-proxy] F667B200: END - [app.livepaper.spike.extension] connect
+2026-09-17 13:32:39.383 Df LivepaperExtension[41781:9c76a] [app.livepaper.spike:spike] extension: INIT pid 41781 build 20260917132516 path <repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 13:32:39.384 Df LivepaperExtension[41781:9c76a] [app.livepaper.spike:spike] bridge: WallpaperExtensionKit loaded, all 15 payload classes present
+2026-09-17 13:32:39.384 Df LivepaperExtension[41781:9c76a] [app.livepaper.spike:spike] s1: NSHomeDirectory = ~/Library/Containers/app.livepaper.spike.extension/Data; real home = ~
+2026-09-17 13:32:39.384 Df LivepaperExtension[41781:9c76a] [app.livepaper.spike:spike] s1: location a (Application Support + exception): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 13:32:39.384 Df LivepaperExtension[41781:9c76a] [app.livepaper.spike:spike] s1: location b (own container): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 13:32:39.401 Df LivepaperExtension[41781:9c779] [app.livepaper.spike:spike] extension: accepted connection from pid 41777
+2026-09-17 13:32:39.405 Df LivepaperExtension[41781:9c76a] [app.livepaper.spike:spike] extension: ACQUIRE new surface DBF8BA51-8FF0-4C2C-9521-8F042A23D880 ctx 4000068851 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview false pid 41777 (1 surfaces)
+2026-09-17 13:32:39.405 Df WallpaperAgent[41777:9c74e] [com.apple.wallpaper:extension-proxy] 05E6271E: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:32:39.405 Df WallpaperAgent[41777:9c74e] [com.apple.wallpaper:extension] Scheduling disconnection for 5 minutes from now for app.livepaper.spike.extension
+2026-09-17 13:32:39.405 Df WallpaperAgent[41777:9c756] [com.apple.wallpaper:catalog] 5ACF834E: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:32:39.408 Df WallpaperAgent[41777:9c757] [com.apple.wallpaper:catalog] 4F283A06: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:32:39.413 Df WallpaperAgent[41777:9c757] [com.apple.wallpaper:extension-proxy] 97071452: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:32:39.415 Df LivepaperExtension[41781:9c76a] [app.livepaper.spike:spike] extension: ACQUIRE new surface 58BE8BD0-1C86-4740-8178-8365B3BFBC45 ctx 355768071 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview true pid 41777 (2 surfaces)
+2026-09-17 13:32:39.415 Df WallpaperAgent[41777:9c74c] [com.apple.wallpaper:extension-proxy] 97071452: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:32:39.415 Df WallpaperAgent[41777:9c757] [com.apple.wallpaper:catalog] 4F283A06: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:32:54.402 Df WallpaperAgent[41777:9cdc1] [com.apple.wallpaper:extension-proxy] 580A381D: BEGIN - [app.livepaper.spike.extension] wallpaper(58BE8BD0) update
+2026-09-17 13:32:54.403 Df LivepaperExtension[41781:9c8b9] [app.livepaper.spike:spike] extension: UPDATE presentationMode=idle activityState=active pid 41777
+2026-09-17 13:32:54.403 Df WallpaperAgent[41777:9cdc3] [com.apple.wallpaper:extension-proxy] 580A381D: END - [app.livepaper.spike.extension] wallpaper(58BE8BD0) update
+2026-09-17 13:32:54.494 Df launchd[1:9c9d7] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:32:54.494 Df launchd[1:9c9d7] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:32:54.499 Df WallpaperAgent[41777:9cdc3] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 13:32:54.519 Df WallpaperAgent[41777:9cdc3] [com.apple.wallpaper:extension-proxy] onInterruption handler called for app.livepaper.spike.extension
+2026-09-17 13:32:54.561 E  taskgated-helper[41668:9c5ef] [com.apple.ManagedClient:ProvisioningProfiles] Disallowing: app.livepaper.spike
+2026-09-17 13:32:54.562 Df amfid[373:9cbb9] <repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/MacOS/Livepaper not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file://<repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/MacOS/Livepaper, NSLocalized
+2026-09-17 13:32:54.639 Df WallpaperAgent[41777:9cdc2] [com.apple.wallpaper:extension-proxy] 7C4F405F: BEGIN - [app.livepaper.spike.extension] wallpaper(58BE8BD0) update
+2026-09-17 13:32:54.640 E  WallpaperAgent[41777:9cdc1] [com.apple.wallpaper:extension-proxy] 7C4F405F: ERROR - [app.livepaper.spike.extension] wallpaper(58BE8BD0) update: NSCocoaErrorDomain (4099) <private>
+2026-09-17 13:32:54.765 Df WallpaperAgent[41777:9c751] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:32:54.765 Df WallpaperAgent[41777:9c751] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 13:32:54.765 Df WallpaperAgent[41777:9c751] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 13:32:58.724 Df WallpaperAgent[42373:9cfe3] [com.apple.wallpaper:export-controller] Successfully read existing exported wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>'
+2026-09-17 13:32:58.729 E  WallpaperAgent[42373:9cfe6] [com.apple.wallpaper:assetManager] Could not find translator for: app.livepaper.spike.extension; eagerly assuming it's an extension with the same identifier
+2026-09-17 13:32:58.729 Df WallpaperAgent[42373:9cfe6] [com.apple.wallpaper:catalog] A2D8B434: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:32:58.731 Df WallpaperAgent[42373:9cfd6] [com.apple.wallpaper:catalog] Found 12 Wallpaper extensions at initialization time
+2026-09-17 13:32:58.731 Df WallpaperAgent[42373:9cfe5] [com.apple.wallpaper:catalog] Notifying about 12 new Wallpaper extensions
+2026-09-17 13:32:58.735 Df WallpaperAgent[42373:9cfe1] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:32:58.735 Df WallpaperAgent[42373:9cfd7] [com.apple.wallpaper:extension-proxy] 87B5F699: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:32:58.735 Df WallpaperAgent[42373:9cfd7] [com.apple.wallpaper:extension-proxy] 01349F0D: BEGIN - [app.livepaper.spike.extension] connect
+2026-09-17 13:32:58.753 Df WallpaperAgent[42373:9cfd7] [com.apple.extensionkit:launch] Launching process with config: identity: RecordIdentity(record: ExtensionFoundation.Database._ExtensionRecord(lsRecord: <LSApplicationExtensionRecord 0x7a32c2e0a0> { bundleID: app.livepaper.spike.extension, URL: file://<repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/Extensions/Livep
+2026-09-17 13:32:58.786 E  taskgated-helper[41668:9c5ef] [com.apple.ManagedClient:ProvisioningProfiles] Disallowing: app.livepaper.spike.extension
+2026-09-17 13:32:58.787 Df amfid[373:9cbb9] <repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/LivepaperExtension not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file://<repo>/Spikes/build/DerivedData/Build/Products/Relea
+2026-09-17 13:32:58.792 Df WallpaperAgent[42373:9cfd7] [com.apple.wallpaper:extension-proxy] 01349F0D: END - [app.livepaper.spike.extension] connect
+2026-09-17 13:32:58.809 Df LivepaperExtension[42377:9cff7] [app.livepaper.spike:spike] extension: INIT pid 42377 build 20260917132516 path <repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 13:32:58.810 Df LivepaperExtension[42377:9cff7] [app.livepaper.spike:spike] bridge: WallpaperExtensionKit loaded, all 15 payload classes present
+2026-09-17 13:32:58.810 Df LivepaperExtension[42377:9cff7] [app.livepaper.spike:spike] s1: NSHomeDirectory = ~/Library/Containers/app.livepaper.spike.extension/Data; real home = ~
+2026-09-17 13:32:58.810 Df LivepaperExtension[42377:9cff7] [app.livepaper.spike:spike] s1: location a (Application Support + exception): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 13:32:58.810 Df LivepaperExtension[42377:9cff7] [app.livepaper.spike:spike] s1: location b (own container): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 13:32:58.830 Df LivepaperExtension[42377:9d003] [app.livepaper.spike:spike] extension: accepted connection from pid 42373
+2026-09-17 13:32:58.837 Df LivepaperExtension[42377:9cff7] [app.livepaper.spike:spike] extension: ACQUIRE new surface 1A9387F1-756C-4298-ADCE-A04FA7455CD0 ctx 2271721383 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview true pid 42373 (1 surfaces)
+2026-09-17 13:32:58.837 Df WallpaperAgent[42373:9cfe2] [com.apple.wallpaper:extension-proxy] 87B5F699: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:32:58.837 Df WallpaperAgent[42373:9cfe2] [com.apple.wallpaper:extension] Scheduling disconnection for 5 minutes from now for app.livepaper.spike.extension
+2026-09-17 13:32:58.837 Df WallpaperAgent[42373:9cfe2] [com.apple.wallpaper:catalog] A2D8B434: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:32:58.841 Df WallpaperAgent[42373:9cfe1] [com.apple.wallpaper:catalog] A118357A: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:32:58.846 Df WallpaperAgent[42373:9cfe1] [com.apple.wallpaper:extension-proxy] FE286ADC: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:32:58.849 Df LivepaperExtension[42377:9cff7] [app.livepaper.spike:spike] extension: ACQUIRE new surface 6B9862F5-3850-4725-82DF-D929AD8B5911 ctx 1368566769 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview false pid 42373 (2 surfaces)
+2026-09-17 13:32:58.849 Df WallpaperAgent[42373:9cfe8] [com.apple.wallpaper:extension-proxy] FE286ADC: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:32:58.849 Df WallpaperAgent[42373:9cfe8] [com.apple.wallpaper:catalog] A118357A: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:33:13.725 Df launchd[1:9cfed] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:33:13.725 Df launchd[1:9cfed] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:33:13.725 Df WallpaperAgent[42373:9cfe1] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 13:33:13.731 Df WallpaperAgent[42373:9cfe4] [com.apple.wallpaper:extension-proxy] onInterruption handler called for app.livepaper.spike.extension
+2026-09-17 13:33:13.813 Df WallpaperAgent[42373:9cfe7] [com.apple.wallpaper:extension-proxy] 70C1343D: BEGIN - [app.livepaper.spike.extension] wallpaper(1A9387F1) update
+2026-09-17 13:33:13.815 E  WallpaperAgent[42373:9cfe7] [com.apple.wallpaper:extension-proxy] 70C1343D: ERROR - [app.livepaper.spike.extension] wallpaper(1A9387F1) update: NSCocoaErrorDomain (4099) <private>
+2026-09-17 13:33:13.891 Df amfid[373:9d41d] /Applications/Livepaper.app/Contents/MacOS/Livepaper not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file:///Applications/Livepaper.app/Contents/MacOS/Livepaper, NSLocalizedDescription=The file is adhoc signed or signed by an unknown certificate chain}
+2026-09-17 13:33:14.004 Df WallpaperAgent[42373:9d71f] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:33:14.004 Df WallpaperAgent[42373:9d71f] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 13:33:14.005 Df WallpaperAgent[42373:9d71f] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 13:33:14.243 Df WallpaperAgent[42373:9d721] [com.apple.wallpaper:extension-proxy] BEE93022: BEGIN - [app.livepaper.spike.extension] wallpaper(1A9387F1) update
+2026-09-17 13:33:14.243 E  WallpaperAgent[42373:9d721] [com.apple.wallpaper:extension-proxy] BEE93022: ERROR - [app.livepaper.spike.extension] wallpaper(1A9387F1) update: NSCocoaErrorDomain (4099) <private>
+2026-09-17 13:33:18.022 Df WallpaperAgent[42934:9d8ee] [com.apple.wallpaper:export-controller] Successfully read existing exported wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>'
+2026-09-17 13:33:18.025 E  WallpaperAgent[42934:9d8ee] [com.apple.wallpaper:assetManager] Could not find translator for: app.livepaper.spike.extension; eagerly assuming it's an extension with the same identifier
+2026-09-17 13:33:18.025 Df WallpaperAgent[42934:9d8ee] [com.apple.wallpaper:catalog] 5561071E: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:33:18.027 Df WallpaperAgent[42934:9d8e5] [com.apple.wallpaper:catalog] Found 12 Wallpaper extensions at initialization time
+2026-09-17 13:33:18.027 Df WallpaperAgent[42934:9d8ed] [com.apple.wallpaper:catalog] Notifying about 12 new Wallpaper extensions
+2026-09-17 13:33:18.031 Df WallpaperAgent[42934:9d8e9] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:33:18.031 Df WallpaperAgent[42934:9d8e7] [com.apple.wallpaper:extension-proxy] A637F4D3: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:33:18.031 Df WallpaperAgent[42934:9d8e7] [com.apple.wallpaper:extension-proxy] 4C42876D: BEGIN - [app.livepaper.spike.extension] connect
+2026-09-17 13:33:18.048 Df WallpaperAgent[42934:9d8e7] [com.apple.extensionkit:launch] Launching process with config: identity: RecordIdentity(record: ExtensionFoundation.Database._ExtensionRecord(lsRecord: <LSApplicationExtensionRecord 0x7a58c2e0a0> { bundleID: app.livepaper.spike.extension, URL: file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/, super: <LSApplicati
+2026-09-17 13:33:18.054 Df amfid[373:9d41d] /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/LivepaperExtension not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/Livep
+2026-09-17 13:33:18.059 Df WallpaperAgent[42934:9d8e7] [com.apple.wallpaper:extension-proxy] 4C42876D: END - [app.livepaper.spike.extension] connect
+2026-09-17 13:33:18.130 Df LivepaperExtension[42940:9d8fe] [app.livepaper.spike:spike] extension: INIT pid 42940 build 20260917132516 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 13:33:18.130 Df LivepaperExtension[42940:9d8fe] [app.livepaper.spike:spike] bridge: WallpaperExtensionKit loaded, all 15 payload classes present
+2026-09-17 13:33:18.130 Df LivepaperExtension[42940:9d8fe] [app.livepaper.spike:spike] s1: NSHomeDirectory = ~/Library/Containers/app.livepaper.spike.extension/Data; real home = ~
+2026-09-17 13:33:18.130 Df LivepaperExtension[42940:9d8fe] [app.livepaper.spike:spike] s1: location a (Application Support + exception): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 13:33:18.131 Df LivepaperExtension[42940:9d8fe] [app.livepaper.spike:spike] s1: location b (own container): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 13:33:18.146 Df LivepaperExtension[42940:9d909] [app.livepaper.spike:spike] extension: accepted connection from pid 42934
+2026-09-17 13:33:18.151 Df LivepaperExtension[42940:9d8fe] [app.livepaper.spike:spike] extension: ACQUIRE new surface F6687420-3A6F-4483-A9AB-1C4C1B5DA065 ctx 1276703012 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview false pid 42934 (1 surfaces)
+2026-09-17 13:33:18.151 Df WallpaperAgent[42934:9d8ec] [com.apple.wallpaper:extension-proxy] A637F4D3: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:33:18.151 Df WallpaperAgent[42934:9d8ec] [com.apple.wallpaper:extension] Scheduling disconnection for 5 minutes from now for app.livepaper.spike.extension
+2026-09-17 13:33:18.151 Df WallpaperAgent[42934:9d8e7] [com.apple.wallpaper:catalog] 5561071E: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:33:18.156 Df WallpaperAgent[42934:9d8ea] [com.apple.wallpaper:catalog] 46A1AF81: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:33:18.156 Df WallpaperAgent[42934:9d8ea] [com.apple.wallpaper:extension-proxy] 9434D6C5: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:33:18.163 Df LivepaperExtension[42940:9d8fe] [app.livepaper.spike:spike] extension: ACQUIRE new surface C4F1596B-851C-4667-B283-71D24E744D5A ctx 3658533345 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview true pid 42934 (2 surfaces)
+2026-09-17 13:33:18.163 Df WallpaperAgent[42934:9d8ee] [com.apple.wallpaper:extension-proxy] 9434D6C5: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:33:18.163 Df WallpaperAgent[42934:9d8ee] [com.apple.wallpaper:catalog] 46A1AF81: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:33:33.122 Df WallpaperAgent[42934:9dffa] [com.apple.wallpaper:extension-proxy] 1D89DE38: BEGIN - [app.livepaper.spike.extension] wallpaper(C4F1596B) update
+2026-09-17 13:33:33.124 Df LivepaperExtension[42940:9da2b] [app.livepaper.spike:spike] extension: UPDATE presentationMode=idle activityState=active pid 42934
+2026-09-17 13:33:33.124 Df WallpaperAgent[42934:9d8ef] [com.apple.wallpaper:extension-proxy] 1D89DE38: END - [app.livepaper.spike.extension] wallpaper(C4F1596B) update
+2026-09-17 13:33:33.161 Df launchd[1:9d8f3] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:33:33.161 Df launchd[1:9d8f3] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:33:33.162 Df WallpaperAgent[42934:9dff7] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 13:33:33.176 Df WallpaperAgent[42934:9dff9] [com.apple.wallpaper:extension-proxy] onInterruption handler called for app.livepaper.spike.extension
+2026-09-17 13:33:33.235 Df amfid[373:9dce8] /Applications/Livepaper.app/Contents/MacOS/Livepaper not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file:///Applications/Livepaper.app/Contents/MacOS/Livepaper, NSLocalizedDescription=The file is adhoc signed or signed by an unknown certificate chain}
+2026-09-17 13:33:33.319 Df launchd[1:9d8f3] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:33:33.320 Df launchd[1:9d8f3] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:33:33.427 Df WallpaperAgent[42934:9dff7] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:33:33.427 Df WallpaperAgent[42934:9dff7] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 13:33:33.427 Df WallpaperAgent[42934:9dff7] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 13:33:33.461 Df WallpaperAgent[42934:9d8e5] [com.apple.wallpaper:extension-proxy] 9432AE6B: BEGIN - [app.livepaper.spike.extension] wallpaper(C4F1596B) update
+2026-09-17 13:33:33.462 E  WallpaperAgent[42934:9d8e5] [com.apple.wallpaper:extension-proxy] 9432AE6B: ERROR - [app.livepaper.spike.extension] wallpaper(C4F1596B) update: NSCocoaErrorDomain (4099) <private>
+2026-09-17 13:33:37.407 Df WallpaperAgent[43403:9e11f] [com.apple.wallpaper:export-controller] Successfully read existing exported wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>'
+2026-09-17 13:33:37.409 E  WallpaperAgent[43403:9e119] [com.apple.wallpaper:assetManager] Could not find translator for: app.livepaper.spike.extension; eagerly assuming it's an extension with the same identifier
+2026-09-17 13:33:37.409 Df WallpaperAgent[43403:9e119] [com.apple.wallpaper:catalog] 41761632: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:33:37.411 Df WallpaperAgent[43403:9e117] [com.apple.wallpaper:catalog] Found 12 Wallpaper extensions at initialization time
+2026-09-17 13:33:37.411 Df WallpaperAgent[43403:9e11c] [com.apple.wallpaper:catalog] Notifying about 12 new Wallpaper extensions
+2026-09-17 13:33:37.414 Df WallpaperAgent[43403:9e117] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:33:37.414 Df WallpaperAgent[43403:9e118] [com.apple.wallpaper:extension-proxy] CD828BC9: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:33:37.415 Df WallpaperAgent[43403:9e118] [com.apple.wallpaper:extension-proxy] 71C1F304: BEGIN - [app.livepaper.spike.extension] connect
+2026-09-17 13:33:37.433 Df WallpaperAgent[43403:9e118] [com.apple.extensionkit:launch] Launching process with config: identity: RecordIdentity(record: ExtensionFoundation.Database._ExtensionRecord(lsRecord: <LSApplicationExtensionRecord 0x7bb0c2db60> { bundleID: app.livepaper.spike.extension, URL: file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/, super: <LSApplicati
+2026-09-17 13:33:37.441 Df amfid[373:9dce8] /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/LivepaperExtension not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/Livep
+2026-09-17 13:33:37.449 Df WallpaperAgent[43403:9e118] [com.apple.wallpaper:extension-proxy] 71C1F304: END - [app.livepaper.spike.extension] connect
+2026-09-17 13:33:37.461 Df LivepaperExtension[43407:9e12f] [app.livepaper.spike:spike] extension: INIT pid 43407 build 20260917132516 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 13:33:37.461 Df LivepaperExtension[43407:9e12f] [app.livepaper.spike:spike] bridge: WallpaperExtensionKit loaded, all 15 payload classes present
+2026-09-17 13:33:37.461 Df LivepaperExtension[43407:9e12f] [app.livepaper.spike:spike] s1: NSHomeDirectory = ~/Library/Containers/app.livepaper.spike.extension/Data; real home = ~
+2026-09-17 13:33:37.461 Df LivepaperExtension[43407:9e12f] [app.livepaper.spike:spike] s1: location a (Application Support + exception): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 13:33:37.462 Df LivepaperExtension[43407:9e12f] [app.livepaper.spike:spike] s1: location b (own container): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 13:33:37.478 Df LivepaperExtension[43407:9e138] [app.livepaper.spike:spike] extension: accepted connection from pid 43403
+2026-09-17 13:33:37.483 Df LivepaperExtension[43407:9e12f] [app.livepaper.spike:spike] extension: ACQUIRE new surface 8EE64CF9-5910-4F85-8CAF-A2D36B79B75F ctx 1901809943 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview true pid 43403 (1 surfaces)
+2026-09-17 13:33:37.483 Df WallpaperAgent[43403:9e115] [com.apple.wallpaper:extension-proxy] CD828BC9: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:33:37.483 Df WallpaperAgent[43403:9e115] [com.apple.wallpaper:extension] Scheduling disconnection for 5 minutes from now for app.livepaper.spike.extension
+2026-09-17 13:33:37.483 Df WallpaperAgent[43403:9e117] [com.apple.wallpaper:catalog] 41761632: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:33:37.488 Df WallpaperAgent[43403:9e11c] [com.apple.wallpaper:catalog] 046D1FA1: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:33:37.494 Df WallpaperAgent[43403:9e11c] [com.apple.wallpaper:extension-proxy] 3504196B: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:33:37.497 Df LivepaperExtension[43407:9e12f] [app.livepaper.spike:spike] extension: ACQUIRE new surface 6F8F177C-BD83-4C77-8487-F3FE15C675BE ctx 3982699136 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview false pid 43403 (2 surfaces)
+2026-09-17 13:33:37.497 Df WallpaperAgent[43403:9e115] [com.apple.wallpaper:extension-proxy] 3504196B: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:33:37.497 Df WallpaperAgent[43403:9e115] [com.apple.wallpaper:catalog] 046D1FA1: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:33:52.529 Df WallpaperAgent[43403:9e812] [com.apple.wallpaper:extension-proxy] 3A3B3C0C: BEGIN - [app.livepaper.spike.extension] wallpaper(8EE64CF9) update
+2026-09-17 13:33:52.529 Df LivepaperExtension[43407:9e4b6] [app.livepaper.spike:spike] extension: UPDATE presentationMode=idle activityState=active pid 43403
+2026-09-17 13:33:52.529 Df WallpaperAgent[43403:9e121] [com.apple.wallpaper:extension-proxy] 3A3B3C0C: END - [app.livepaper.spike.extension] wallpaper(8EE64CF9) update
+2026-09-17 13:33:52.650 Df launchd[1:9e7d8] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:33:52.651 Df launchd[1:9e7d8] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:33:52.654 Df WallpaperAgent[43403:9e812] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 13:33:52.682 Df WallpaperAgent[43403:9e813] [com.apple.wallpaper:extension-proxy] onInterruption handler called for app.livepaper.spike.extension
+2026-09-17 13:33:52.772 Df launchd[1:9e7d8] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:33:52.772 Df launchd[1:9e7d8] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:33:52.857 E  taskgated-helper[41668:9dc43] [com.apple.ManagedClient:ProvisioningProfiles] Disallowing: app.livepaper.spike
+2026-09-17 13:33:52.857 Df amfid[373:9e612] /Applications/Livepaper.app/Contents/MacOS/Livepaper not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file:///Applications/Livepaper.app/Contents/MacOS/Livepaper, NSLocalizedDescription=The file is adhoc signed or signed by an unknown certificate chain}
+2026-09-17 13:33:52.918 Df WallpaperAgent[43403:9e813] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:33:52.919 Df WallpaperAgent[43403:9e812] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 13:33:52.919 Df WallpaperAgent[43403:9e812] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 13:33:53.087 Df WallpaperAgent[43403:9e815] [com.apple.wallpaper:extension-proxy] 8DDE7B48: BEGIN - [app.livepaper.spike.extension] wallpaper(8EE64CF9) update
+2026-09-17 13:33:53.088 E  WallpaperAgent[43403:9e813] [com.apple.wallpaper:extension-proxy] 8DDE7B48: ERROR - [app.livepaper.spike.extension] wallpaper(8EE64CF9) update: NSCocoaErrorDomain (4099) <private>
+2026-09-17 13:33:57.010 Df WallpaperAgent[43997:9ea5e] [com.apple.wallpaper:export-controller] Successfully read existing exported wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>'
+2026-09-17 13:33:57.012 E  WallpaperAgent[43997:9ea60] [com.apple.wallpaper:assetManager] Could not find translator for: app.livepaper.spike.extension; eagerly assuming it's an extension with the same identifier
+2026-09-17 13:33:57.013 Df WallpaperAgent[43997:9ea60] [com.apple.wallpaper:catalog] 5052F577: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:33:57.014 Df WallpaperAgent[43997:9ea59] [com.apple.wallpaper:catalog] Found 12 Wallpaper extensions at initialization time
+2026-09-17 13:33:57.014 Df WallpaperAgent[43997:9ea60] [com.apple.wallpaper:catalog] Notifying about 12 new Wallpaper extensions
+2026-09-17 13:33:57.017 Df WallpaperAgent[43997:9ea62] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:33:57.017 Df WallpaperAgent[43997:9ea63] [com.apple.wallpaper:extension-proxy] 5DA9ECB3: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:33:57.017 Df WallpaperAgent[43997:9ea63] [com.apple.wallpaper:extension-proxy] 8017AB71: BEGIN - [app.livepaper.spike.extension] connect
+2026-09-17 13:33:57.036 Df WallpaperAgent[43997:9ea63] [com.apple.extensionkit:launch] Launching process with config: identity: RecordIdentity(record: ExtensionFoundation.Database._ExtensionRecord(lsRecord: <LSApplicationExtensionRecord 0x79b8c2daa0> { bundleID: app.livepaper.spike.extension, URL: file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/, super: <LSApplicati
+2026-09-17 13:33:57.069 E  taskgated-helper[41668:9dc43] [com.apple.ManagedClient:ProvisioningProfiles] Disallowing: app.livepaper.spike.extension
+2026-09-17 13:33:57.070 Df amfid[373:9e612] /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/LivepaperExtension not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/Livep
+2026-09-17 13:33:57.074 Df WallpaperAgent[43997:9ea63] [com.apple.wallpaper:extension-proxy] 8017AB71: END - [app.livepaper.spike.extension] connect
+2026-09-17 13:33:57.085 Df LivepaperExtension[44001:9ea72] [app.livepaper.spike:spike] extension: INIT pid 44001 build 20260917132516 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 13:33:57.086 Df LivepaperExtension[44001:9ea72] [app.livepaper.spike:spike] bridge: WallpaperExtensionKit loaded, all 15 payload classes present
+2026-09-17 13:33:57.086 Df LivepaperExtension[44001:9ea72] [app.livepaper.spike:spike] s1: NSHomeDirectory = ~/Library/Containers/app.livepaper.spike.extension/Data; real home = ~
+2026-09-17 13:33:57.086 Df LivepaperExtension[44001:9ea72] [app.livepaper.spike:spike] s1: location a (Application Support + exception): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 13:33:57.086 Df LivepaperExtension[44001:9ea72] [app.livepaper.spike:spike] s1: location b (own container): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 13:33:57.104 Df LivepaperExtension[44001:9ea7e] [app.livepaper.spike:spike] extension: accepted connection from pid 43997
+2026-09-17 13:33:57.109 Df LivepaperExtension[44001:9ea72] [app.livepaper.spike:spike] extension: ACQUIRE new surface 8B6BC681-D157-4B67-8F28-10127BAA7798 ctx 1475883174 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview false pid 43997 (1 surfaces)
+2026-09-17 13:33:57.109 Df WallpaperAgent[43997:9ea62] [com.apple.wallpaper:extension-proxy] 5DA9ECB3: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:33:57.109 Df WallpaperAgent[43997:9ea62] [com.apple.wallpaper:extension] Scheduling disconnection for 5 minutes from now for app.livepaper.spike.extension
+2026-09-17 13:33:57.109 Df WallpaperAgent[43997:9ea63] [com.apple.wallpaper:catalog] 5052F577: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:33:57.113 Df WallpaperAgent[43997:9ea57] [com.apple.wallpaper:catalog] 39E68C15: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:33:57.113 Df WallpaperAgent[43997:9ea57] [com.apple.wallpaper:extension-proxy] 19E0D366: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:33:57.122 Df LivepaperExtension[44001:9ea72] [app.livepaper.spike:spike] extension: ACQUIRE new surface F0119DBA-F138-4CEE-95BA-F5B7F6743FD2 ctx 744697746 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview true pid 43997 (2 surfaces)
+2026-09-17 13:33:57.122 Df WallpaperAgent[43997:9ea58] [com.apple.wallpaper:extension-proxy] 19E0D366: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:33:57.122 Df WallpaperAgent[43997:9ea58] [com.apple.wallpaper:catalog] 39E68C15: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:34:12.125 Df WallpaperAgent[43997:9f1df] [com.apple.wallpaper:extension-proxy] 58AC6CBD: BEGIN - [app.livepaper.spike.extension] wallpaper(F0119DBA) update
+2026-09-17 13:34:12.126 Df LivepaperExtension[44001:9eeb5] [app.livepaper.spike:spike] extension: UPDATE presentationMode=idle activityState=active pid 43997
+2026-09-17 13:34:12.126 Df WallpaperAgent[43997:9f1e0] [com.apple.wallpaper:extension-proxy] 58AC6CBD: END - [app.livepaper.spike.extension] wallpaper(F0119DBA) update
+2026-09-17 13:34:12.249 Df launchd[1:9e7d8] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:34:12.250 Df launchd[1:9e7d8] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:34:12.252 Df WallpaperAgent[43997:9f1df] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 13:34:12.263 Df WallpaperAgent[43997:9f1e0] [com.apple.wallpaper:extension-proxy] onInterruption handler called for app.livepaper.spike.extension
+2026-09-17 13:34:12.360 E  taskgated-helper[41668:9e92b] [com.apple.ManagedClient:ProvisioningProfiles] Disallowing: app.livepaper.spike
+2026-09-17 13:34:12.361 Df amfid[373:9efe4] /Applications/Livepaper.app/Contents/MacOS/Livepaper not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file:///Applications/Livepaper.app/Contents/MacOS/Livepaper, NSLocalizedDescription=The file is adhoc signed or signed by an unknown certificate chain}
+2026-09-17 13:34:12.437 Df launchd[1:9e7d8] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:34:12.438 Df launchd[1:9e7d8] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:34:12.526 Df WallpaperAgent[43997:9f1df] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:34:12.527 Df WallpaperAgent[43997:9f1e0] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 13:34:12.527 Df WallpaperAgent[43997:9f1e0] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 13:34:12.611 Df WallpaperAgent[43997:9f1e2] [com.apple.wallpaper:extension-proxy] 54B3D620: BEGIN - [app.livepaper.spike.extension] wallpaper(F0119DBA) update
+2026-09-17 13:34:12.612 E  WallpaperAgent[43997:9ea5f] [com.apple.wallpaper:extension-proxy] 54B3D620: ERROR - [app.livepaper.spike.extension] wallpaper(F0119DBA) update: NSCocoaErrorDomain (4099) <private>
+2026-09-17 13:34:16.528 Df WallpaperAgent[44692:9f463] [com.apple.wallpaper:export-controller] Successfully read existing exported wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>'
+2026-09-17 13:34:16.530 E  WallpaperAgent[44692:9f461] [com.apple.wallpaper:assetManager] Could not find translator for: app.livepaper.spike.extension; eagerly assuming it's an extension with the same identifier
+2026-09-17 13:34:16.531 Df WallpaperAgent[44692:9f459] [com.apple.wallpaper:catalog] Found 12 Wallpaper extensions at initialization time
+2026-09-17 13:34:16.531 Df WallpaperAgent[44692:9f463] [com.apple.wallpaper:catalog] Notifying about 12 new Wallpaper extensions
+2026-09-17 13:34:16.531 Df WallpaperAgent[44692:9f461] [com.apple.wallpaper:catalog] 8C7BE83C: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:34:16.535 Df WallpaperAgent[44692:9f459] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:34:16.535 Df WallpaperAgent[44692:9f459] [com.apple.wallpaper:extension-proxy] 919FCA1B: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:34:16.535 Df WallpaperAgent[44692:9f459] [com.apple.wallpaper:extension-proxy] 7E6CD010: BEGIN - [app.livepaper.spike.extension] connect
+2026-09-17 13:34:16.551 Df WallpaperAgent[44692:9f459] [com.apple.extensionkit:launch] Launching process with config: identity: RecordIdentity(record: ExtensionFoundation.Database._ExtensionRecord(lsRecord: <LSApplicationExtensionRecord 0x7c4ec2d800> { bundleID: app.livepaper.spike.extension, URL: file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/, super: <LSApplicati
+2026-09-17 13:34:16.590 E  taskgated-helper[41668:9e92b] [com.apple.ManagedClient:ProvisioningProfiles] Disallowing: app.livepaper.spike.extension
+2026-09-17 13:34:16.591 Df amfid[373:9efe4] /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/LivepaperExtension not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/Livep
+2026-09-17 13:34:16.595 Df WallpaperAgent[44692:9f459] [com.apple.wallpaper:extension-proxy] 7E6CD010: END - [app.livepaper.spike.extension] connect
+2026-09-17 13:34:16.608 Df LivepaperExtension[44696:9f474] [app.livepaper.spike:spike] extension: INIT pid 44696 build 20260917132516 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 13:34:16.608 Df LivepaperExtension[44696:9f474] [app.livepaper.spike:spike] bridge: WallpaperExtensionKit loaded, all 15 payload classes present
+2026-09-17 13:34:16.608 Df LivepaperExtension[44696:9f474] [app.livepaper.spike:spike] s1: NSHomeDirectory = ~/Library/Containers/app.livepaper.spike.extension/Data; real home = ~
+2026-09-17 13:34:16.608 Df LivepaperExtension[44696:9f474] [app.livepaper.spike:spike] s1: location a (Application Support + exception): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 13:34:16.608 Df LivepaperExtension[44696:9f474] [app.livepaper.spike:spike] s1: location b (own container): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 13:34:16.626 Df LivepaperExtension[44696:9f481] [app.livepaper.spike:spike] extension: accepted connection from pid 44692
+2026-09-17 13:34:16.633 Df LivepaperExtension[44696:9f474] [app.livepaper.spike:spike] extension: ACQUIRE new surface 939EDC6B-5575-4788-8F1A-C8BCC1E76879 ctx 924025540 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview true pid 44692 (1 surfaces)
+2026-09-17 13:34:16.633 Df WallpaperAgent[44692:9f462] [com.apple.wallpaper:extension-proxy] 919FCA1B: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:34:16.633 Df WallpaperAgent[44692:9f462] [com.apple.wallpaper:extension] Scheduling disconnection for 5 minutes from now for app.livepaper.spike.extension
+2026-09-17 13:34:16.633 Df WallpaperAgent[44692:9f460] [com.apple.wallpaper:catalog] 8C7BE83C: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:34:16.639 Df WallpaperAgent[44692:9f461] [com.apple.wallpaper:catalog] 7EE1B99A: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:34:16.639 Df WallpaperAgent[44692:9f461] [com.apple.wallpaper:extension-proxy] 0DD189DD: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:34:16.648 Df LivepaperExtension[44696:9f474] [app.livepaper.spike:spike] extension: ACQUIRE new surface FC24B0D6-461F-4791-AF87-6B6665F939B9 ctx 1816063886 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview false pid 44692 (2 surfaces)
+2026-09-17 13:34:16.649 Df WallpaperAgent[44692:9f459] [com.apple.wallpaper:extension-proxy] 0DD189DD: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:34:16.649 Df WallpaperAgent[44692:9f464] [com.apple.wallpaper:catalog] 7EE1B99A: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:35:01.439 Df WallpaperAgent[44692:a00a1] [com.apple.wallpaper:extension-proxy] BE2F9ED7: BEGIN - [app.livepaper.spike.extension] wallpaper(939EDC6B) update
+2026-09-17 13:35:01.440 Df LivepaperExtension[44696:9fd8d] [app.livepaper.spike:spike] extension: UPDATE presentationMode=idle activityState=active pid 44692
+2026-09-17 13:35:01.440 Df WallpaperAgent[44692:a00a0] [com.apple.wallpaper:extension-proxy] BE2F9ED7: END - [app.livepaper.spike.extension] wallpaper(939EDC6B) update
+2026-09-17 13:35:01.547 Df launchd[1:a0041] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:35:01.547 Df launchd[1:a0041] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:35:01.549 Df WallpaperAgent[44692:a00a1] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 13:35:01.574 Df WallpaperAgent[44692:a00a1] [com.apple.wallpaper:extension-proxy] onInterruption handler called for app.livepaper.spike.extension
+2026-09-17 13:35:01.698 Df launchd[1:9fc7f] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:35:01.698 Df launchd[1:9fc7f] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:35:01.743 E  taskgated-helper[41668:9e92b] [com.apple.ManagedClient:ProvisioningProfiles] Disallowing: app.livepaper.spike
+2026-09-17 13:35:01.744 Df amfid[373:9efe4] /Applications/Livepaper.app/Contents/MacOS/Livepaper not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file:///Applications/Livepaper.app/Contents/MacOS/Livepaper, NSLocalizedDescription=The file is adhoc signed or signed by an unknown certificate chain}
+2026-09-17 13:35:01.819 Df WallpaperAgent[44692:a00a0] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:35:01.819 Df WallpaperAgent[44692:a00a0] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 13:35:01.819 Df WallpaperAgent[44692:a00a0] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 13:35:02.063 Df WallpaperAgent[44692:a00a3] [com.apple.wallpaper:extension-proxy] 7D9DA680: BEGIN - [app.livepaper.spike.extension] wallpaper(939EDC6B) update
+2026-09-17 13:35:02.064 E  WallpaperAgent[44692:a00a0] [com.apple.wallpaper:extension-proxy] 7D9DA680: ERROR - [app.livepaper.spike.extension] wallpaper(939EDC6B) update: NSCocoaErrorDomain (4099) <private>
+2026-09-17 13:35:05.855 Df launchd[1:9fe94] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:35:05.855 Df launchd[1:9fe94] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:35:05.891 Df Livepaper[46145:a0310] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 13:35:06.121 Df WallpaperAgent[44692:a009d] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:35:06.121 Df WallpaperAgent[44692:a009f] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 13:35:06.122 Df WallpaperAgent[44692:a009f] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 13:35:21.429 E  WallpaperAgent[44692:a0776] [com.apple.extensionkit:discovery] Extension is not entitled to run in the App Sandbox : <_EXExtensionIdentity: 0x7c4ec48e10>
+2026-09-17 13:35:22.831 Df launchd[1:a0758] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:35:22.831 Df launchd[1:a0758] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:35:22.933 Df WallpaperAgent[44692:a0775] [com.apple.wallpaper:extension-proxy] 0CCBFF1D: BEGIN - [app.livepaper.spike.extension] wallpaper(939EDC6B) update
+2026-09-17 13:35:22.933 E  WallpaperAgent[44692:a0775] [com.apple.wallpaper:extension-proxy] 0CCBFF1D: ERROR - [app.livepaper.spike.extension] wallpaper(939EDC6B) update: NSCocoaErrorDomain (4099) <private>
+2026-09-17 13:35:23.019 Df launchd[1:a0758] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:35:23.020 Df launchd[1:a0758] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:35:23.129 Df WallpaperAgent[44692:a0774] [com.apple.wallpaper:catalog] Received an updated set of 11 Wallpaper extensions
+2026-09-17 13:35:23.130 Df WallpaperAgent[44692:a0774] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 13:35:23.305 E  taskgated-helper[41668:a0183] [com.apple.ManagedClient:ProvisioningProfiles] Disallowing: app.livepaper.spike
+2026-09-17 13:35:23.306 Df amfid[373:a0940] /Applications/Livepaper.app/Contents/MacOS/Livepaper not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file:///Applications/Livepaper.app/Contents/MacOS/Livepaper, NSLocalizedDescription=The file is adhoc signed or signed by an unknown certificate chain}
+2026-09-17 13:35:23.506 Df WallpaperAgent[44692:a0774] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:35:23.507 Df WallpaperAgent[44692:a0774] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 13:35:23.622 Df WallpaperAgent[44692:a00a5] [com.apple.wallpaper:extension-proxy] EAAB71C3: BEGIN - [app.livepaper.spike.extension] wallpaper(939EDC6B) update
+2026-09-17 13:35:23.623 E  WallpaperAgent[44692:a0775] [com.apple.wallpaper:extension-proxy] EAAB71C3: ERROR - [app.livepaper.spike.extension] wallpaper(939EDC6B) update: NSCocoaErrorDomain (4099) <private>
+2026-09-17 13:35:27.578 Df WallpaperAgent[46768:a0d53] [com.apple.wallpaper:export-controller] Successfully read existing exported wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>'
+2026-09-17 13:35:27.615 E  WallpaperAgent[46768:a0d3a] [com.apple.wallpaper:assetManager] Could not find translator for: app.livepaper.spike.extension; eagerly assuming it's an extension with the same identifier
+2026-09-17 13:35:27.618 Df WallpaperAgent[46768:a0d3a] [com.apple.wallpaper:catalog] AA64CB87: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:35:27.624 Df WallpaperAgent[46768:a0d39] [com.apple.wallpaper:catalog] Found 12 Wallpaper extensions at initialization time
+2026-09-17 13:35:27.624 Df WallpaperAgent[46768:a0d3a] [com.apple.wallpaper:catalog] Notifying about 12 new Wallpaper extensions
+2026-09-17 13:35:27.644 Df WallpaperAgent[46768:a0d39] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:35:27.645 Df WallpaperAgent[46768:a0d86] [com.apple.wallpaper:extension-proxy] D4126FBB: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:35:27.645 Df WallpaperAgent[46768:a0d86] [com.apple.wallpaper:extension-proxy] 8B018F3C: BEGIN - [app.livepaper.spike.extension] connect
+2026-09-17 13:35:27.675 Df WallpaperAgent[46768:a0d86] [com.apple.extensionkit:launch] Launching process with config: identity: RecordIdentity(record: ExtensionFoundation.Database._ExtensionRecord(lsRecord: <LSApplicationExtensionRecord 0x795ec2dfe0> { bundleID: app.livepaper.spike.extension, URL: file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/, super: <LSApplicati
+2026-09-17 13:35:27.717 E  taskgated-helper[41668:a0183] [com.apple.ManagedClient:ProvisioningProfiles] Disallowing: app.livepaper.spike.extension
+2026-09-17 13:35:27.719 Df amfid[373:a0940] /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/LivepaperExtension not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/Livep
+2026-09-17 13:35:27.725 Df WallpaperAgent[46768:a0d86] [com.apple.wallpaper:extension-proxy] 8B018F3C: END - [app.livepaper.spike.extension] connect
+2026-09-17 13:35:27.743 Df LivepaperExtension[46835:a0da1] [app.livepaper.spike:spike] extension: INIT pid 46835 build 20260917133517 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 13:35:27.744 Df LivepaperExtension[46835:a0da1] [app.livepaper.spike:spike] bridge: WallpaperExtensionKit loaded, all 15 payload classes present
+2026-09-17 13:35:27.744 Df LivepaperExtension[46835:a0da1] [app.livepaper.spike:spike] s1: NSHomeDirectory = ~/Library/Containers/app.livepaper.spike.extension/Data; real home = ~
+2026-09-17 13:35:27.744 Df LivepaperExtension[46835:a0da1] [app.livepaper.spike:spike] s1: location a (Application Support + exception): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 13:35:27.744 Df LivepaperExtension[46835:a0da1] [app.livepaper.spike:spike] s1: location b (own container): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 13:35:27.763 Df LivepaperExtension[46835:a0dae] [app.livepaper.spike:spike] extension: accepted connection from pid 46768
+2026-09-17 13:35:27.769 Df LivepaperExtension[46835:a0da1] [app.livepaper.spike:spike] extension: ACQUIRE new surface D0E56544-D3C4-4B2F-8346-E2C02E4CEE6A ctx 68936854 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview false pid 46768 (1 surfaces)
+2026-09-17 13:35:27.769 Df WallpaperAgent[46768:a0d8b] [com.apple.wallpaper:extension-proxy] D4126FBB: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:35:27.769 Df WallpaperAgent[46768:a0d8b] [com.apple.wallpaper:extension] Scheduling disconnection for 5 minutes from now for app.livepaper.spike.extension
+2026-09-17 13:35:27.769 Df WallpaperAgent[46768:a0d87] [com.apple.wallpaper:catalog] AA64CB87: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:35:27.773 Df WallpaperAgent[46768:a0d87] [com.apple.wallpaper:catalog] 75F05BDB: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:35:27.779 Df WallpaperAgent[46768:a0d87] [com.apple.wallpaper:extension-proxy] A9368948: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:35:27.785 Df LivepaperExtension[46835:a0da1] [app.livepaper.spike:spike] extension: ACQUIRE new surface 4BD8A129-4B7E-44D7-99C9-9DF06D6498DA ctx 3811715506 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview true pid 46768 (2 surfaces)
+2026-09-17 13:35:27.785 Df WallpaperAgent[46768:a0d55] [com.apple.wallpaper:extension-proxy] A9368948: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:35:27.785 Df WallpaperAgent[46768:a0d55] [com.apple.wallpaper:catalog] 75F05BDB: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:35:41.517 Df Livepaper[47214:a1163] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 13:35:41.549 Df launchd[1:a049f] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:35:41.549 Df launchd[1:a049f] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:35:41.549 Df WallpaperAgent[46768:a0d94] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 13:35:41.562 Df WallpaperAgent[46768:a0d93] [com.apple.wallpaper:extension-proxy] onInterruption handler called for app.livepaper.spike.extension
+2026-09-17 13:35:41.756 Df WallpaperAgent[46768:a0d94] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:35:41.756 Df WallpaperAgent[46768:a0d94] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 13:35:41.757 Df WallpaperAgent[46768:a0d94] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 13:35:50.517 Df Livepaper[47513:a1459] [app.livepaper.spike:spike] login: status = notRegistered for /Applications/Livepaper.app
+2026-09-17 13:35:50.592 Df launchd[1:9fe94] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:35:50.592 Df launchd[1:9fe94] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:35:50.637 Df WallpaperAgent[46768:a0d93] [com.apple.wallpaper:extension-proxy] 17B7899A: BEGIN - [app.livepaper.spike.extension] wallpaper(4BD8A129) update
+2026-09-17 13:35:50.638 E  WallpaperAgent[46768:a0d93] [com.apple.wallpaper:extension-proxy] 17B7899A: ERROR - [app.livepaper.spike.extension] wallpaper(4BD8A129) update: NSCocoaErrorDomain (4099) <private>
+2026-09-17 13:35:50.653 Df launchd[1:9fe94] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:35:50.653 Df launchd[1:9fe94] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:35:50.768 Df amfid[373:a0940] /Applications/Livepaper.app/Contents/MacOS/Livepaper not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file:///Applications/Livepaper.app/Contents/MacOS/Livepaper, NSLocalizedDescription=The file is adhoc signed or signed by an unknown certificate chain}
+2026-09-17 13:35:50.805 Df WallpaperAgent[46768:a0d93] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:35:50.806 Df WallpaperAgent[46768:a0d93] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 13:35:50.807 Df WallpaperAgent[46768:a0d93] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 13:35:51.050 Df WallpaperAgent[46768:a154d] [com.apple.wallpaper:extension-proxy] D50416C6: BEGIN - [app.livepaper.spike.extension] wallpaper(4BD8A129) update
+2026-09-17 13:35:51.052 E  WallpaperAgent[46768:a154d] [com.apple.wallpaper:extension-proxy] D50416C6: ERROR - [app.livepaper.spike.extension] wallpaper(4BD8A129) update: NSCocoaErrorDomain (4099) <private>
+2026-09-17 13:35:54.974 Df Livepaper[47681:a176a] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 13:35:54.985 Df launchd[1:a1375] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:35:54.985 Df launchd[1:a1375] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:35:55.216 Df WallpaperAgent[46768:a0d93] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:35:55.216 Df WallpaperAgent[46768:a0d93] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 13:35:55.216 Df WallpaperAgent[46768:a0d93] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 13:35:57.733 E  WallpaperAgent[46768:a154b] [com.apple.extensionkit:discovery] Extension is not entitled to run in the App Sandbox : <_EXExtensionIdentity: 0x795ec4aac0>
+2026-09-17 13:35:57.883 Df launchd[1:a17c1] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:35:57.883 Df launchd[1:a17c1] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:35:58.008 Df WallpaperAgent[46768:a154c] [com.apple.wallpaper:extension-proxy] 6E315E8E: BEGIN - [app.livepaper.spike.extension] wallpaper(4BD8A129) update
+2026-09-17 13:35:58.009 E  WallpaperAgent[46768:a11fe] [com.apple.wallpaper:extension-proxy] 6E315E8E: ERROR - [app.livepaper.spike.extension] wallpaper(4BD8A129) update: NSCocoaErrorDomain (4099) <private>
+2026-09-17 13:35:58.081 Df launchd[1:a17c1] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:35:58.081 Df launchd[1:a17c1] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:35:58.112 Df amfid[373:a0940] /Applications/Livepaper.app/Contents/MacOS/Livepaper not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file:///Applications/Livepaper.app/Contents/MacOS/Livepaper, NSLocalizedDescription=The file is adhoc signed or signed by an unknown certificate chain}
+2026-09-17 13:35:58.131 Df launchd[1:a17c3] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:35:58.131 Df launchd[1:a17c3] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:35:58.150 Df WallpaperAgent[46768:a0d93] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:35:58.150 Df WallpaperAgent[46768:a0d93] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 13:35:58.150 Df WallpaperAgent[46768:a0d93] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 13:35:58.339 Df WallpaperAgent[46768:a154b] [com.apple.wallpaper:extension-proxy] 9451784A: BEGIN - [app.livepaper.spike.extension] wallpaper(4BD8A129) update
+2026-09-17 13:35:58.339 E  WallpaperAgent[46768:a11fe] [com.apple.wallpaper:extension-proxy] 9451784A: ERROR - [app.livepaper.spike.extension] wallpaper(4BD8A129) update: NSCocoaErrorDomain (4099) <private>
+2026-09-17 13:36:02.240 Df launchd[1:a17c5] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:36:02.240 Df launchd[1:a17c5] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:36:02.269 Df Livepaper[47941:a1b05] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 13:36:02.517 Df WallpaperAgent[46768:a154c] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:36:02.518 Df WallpaperAgent[46768:a154c] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 13:36:02.518 Df WallpaperAgent[46768:a154c] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 13:36:57.094 Df launchd[1:a29e1] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:36:57.094 Df launchd[1:a29e1] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:36:57.272 Df launchd[1:a229e] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:36:57.272 Df launchd[1:a229e] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:36:57.324 E  taskgated-helper[41668:a2a4a] [com.apple.ManagedClient:ProvisioningProfiles] Disallowing: app.livepaper.spike
+2026-09-17 13:36:57.325 Df amfid[373:a2add] /Applications/Livepaper.app/Contents/MacOS/Livepaper not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file:///Applications/Livepaper.app/Contents/MacOS/Livepaper, NSLocalizedDescription=The file is adhoc signed or signed by an unknown certificate chain}
+2026-09-17 13:36:57.377 Df WallpaperAgent[46768:a29b7] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:36:57.377 Df WallpaperAgent[46768:a29b7] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 13:36:57.378 Df WallpaperAgent[46768:a29b7] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 13:37:01.550 Df WallpaperAgent[49698:a2f87] [com.apple.wallpaper:export-controller] Successfully read existing exported wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>'
+2026-09-17 13:37:01.553 E  WallpaperAgent[49698:a2f8b] [com.apple.wallpaper:assetManager] Could not find translator for: app.livepaper.spike.extension; eagerly assuming it's an extension with the same identifier
+2026-09-17 13:37:01.554 Df WallpaperAgent[49698:a2f8b] [com.apple.wallpaper:catalog] 5E6153C2: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:37:01.555 Df WallpaperAgent[49698:a2f83] [com.apple.wallpaper:catalog] Found 12 Wallpaper extensions at initialization time
+2026-09-17 13:37:01.556 Df WallpaperAgent[49698:a2f7e] [com.apple.wallpaper:catalog] Notifying about 12 new Wallpaper extensions
+2026-09-17 13:37:01.560 Df WallpaperAgent[49698:a2f7f] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:37:01.560 Df WallpaperAgent[49698:a2f8b] [com.apple.wallpaper:extension-proxy] 4BA80BC6: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:37:01.560 Df WallpaperAgent[49698:a2f8b] [com.apple.wallpaper:extension-proxy] 2C3A62B6: BEGIN - [app.livepaper.spike.extension] connect
+2026-09-17 13:37:01.575 Df WallpaperAgent[49698:a2f8b] [com.apple.extensionkit:launch] Launching process with config: identity: RecordIdentity(record: ExtensionFoundation.Database._ExtensionRecord(lsRecord: <LSApplicationExtensionRecord 0x7a30c2cc00> { bundleID: app.livepaper.spike.extension, URL: file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/, super: <LSApplicati
+2026-09-17 13:37:01.611 E  taskgated-helper[41668:a2a4a] [com.apple.ManagedClient:ProvisioningProfiles] Disallowing: app.livepaper.spike.extension
+2026-09-17 13:37:01.611 Df amfid[373:a2add] /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/LivepaperExtension not valid: Error Domain=AppleMobileFileIntegrityError Code=-423 "The file is adhoc signed or signed by an unknown certificate chain" UserInfo={NSURL=file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/Contents/MacOS/Livep
+2026-09-17 13:37:01.623 Df WallpaperAgent[49698:a2f8b] [com.apple.wallpaper:extension-proxy] 2C3A62B6: END - [app.livepaper.spike.extension] connect
+2026-09-17 13:37:01.696 Df LivepaperExtension[49702:a2f98] [app.livepaper.spike:spike] extension: INIT pid 49702 build 20260917133555 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 13:37:01.696 Df LivepaperExtension[49702:a2f98] [app.livepaper.spike:spike] bridge: WallpaperExtensionKit loaded, all 15 payload classes present
+2026-09-17 13:37:01.697 Df LivepaperExtension[49702:a2f98] [app.livepaper.spike:spike] s1: NSHomeDirectory = ~/Library/Containers/app.livepaper.spike.extension/Data; real home = ~
+2026-09-17 13:37:01.697 Df LivepaperExtension[49702:a2f98] [app.livepaper.spike:spike] s1: location a (Application Support + exception): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 13:37:01.697 Df LivepaperExtension[49702:a2f98] [app.livepaper.spike:spike] s1: location b (own container): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 13:37:01.717 Df LivepaperExtension[49702:a2fa3] [app.livepaper.spike:spike] extension: accepted connection from pid 49698
+2026-09-17 13:37:01.729 Df LivepaperExtension[49702:a2f98] [app.livepaper.spike:spike] extension: ACQUIRE new surface 527218A2-B76A-4EDD-8E08-90D1B34CEB37 ctx 3459967344 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview false pid 49698 (1 surfaces)
+2026-09-17 13:37:01.729 Df WallpaperAgent[49698:a2f7f] [com.apple.wallpaper:extension-proxy] 4BA80BC6: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:37:01.729 Df WallpaperAgent[49698:a2f7f] [com.apple.wallpaper:extension] Scheduling disconnection for 5 minutes from now for app.livepaper.spike.extension
+2026-09-17 13:37:01.729 Df WallpaperAgent[49698:a2f7e] [com.apple.wallpaper:catalog] 5E6153C2: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:37:01.733 Df WallpaperAgent[49698:a2f89] [com.apple.wallpaper:catalog] 1C356E9F: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:37:01.733 Df WallpaperAgent[49698:a2f89] [com.apple.wallpaper:extension-proxy] 2593BE45: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:37:01.745 Df LivepaperExtension[49702:a2f98] [app.livepaper.spike:spike] extension: ACQUIRE new surface 79A91903-A035-409C-A666-5017C691C24D ctx 3195403246 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview true pid 49698 (2 surfaces)
+2026-09-17 13:37:01.745 Df WallpaperAgent[49698:a2f8a] [com.apple.wallpaper:extension-proxy] 2593BE45: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:37:01.745 Df WallpaperAgent[49698:a2f8a] [com.apple.wallpaper:catalog] 1C356E9F: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:37:22.587 Df launchd[1:a3237] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:37:22.588 Df launchd[1:a3237] [system:] total of 1 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:37:22.592 Df WallpaperAgent[49698:a2f88] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 13:37:22.621 Df Livepaper[50278:a37bb] [app.livepaper.spike:spike] s1: wrote a-1080p30-h264.mp4 and config generation 1 to ~/Library/Application Support/LivepaperSpike in 0.00 s
+2026-09-17 13:37:22.645 Df WallpaperAgent[49698:a37eb] [com.apple.wallpaper:extension-proxy] onInterruption handler called for app.livepaper.spike.extension
+2026-09-17 13:37:22.858 Df WallpaperAgent[49698:a2f88] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:37:22.858 Df WallpaperAgent[49698:a2f88] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 13:37:22.859 Df WallpaperAgent[49698:a2f88] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 13:37:31.018 Df Livepaper[50278:a37bb] [app.livepaper.spike:spike] app: NO heartbeat in 8 s (extension not running, or notifications blocked)
+2026-09-17 13:38:14.235 Df WallpaperAgent[51870:a483a] [com.apple.wallpaper:export-controller] Successfully read existing exported wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>'
+2026-09-17 13:38:14.235 Df WallpaperAgent[51870:a482c] [com.apple.wallpaper:catalog] Found 12 Wallpaper extensions at initialization time
+2026-09-17 13:38:14.236 Df WallpaperAgent[51870:a4835] [com.apple.wallpaper:catalog] Notifying about 12 new Wallpaper extensions
+2026-09-17 13:38:14.237 Df WallpaperAgent[51870:a4837] [com.apple.wallpaper:catalog] 574EC844: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:38:14.239 Df WallpaperAgent[51870:a482a] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:38:14.239 Df WallpaperAgent[51870:a4837] [com.apple.wallpaper:extension-proxy] D66C9202: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:38:14.239 Df WallpaperAgent[51870:a4837] [com.apple.wallpaper:extension-proxy] 0ED2F483: BEGIN - [app.livepaper.spike.extension] connect
+2026-09-17 13:38:14.252 Df WallpaperAgent[51870:a4837] [com.apple.extensionkit:launch] Launching process with config: identity: RecordIdentity(record: ExtensionFoundation.Database._ExtensionRecord(lsRecord: <LSApplicationExtensionRecord 0x7b36c2d740> { bundleID: app.livepaper.spike.extension, URL: file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/, super: <LSApplicati
+2026-09-17 13:38:14.258 Df WallpaperAgent[51870:a4837] [com.apple.wallpaper:extension-proxy] 0ED2F483: END - [app.livepaper.spike.extension] connect
+2026-09-17 13:38:14.274 Df LivepaperExtension[51874:a484e] [app.livepaper.spike:spike] extension: INIT pid 51874 build 20260917133555 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 13:38:14.274 Df LivepaperExtension[51874:a484e] [app.livepaper.spike:spike] bridge: WallpaperExtensionKit loaded, all 15 payload classes present
+2026-09-17 13:38:14.274 Df LivepaperExtension[51874:a484e] [app.livepaper.spike:spike] s1: NSHomeDirectory = ~/Library/Containers/app.livepaper.spike.extension/Data; real home = ~
+2026-09-17 13:38:14.275 Df LivepaperExtension[51874:a484e] [app.livepaper.spike:spike] s1: location a (Application Support + exception): READABLE, 2 entries, config 78 bytes
+2026-09-17 13:38:14.275 Df LivepaperExtension[51874:a484e] [app.livepaper.spike:spike] s1: location b (own container): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 13:38:14.290 Df LivepaperExtension[51874:a4850] [app.livepaper.spike:spike] extension: accepted connection from pid 51870
+2026-09-17 13:38:14.291 Df LivepaperExtension[51874:a484e] [app.livepaper.spike:spike] extension: config generation 1 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 13:38:14.297 Df LivepaperExtension[51874:a484e] [app.livepaper.spike:spike] extension: ACQUIRE new surface 4B9207C2-10CE-4856-AE8A-2CD337486DBB ctx 2533376584 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview false pid 51870 (1 surfaces)
+2026-09-17 13:38:14.302 Df LivepaperExtension[51874:a484e] [app.livepaper.spike:spike] extension: surface 4B9207C2-10CE-4856-AE8A-2CD337486DBB display 1 now on a-1080p30-h264.mp4 (generation 1)
+2026-09-17 13:38:14.302 Df WallpaperAgent[51870:a4837] [com.apple.wallpaper:extension-proxy] D66C9202: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:38:14.302 Df WallpaperAgent[51870:a4837] [com.apple.wallpaper:extension] Scheduling disconnection for 5 minutes from now for app.livepaper.spike.extension
+2026-09-17 13:38:14.302 Df WallpaperAgent[51870:a483a] [com.apple.wallpaper:catalog] 574EC844: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:38:14.305 Df WallpaperAgent[51870:a482c] [com.apple.wallpaper:catalog] 39A8CB96: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:38:14.305 Df WallpaperAgent[51870:a482c] [com.apple.wallpaper:extension-proxy] F69BC07B: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:38:14.307 Df LivepaperExtension[51874:a484e] [app.livepaper.spike:spike] extension: ACQUIRE new surface 66C7D2BA-D877-477C-AF12-400E30C6D311 ctx 2878368169 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview true pid 51870 (2 surfaces)
+2026-09-17 13:38:14.308 Df LivepaperExtension[51874:a484e] [app.livepaper.spike:spike] extension: surface 66C7D2BA-D877-477C-AF12-400E30C6D311 display 1 now on a-1080p30-h264.mp4 (generation 1)
+2026-09-17 13:38:14.308 Df WallpaperAgent[51870:a4837] [com.apple.wallpaper:extension-proxy] F69BC07B: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 13:38:14.308 Df WallpaperAgent[51870:a4837] [com.apple.wallpaper:catalog] 39A8CB96: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 13:38:22.202 Df launchd[1:a4810] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:38:22.202 Df launchd[1:a4810] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:38:22.295 Df Livepaper[51998:a4a34] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 13:38:22.465 Df WallpaperAgent[51870:a483b] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:38:22.465 Df WallpaperAgent[51870:a49d8] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 13:38:22.465 Df WallpaperAgent[51870:a49d8] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 13:38:26.302 Df launchd[1:a4a79] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:38:26.302 Df launchd[1:a4a79] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:38:26.313 Df Livepaper[52110:a4b9a] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 13:38:26.571 Df WallpaperAgent[51870:a4a95] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:38:26.571 Df WallpaperAgent[51870:a4a95] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 13:38:26.571 Df WallpaperAgent[51870:a4a95] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 13:38:49.858 Df launchd[1:a4e7b] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:38:49.858 Df launchd[1:a4e7b] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:38:49.953 Df Livepaper[52831:a5292] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 13:38:50.115 Df WallpaperAgent[51870:a5120] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:38:50.116 Df WallpaperAgent[51870:a49d8] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 13:38:50.116 Df WallpaperAgent[51870:a49d8] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 13:38:54.931 Df launchd[1:a4a79] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:38:54.931 Df launchd[1:a4a79] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:38:55.032 Df Livepaper[52951:a544b] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 13:38:55.197 Df WallpaperAgent[51870:a5120] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:38:55.197 Df WallpaperAgent[51870:a5120] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 13:38:55.197 Df WallpaperAgent[51870:a5120] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 13:39:00.048 Df launchd[1:a4e74] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:39:00.048 Df launchd[1:a4e74] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:39:00.124 Df Livepaper[53137:a562c] [app.livepaper.spike:spike] login: status = enabled for /Applications/Livepaper.app
+2026-09-17 13:39:00.306 Df WallpaperAgent[51870:a52f5] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:39:00.306 Df WallpaperAgent[51870:a52f5] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 13:39:00.306 Df WallpaperAgent[51870:a52f5] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 13:39:28.500 Df launchd[1:a5a5c] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:39:28.500 Df launchd[1:a5a5c] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:39:28.506 Df Livepaper[53996:a5e47] [app.livepaper.spike:spike] config: generation 2 mode video video b-1080p30-h264.mp4 crossfade false
+2026-09-17 13:39:28.506 Df LivepaperExtension[51874:a484e] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 13:39:28.506 Df LivepaperExtension[51874:a484e] [app.livepaper.spike:spike] extension: config generation 2 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 13:39:28.510 Df LivepaperExtension[51874:a4870] [app.livepaper.spike:spike] extension: surface 66C7D2BA-D877-477C-AF12-400E30C6D311 display 1 now on b-1080p30-h264.mp4 (generation 2)
+2026-09-17 13:39:28.510 Df LivepaperExtension[51874:a4866] [app.livepaper.spike:spike] extension: surface 4B9207C2-10CE-4856-AE8A-2CD337486DBB display 1 now on b-1080p30-h264.mp4 (generation 2)
+2026-09-17 13:39:28.767 Df WallpaperAgent[51870:a5a65] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:39:28.768 Df WallpaperAgent[51870:a5a65] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 13:39:28.768 Df WallpaperAgent[51870:a5a65] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 13:39:46.825 Df launchd[1:a6508] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:39:46.825 Df launchd[1:a6508] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:39:46.860 Df Livepaper[54420:a650b] [app.livepaper.spike:spike] s1: wrote a-1080p30-h264.mp4 and config generation 3 to ~/Library/Containers/app.livepaper.spike.extension/Data/Documents/library in 0.03 s
+2026-09-17 13:39:46.861 Df LivepaperExtension[51874:a484e] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 13:39:46.861 Df LivepaperExtension[51874:a484e] [app.livepaper.spike:spike] extension: config generation 3 mode video video a-1080p30-h264.mp4 from ~/Library/Containers/app.livepaper.spike.extension/Data/Documents/library
+2026-09-17 13:39:46.863 Df LivepaperExtension[51874:a4c21] [app.livepaper.spike:spike] extension: surface 66C7D2BA-D877-477C-AF12-400E30C6D311 display 1 now on a-1080p30-h264.mp4 (generation 3)
+2026-09-17 13:39:46.863 Df LivepaperExtension[51874:a486f] [app.livepaper.spike:spike] extension: surface 4B9207C2-10CE-4856-AE8A-2CD337486DBB display 1 now on a-1080p30-h264.mp4 (generation 3)
+2026-09-17 13:39:47.092 Df WallpaperAgent[51870:a5eb0] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:39:47.092 Df WallpaperAgent[51870:a5eb0] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 13:39:47.092 Df WallpaperAgent[51870:a5eb0] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 13:40:10.871 Df launchd[1:a6508] [system:] remove all extension instances: caller = pkd.690, extension = app.livepaper.spike.extension
+2026-09-17 13:40:10.871 Df launchd[1:a6508] [system:] total of 0 extension (app.livepaper.spike.extension) instances were found to remove, of which 0 were removed instantly
+2026-09-17 13:40:10.973 Df Livepaper[55097:a6e5d] [app.livepaper.spike:spike] s1: write to ~/Library/Containers/app.livepaper.spike.extension/Data/Documents/library FAILED after 0.01 s: Error Domain=NSCocoaErrorDomain Code=513 "You don’t have permission to save the file “library” in the folder “Documents”." UserInfo={NSFilePath=~/Library/Containers/app.livepaper.spike.extension/Data/Documents/libr
+2026-09-17 13:40:11.134 Df WallpaperAgent[51870:a5eaf] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:40:11.134 Df WallpaperAgent[51870:a5eaf] [com.apple.wallpaper:catalog] Notifying about 1 old Wallpaper extensions
+2026-09-17 13:40:11.134 Df WallpaperAgent[51870:a5eaf] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions

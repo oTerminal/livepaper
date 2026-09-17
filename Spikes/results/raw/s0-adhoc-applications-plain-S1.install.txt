@@ -1,0 +1,26 @@
+/Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex: replacing existing signature
+/Applications/Livepaper.app: replacing existing signature
+  verify: /Applications/Livepaper.app: valid on disk
+  verify: /Applications/Livepaper.app: satisfies its Designated Requirement
+  variant: adhoc / plain / entitlements S1
+  Livepaper.app:
+    Identifier=app.livepaper.spike
+    CodeDirectory v=20400 size=940 flags=0x2(adhoc) hashes=23+3 location=embedded
+    Signature=adhoc
+    TeamIdentifier=not set
+# designated => cdhash H"caf755c48f4f14e1e3c9ce02a87e1b3484ec4c0f"
+  LivepaperExtension.appex:
+    Identifier=app.livepaper.spike.extension
+    CodeDirectory v=20400 size=1590 flags=0x2(adhoc) hashes=39+7 location=embedded
+    Signature=adhoc
+    TeamIdentifier=not set
+# designated => cdhash H"9da9ad3a0244eabb085b725b2fa300ce21e843c7"
+  extension entitlements:
+    {
+      "com.apple.security.app-sandbox" => true
+      "com.apple.security.temporary-exception.files.home-relative-path.read-only" => [
+        0 => "/Library/Application Support/LivepaperSpike/"
+      ]
+    }
+  pluginkit:
+         app.livepaper.spike.extension(0.0.1)	A79235F2-2451-4400-82E9-6DD2C0BDA14B	2026-09-17 13:46:35 +0000	/Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
