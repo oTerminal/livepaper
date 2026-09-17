@@ -36,6 +36,9 @@ make            # generate the Xcode project, lint, test, build
 | `Packages/DesignSystem/` | Tokens and components |
 | `docs/` | Roadmap, milestone specs, decision records |
 | `CONTEXT.md` | The project's vocabulary |
+| `.agents/skills/` | Agent skills used to build the project (`.claude/skills/` links to them) |
+
+The skills come from [emilkowalski/skills](https://github.com/emilkowalski/skills), [mattpocock/skills](https://github.com/mattpocock/skills) and [jakubkrehel/make-interfaces-feel-better](https://github.com/jakubkrehel/make-interfaces-feel-better), all MIT-licensed. `skills-lock.json` records the exact versions.
 
 ## License
 
