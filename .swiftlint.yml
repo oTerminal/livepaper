@@ -1,0 +1,53 @@
+included:
+  - App
+  - Gallery
+  - CLI
+  - Packages
+
+excluded:
+  - Packages/LivepaperKit/.build
+  - Packages/DesignSystem/.build
+  - Spikes
+  - build
+
+disabled_rules:
+  - todo
+  - trailing_comma
+
+line_length:
+  warning: 140
+  error: 200
+  ignores_comments: true
+
+identifier_name:
+  min_length: 2
+  excluded: [x, y, id, ui]
+
+# Design rules from docs/design/skill-mapping.md. Motion and shape values live in
+# Packages/DesignSystem; everywhere else uses the tokens.
+custom_rules:
+  no_ease_in:
+    name: "No ease-in"
+    regex: '\.easeIn\b(?!Out)'
+    message: "UI never eases in: it delays the response the user is waiting for. Use Motion.enter or Motion.exit."
+    severity: error
+
+  no_bare_scale_transition:
+    name: "No scale-from-zero transition"
+    regex: '\.transition\(\s*\.scale\s*\)'
+    message: "A bare .scale transition starts from 0. Scale from 0.96 with opacity and an anchor."
+    severity: error
+
+  raw_animation_outside_design_system:
+    name: "Raw animation outside DesignSystem"
+    regex: '\.(spring|easeOut|easeInOut|linear|smooth|snappy|bouncy|interactiveSpring|timingCurve)\('
+    excluded: "Packages/DesignSystem/.*"
+    message: "Build animations from Motion tokens in DesignSystem."
+    severity: error
+
+  raw_corner_radius_outside_design_system:
+    name: "Raw corner radius outside DesignSystem"
+    regex: 'cornerRadius:\s*\d'
+    excluded: "Packages/DesignSystem/.*"
+    message: "Use radius tokens or ConcentricRectangle from DesignSystem."
+    severity: error

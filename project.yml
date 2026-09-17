@@ -1,0 +1,83 @@
+name: Livepaper
+
+options:
+  bundleIdPrefix: app.livepaper
+  deploymentTarget:
+    macOS: "26.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+
+# The wallpaper extension target is added after the M1 spike settles ADR-0001
+# (see docs/specs/M1-engine-spike.md). It will live in targets/extension.yml so
+# gate G1 can leave it out of release builds.
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_APPROACHABLE_CONCURRENCY: YES
+    SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+    ARCHS: arm64
+    ONLY_ACTIVE_ARCH: YES
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    # No paid Apple Developer account: local builds are ad-hoc signed. Release
+    # signing (self-signed certificate) is set up in M9 once ADR-0004 is written.
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: "-"
+    DEVELOPMENT_TEAM: ""
+    ENABLE_HARDENED_RUNTIME: NO
+
+packages:
+  LivepaperKit:
+    path: Packages/LivepaperKit
+  DesignSystem:
+    path: Packages/DesignSystem
+
+targets:
+  Livepaper:
+    type: application
+    platform: macOS
+    sources: [App]
+    scheme: {}
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.livepaper.Livepaper
+        GENERATE_INFOPLIST_FILE: YES
+        # The display name lives here and nowhere else.
+        INFOPLIST_KEY_CFBundleDisplayName: Livepaper
+        INFOPLIST_KEY_LSUIElement: YES
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
+        INFOPLIST_KEY_NSHumanReadableCopyright: "MIT License. Livepaper contributors."
+        ENABLE_APP_SANDBOX: NO
+    dependencies:
+      - package: LivepaperKit
+        product: LivepaperCore
+      - package: DesignSystem
+
+  Gallery:
+    type: application
+    platform: macOS
+    sources: [Gallery]
+    scheme: {}
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.livepaper.Gallery
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Livepaper Gallery
+        ENABLE_APP_SANDBOX: NO
+    dependencies:
+      - package: DesignSystem
+
+  livepaper-cli:
+    type: tool
+    platform: macOS
+    sources: [CLI]
+    scheme: {}
+    settings:
+      base:
+        PRODUCT_NAME: livepaper
+        # Without this the module would be "livepaper", which collides with the
+        # app's "Livepaper" module on a case-insensitive disk.
+        PRODUCT_MODULE_NAME: LivepaperCLI
+        PRODUCT_BUNDLE_IDENTIFIER: app.livepaper.cli
+        SWIFT_DEFAULT_ACTOR_ISOLATION: nonisolated
