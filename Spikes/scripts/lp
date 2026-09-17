@@ -1,0 +1,6 @@
+#!/bin/bash
+# Runs a command of the installed spike app:  scripts/lp config mode=colour
+# (the commands are listed at the top of App/main.swift)
+APP=/Applications/Livepaper.app/Contents/MacOS/Livepaper
+[ -x "$APP" ] || { echo "not installed: run scripts/build.sh && scripts/install.sh applications selfsigned plain S1"; exit 1; }
+exec "$APP" "$@"

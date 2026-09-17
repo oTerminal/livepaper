@@ -34,12 +34,11 @@ scripts/logs.sh                       # WallpaperAgent / pkd / amfid / spike lin
 Then choose "Livepaper" once in System Settings > Wallpaper. After that:
 
 ```sh
-B=/Applications/Livepaper.app/Contents/MacOS/Livepaper
 cp clips/*.mp4 clips/*.mov ~/Library/Application\ Support/LivepaperSpike/
-$B config mode=video video=a-1080p30-h264.mp4            # play in the extension
-$B config mode=video video=b-1080p30-h264.mp4 crossfade=1
-$B config mode=colour
-$B s2 engine=sbdl clip=$PWD/clips/a-1080p30-h264.mp4 loops=200 probe=2 out=/tmp/s2.json
+scripts/lp config mode=video video=a-1080p30-h264.mp4            # play in the extension
+scripts/lp config mode=video video=b-1080p30-h264.mp4 crossfade=1
+scripts/lp config mode=colour
+scripts/lp s2 engine=sbdl clip=$PWD/clips/a-1080p30-h264.mp4 loops=200 probe=2 out=/tmp/s2.json
 scripts/missing-frames.py < /tmp/s2.json
 ```
 

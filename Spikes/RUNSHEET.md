@@ -10,8 +10,10 @@ cd Spikes
 scripts/make-clips.sh && scripts/make-cert.sh && scripts/build.sh
 scripts/install.sh applications selfsigned plain S1
 cp clips/*.mp4 clips/*.mov ~/Library/Application\ Support/LivepaperSpike/
-B=/Applications/Livepaper.app/Contents/MacOS/Livepaper
 ```
+
+Every command below is run from `Spikes/`. `scripts/lp <command>` runs the installed app's command line
+(`scripts/lp config mode=colour`, `scripts/lp check`, …).
 
 The development Mac is back on its Aerial. To run these rows, launch the app and choose "Livepaper" in
 System Settings > Wallpaper (`scripts/find-livepaper-in-settings.sh` opens the pane and confirms the entry
@@ -20,7 +22,7 @@ is there). A copy of the wallpaper store from before the spike is in `.context/b
 
 ## S0: look at it (2 minutes)
 
-1. `$B config mode=colour`. Is the desktop a flat blue (#0A85E3)? Lock the screen (ctrl-cmd-Q): is the lock
+1. `scripts/lp config mode=colour`. Is the desktop a flat blue (#0A85E3)? Lock the screen (ctrl-cmd-Q): is the lock
    screen the same blue?
 2. Reboot. Log in, do not launch the app. Is the desktop still blue? The lock screen?
 3. Write yes/no for each into `results/S0.md` under "What was observed".
@@ -46,17 +48,17 @@ is there). A copy of the wallpaper store from before the spike is in `.context/b
 
 The API half is done (`results/S0c.md`). The half that needs a logout:
 
-1. `scripts/install.sh applications selfsigned plain S1`, then `$B login register`.
+1. `scripts/install.sh applications selfsigned plain S1`, then `scripts/lp login register`.
 2. Edit any string in `App/main.swift`, `scripts/build.sh`, `scripts/install.sh applications selfsigned plain S1`.
 3. Log out and in. Did Livepaper launch (the status window shows its build number)? Is there exactly one
    Livepaper row in System Settings > General > Login Items?
-4. Repeat with `adhoc` in place of `selfsigned`. Then `$B login unregister`.
+4. Repeat with `adhoc` in place of `selfsigned`. Then `scripts/lp login unregister`.
 
 ## S3: displays and Spaces (needs a second display; two identical ones for the last part)
 
-1. `$B config mode=video video=a-1080p30-h264.mp4`. Plug in the second display. In the log, each display
+1. `scripts/lp config mode=video video=a-1080p30-h264.mp4`. Plug in the second display. In the log, each display
    gets its own `ACQUIRE new surface … display <id> <uuid>` line. Note both UUIDs.
-2. Give the second display the other clip: `$B config mode=video video=a-1080p30-h264.mp4 display=<uuid>=b-1080p30-h264.mp4`
+2. Give the second display the other clip: `scripts/lp config mode=video video=a-1080p30-h264.mp4 display=<uuid>=b-1080p30-h264.mp4`
    (B is the hue-shifted one). Does each display keep its own video?
 3. Walk through: add two Spaces and switch between them; make an app fullscreen and leave it; turn Stage
    Manager on and off; unplug and replug; change the resolution in System Settings > Displays.
@@ -80,7 +82,7 @@ server and will say FAIL.
 
 ## S5: crossfade in the extension (the window half is done)
 
-`$B config mode=video video=b-1080p30-h264.mp4 crossfade=1`, then back to `a-…` with `crossfade=1`, a few
+`scripts/lp config mode=video video=b-1080p30-h264.mp4 crossfade=1`, then back to `a-…` with `crossfade=1`, a few
 times. Watch for a flash, or any frame where the blue shows through.
 
 ## S6: lock transitions
@@ -92,7 +94,7 @@ coming out? The log shows whether the agent asked for a snapshot and got the cur
 ## S7 and S8
 
 Automated parts are in `results/S7.md` and `results/S8.md`. The part that needs eyes: during
-`$B s7 a=a-1080p30-h264.mp4 b=b-1080p30-h264.mp4`, does the desktop end on B (the hue-shifted clip) with
+`scripts/lp s7 a=a-1080p30-h264.mp4 b=b-1080p30-h264.mp4`, does the desktop end on B (the hue-shifted clip) with
 no black or grey on the way?
 
 ## When done
