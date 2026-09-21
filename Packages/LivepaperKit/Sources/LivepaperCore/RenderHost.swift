@@ -1,0 +1,41 @@
+/// What a render host can do, so that policy does not need to know which host it is.
+public struct HostCapabilities: Equatable, Sendable {
+    /// The host draws on the lock screen, so a locked display keeps playing.
+    public var showsLockScreen: Bool
+
+    public init(showsLockScreen: Bool) {
+        self.showsLockScreen = showsLockScreen
+    }
+}
+
+/// What a render host reports about itself, for the status line and for onboarding.
+public enum RenderHostStatus: Equatable, Sendable {
+    /// Not activated, or deactivated: the host holds a still (record 0003).
+    case stopped
+    /// Activated, and no heartbeat has arrived yet.
+    case connecting
+    /// The host is alive but has no desktop surface: Livepaper is not the system wallpaper.
+    case notSelected
+    case live
+    /// The host went quiet or stalled, and this recovery is being tried.
+    case recovering(RecoveryLevel)
+    /// The host cannot run on this macOS: its launch self-check failed.
+    case unavailable
+}
+
+/// The part of the system that puts a playing wallpaper on screen.
+///
+/// The wallpaper extension's client is the one real host (record 0001). The
+/// seam is kept so that screens can be built on a fake, and so that a window
+/// host stays addable.
+@MainActor
+public protocol RenderHost: AnyObject {
+    var capabilities: HostCapabilities { get }
+    func activate() async throws
+    /// The full state every time: applying the same state twice changes nothing.
+    func apply(_ state: RenderState) async
+    var status: AsyncStream<RenderHostStatus> { get }
+    func recover(_ level: RecoveryLevel) async
+    /// Writes the stopped render state: the host holds a still and releases its decoders (record 0003).
+    func deactivate() async
+}
