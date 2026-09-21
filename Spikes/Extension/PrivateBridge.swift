@@ -90,7 +90,7 @@ enum PrivateBridge {
     /// One group with one item, "Livepaper": the roadmap's single entry that the user
     /// picks once.
     static func settingsViewModels(bundleID: String, thumbnail: URL) -> AnyObject? {
-        let identifier = "livepaper"
+        let identifier = Spike.choiceIdentifier
         let choiceID = ChoiceID(id: identifier, descriptor: ChoiceIDDescriptor(
             provider: ChoiceProviderID(rawValue: bundleID), identifier: identifier, files: [], configuration: Data(identifier.utf8)))
         let item = SettingsItem(

@@ -22,5 +22,5 @@ Not observed in the spike, deliberately (`Spikes/RUNSHEET.md`): a second display
 
 ## Considered options
 
-- **A desktop-level window per display** (public API). No lock screen as far as the spike went (Wallper, which draws in a window, is seen playing there, so there is a way this record did not find), needs a tint still for the menu bar, and the spike saw the window server throttle a covered window to about one update per second, which is welcome for energy but means occlusion has to be handled rather than assumed. It was the G1 fallback; G1 passed, so it is not built.
+- **A desktop-level window per display** (public API). No lock screen from the window itself (Wallper, which draws in a window, gets there by installing the video as a custom Aerial and selecting it through the wallpaper store; record 0003 describes it), needs a tint still for the menu bar, and the spike saw the window server throttle a covered window to about one update per second, which is welcome for energy but means occlusion has to be handled rather than assumed. It was the G1 fallback; G1 passed, so it is not built.
 - **Both hosts, chosen at run time.** Twice the surface to test for a fallback the product decision says it does not want.

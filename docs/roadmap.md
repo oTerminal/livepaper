@@ -36,9 +36,9 @@ Research that shaped it:
 | Menu-bar tint | Colour-matched still set as the system wallpaper, original restored when disabled. Only needed if the window renderer ends up being used; in extension mode macOS handles it |
 | Rendering | Private wallpaper extension in v1.0 for desktop + lock screen + screensaver. **Extension only, no fallback renderer** |
 | Contingency | If the downloaded build's extension does not load on a second Mac, the public desktop-window renderer becomes the main path and the extension becomes a bonus for source builders |
-| Selection | One "Livepaper" entry in System Settings > Wallpaper, chosen once; the app drives what plays after that |
+| Selection | One "Livepaper" entry in System Settings > Wallpaper, selected once by the app itself in onboarding (record 0003; the user's click is the fallback); the app drives what plays after that |
 | Quit | Quit stops the live wallpaper: the extension holds the current wallpaper's poster as a still and releases its decoders. The system wallpaper stays "Livepaper", because no public API could select it again at the next launch (record 0003). Leaving Livepaper for good is a choice in Settings |
-| First run | Short onboarding (drop a video / launch at login / choose Livepaper as wallpaper) + 2-3 bundled CC0 sample loops with recorded provenance |
+| First run | Short onboarding (drop a video / launch at login / Livepaper becomes the wallpaper) + 2-3 bundled CC0 sample loops with recorded provenance |
 | Testing | TDD with Swift Testing on core logic; no UI snapshot tests; UI checked in a Gallery target, previews and manual runs; GitHub Actions CI |
 | Build order | Engine spike, then design system, then screens |
 | Execution | One PR per milestone. After the spike, independent lanes can run in parallel Conductor workspaces. Each milestone gets a spec in `docs/specs/` so it can be run with `/implement` (TDD at agreed seams, `/code-review` at the end, commit to the branch) |
@@ -155,7 +155,8 @@ Spike matrix (M1):
 | Display hot-plug | Assignments keyed by UUID and remembered while unplugged; reconfiguration debounced |
 | Sparkle without Apple signing | EdDSA required; sign inside-out including Sparkle's helpers; no hardened-runtime library validation; update path tested in M9 |
 | App run from the download folder (translocation) | Detect and offer to move to /Applications before registering anything |
-| Restoring the previous wallpaper on Quit may be impossible for Aerial/dynamic wallpapers | S8 found that it is, and that selecting Livepaper again is impossible too. Quit holds a still instead (record 0003); the previous wallpaper is offered back only when the user leaves Livepaper and it was an image file |
+| The wallpaper store (`com.apple.wallpaper/Store/Index.plist`) is undocumented and can change with any macOS update | It is edited at two moments only, selecting in onboarding and leaving (record 0003); the code checks what it reads and falls back to the user's click in System Settings; the select/deselect check is on the beta-seed checklist |
+| Restoring the previous wallpaper on Quit may be impossible for Aerial/dynamic wallpapers | S8 found that it is, and that selecting Livepaper again is impossible too. Quit holds a still instead (record 0003); the previous wallpaper, an Aerial included, comes back from a kept copy of the wallpaper store when the user leaves Livepaper |
 | ffmpeg parsing untrusted files | Separate process, minimal build, no network; replaceable binary to satisfy the LGPL |
 
 Unverified claims carried from research, to confirm at M0/M1: hosted CI image Xcode versions; the self-signed identity behaviour on macOS 27; Homebrew's 2026-09-01 cask policy (not relied on).

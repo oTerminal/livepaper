@@ -31,7 +31,7 @@ scripts/install.sh applications selfsigned plain S1    # sign inside-out, regist
 scripts/logs.sh                       # WallpaperAgent / pkd / amfid / spike lines, live
 ```
 
-Then choose "Livepaper" once in System Settings > Wallpaper. After that:
+Launching the app selects "Livepaper" as the wallpaper by itself (`results/S8.md`, S8b; `Livepaper noselect` to skip, `Livepaper deselect` to undo). After that:
 
 ```sh
 cp clips/*.mp4 clips/*.mov ~/Library/Application\ Support/LivepaperSpike/

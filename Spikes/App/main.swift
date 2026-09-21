@@ -3,13 +3,14 @@
 // The host app. Launching it registers the embedded wallpaper extension. Every spike
 // row that can be driven from the app is a command:
 //
-//   Livepaper                                   register, show status, restart the agent on a spiral
+//   Livepaper [noselect]                        register, select Livepaper as the wallpaper (S8b), show status, restart the agent on a spiral
 //   Livepaper s1 write=a|b clip=<path>          copy a clip into a library location, point the extension at it
 //   Livepaper config mode=colour|video [video=<name>] [crossfade=1] [probe=1] [location=a|b] [display=<uuid>=<name>]
 //   Livepaper s2 engine=sbdl|looper clip=<path> loops=200 [probe=1|2] [reset=strip|keep] [out=<json>]
 //   Livepaper s5 a=<path> b=<path> [count=6] [out=<json>]
 //   Livepaper s7 a=<name> b=<name> [count=50] [seconds=10] [location=a|b]
 //   Livepaper s8 probe | still=<image path> | restore=<image path>
+//   Livepaper select | deselect [store=<copy>] [saved=<copy>]   S8b: edit the wallpaper store; with store=, only that copy, no agent restart
 //   Livepaper login register|unregister|status
 //   Livepaper check                             ask the extension to log what each surface plays and whether pictures change
 
@@ -45,11 +46,22 @@ case "s2": S2Harness.shared.run()
 case "s5": S5Harness.shared.run()
 case "s7": runS7()
 case "s8": runS8()
+case "select":
+    if let copy = options["store"] { finish(selectLivepaper(storeURL: URL(fileURLWithPath: copy), live: false) ? 0 : 1) }
+    guard selectLivepaper() else { finish(1) }
+    reportSelection(after: 8) { finish($0 ? 0 : 1) }
+case "deselect":
+    if let copy = options["store"] {
+        deselectLivepaper(storeURL: URL(fileURLWithPath: copy), savedURL: options["saved"].map { URL(fileURLWithPath: $0) } ?? WallpaperStore.savedURL, live: false)
+    } else {
+        deselectLivepaper()
+    }
+    finish()
 case "login": runLogin()
 case "check":
     DarwinNotify.post(Spike.check)
     DispatchQueue.main.asyncAfter(deadline: .now() + 3) { finish() }
-default: StatusWindow.shared.show()
+default: StatusWindow.shared.show(select: options["noselect"] == nil)
 }
 app.run()
 
@@ -205,8 +217,9 @@ final class StatusWindow: NSObject {
     private var window: NSWindow?
     private let label = NSTextField(wrappingLabelWithString: "")
     private var lastAgentRestart = Date.distantPast
+    private var selection = "not attempted: choose \"Livepaper\" in System Settings > Wallpaper."
 
-    func show() {
+    func show(select: Bool) {
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 520, height: 220), styleMask: [.titled, .closable], backing: .buffered, defer: false)
         window.title = "Livepaper spike, build \(Bundle.main.infoDictionary?["CFBundleVersion"] ?? "?")"
         label.frame = NSRect(x: 20, y: 20, width: 480, height: 180)
@@ -215,7 +228,14 @@ final class StatusWindow: NSObject {
         window.makeKeyAndOrderFront(nil)
         self.window = window
         NSApp.activate()
-        render(heartbeat: "none yet. Choose Livepaper in System Settings > Wallpaper.")
+        render(heartbeat: "none yet.")
+        // S8b: no click in System Settings. Launching has registered the extension; give pkd a moment to know it.
+        if select {
+            whenExtensionIsRegistered(tries: 20) { [self] registered in
+                selection = registered && selectLivepaper() ? "selected by editing the wallpaper store." : "could not be selected: choose \"Livepaper\" in System Settings > Wallpaper."
+                render(heartbeat: "none yet.")
+            }
+        }
 
         DarwinNotify.observe(Spike.heartbeat) { [self] in
             let beat = Heartbeat.latest
@@ -233,13 +253,29 @@ final class StatusWindow: NSObject {
         }
     }
 
+    /// A store that names a provider pkd does not know yet is a store the agent may throw away, so wait for it.
+    private func whenExtensionIsRegistered(tries: Int, _ done: @escaping (Bool) -> Void) {
+        let task = Process(), pipe = Pipe()
+        task.executableURL = URL(fileURLWithPath: "/usr/bin/pluginkit")
+        task.arguments = ["-m", "-i", Spike.extensionBundleID]
+        task.standardOutput = pipe
+        try? task.run()
+        task.waitUntilExit()
+        let listed = !pipe.fileHandleForReading.readDataToEndOfFile().isEmpty
+        if listed || tries <= 1 {
+            spikeLog("select: extension \(listed ? "is" : "is NOT") registered with pluginkit")
+            return done(listed)
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [self] in whenExtensionIsRegistered(tries: tries - 1, done) }
+    }
+
     private func render(heartbeat: String) {
         let info = Bundle.main.infoDictionary
         label.stringValue = """
         Build \(info?["CFBundleVersion"] ?? "?") at \(Bundle.main.bundlePath)
 
         The wallpaper extension is registered by launching this app.
-        Open System Settings > Wallpaper and choose "Livepaper".
+        Wallpaper: \(selection)
 
         Extension heartbeat: \(heartbeat)
         """

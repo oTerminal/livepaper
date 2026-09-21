@@ -6,6 +6,8 @@ import os
 enum Spike {
     static let appBundleID = "app.livepaper.spike"
     static let extensionBundleID = "app.livepaper.spike.extension"
+    /// The one wallpaper choice the extension offers; its UTF-8 bytes are the choice's configuration in the wallpaper store.
+    static let choiceIdentifier = "livepaper"
     static let logger = Logger(subsystem: "app.livepaper.spike", category: "spike")
 
     /// App -> extension: "re-read spike-config.json".

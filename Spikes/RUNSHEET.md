@@ -15,7 +15,7 @@ demand, so it moved to where it is looked at anyway:
 
 Playback not resuming after sleep is the bug Wallper's users reported most often (`docs/roadmap.md`), so it is worth knowing early. All commands from `Spikes/`.
 
-1. Open `/Applications/Livepaper.app`, choose "Livepaper" in System Settings > Wallpaper.
+1. Open `/Applications/Livepaper.app`; it selects "Livepaper" as the wallpaper itself (S8b).
 2. `scripts/lp config mode=video video=a-1080p30-h264.mp4`
 3. Close the lid, wait ten seconds, open it. Is the video moving within 2 s?
 4. Lock (ctrl-cmd-Q): is it playing on the lock screen? Any grey flash going in or coming out?
@@ -35,4 +35,4 @@ clip B a green one).
 
 ## When done
 
-`scripts/cleanup.sh`, then pick your old wallpaper in System Settings > Wallpaper.
+`scripts/cleanup.sh`, which also puts your old wallpaper back.

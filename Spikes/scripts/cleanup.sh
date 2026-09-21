@@ -5,6 +5,8 @@ set -uo pipefail
 HERE="$(cd "$(dirname "$0")/.." && pwd)"
 LSREGISTER=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
 KEYCHAIN="$HOME/Library/Keychains/livepaper-spike.keychain-db"
+# S8b: put back the wallpaper that was there before Livepaper selected itself (needs the app and its saved store).
+[ -x /Applications/Livepaper.app/Contents/MacOS/Livepaper ] && /Applications/Livepaper.app/Contents/MacOS/Livepaper deselect
 pkill -x Livepaper
 for APP in /Applications/Livepaper.app "$HERE/build/DerivedData/Build/Products/Release/Livepaper.app" "$HERE/build/Products/Livepaper.app"; do
   [ -d "$APP" ] && "$LSREGISTER" -u "$APP"
