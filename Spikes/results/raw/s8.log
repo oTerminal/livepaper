@@ -1,0 +1,93 @@
+2026-09-17 14:56:11.262 Df Livepaper[95433:fe41f] [app.livepaper.spike:spike] s8: screen Built-in Retina Display: desktopImageURL = /System/Library/CoreServices/DefaultDesktop.heic, options = []
+2026-09-17 14:56:11.263 Df Livepaper[95433:fe41f] [app.livepaper.spike:spike] s8: setDesktopImageURL(/System/Library/Desktop Pictures/Solid Colors/Cyan.png) on Built-in Retina Display: ok
+2026-09-17 14:56:13.137 Df LivepaperExtension[82639:f6687] [app.livepaper.spike:spike] s2: in extension: b-1080p30-h264.mp4: loops 60, max presented gap 0.00 frames (at seam 0.00), over 1.5: 0, renderer dropped 6/9052, min seam lead 1.23 s, markers skipped 241
+2026-09-17 14:56:13.364 Df Livepaper[95433:fe41f] [app.livepaper.spike:spike] s8: after set: desktopImageURL = /System/Library/Desktop Pictures/Solid Colors/Cyan.png
+2026-09-17 14:56:16.703 Df WallpaperAgent[82635:fe46f] [com.apple.wallpaper:runtime] Marking shared wallpaper for '[content: <ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>, display: 37D8832A]' as inactive. Will be purged in next resolution.
+2026-09-17 14:56:16.703 Df WallpaperAgent[82635:fe46f] [com.apple.wallpaper:runtime] Marking shared wallpaper for '[content: <ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>, display: 37D8832A]' as inactive. Will be purged in next resolution.
+2026-09-17 14:56:16.704 Df WallpaperAgent[82635:fe46a] [com.apple.wallpaper:extension-proxy] B64DDD33: BEGIN - [app.livepaper.spike.extension] wallpaper(844ABFB1) invalidate
+2026-09-17 14:56:16.704 Df LivepaperExtension[82639:f6685] [app.livepaper.spike:spike] extension: INVALIDATE surface 844ABFB1-B606-42C7-BDF1-80FB707F9ABA display 1, teardown in 15 s unless re-acquired
+2026-09-17 14:56:16.704 Df WallpaperAgent[82635:fe46a] [com.apple.wallpaper:extension-proxy] AA856BBC: BEGIN - [app.livepaper.spike.extension] wallpaper(1ABFFCD5) invalidate
+2026-09-17 14:56:16.704 Df WallpaperAgent[82635:fe46a] [com.apple.wallpaper:extension-proxy] B64DDD33: END - [app.livepaper.spike.extension] wallpaper(844ABFB1) invalidate
+2026-09-17 14:56:16.704 Df LivepaperExtension[82639:f6685] [app.livepaper.spike:spike] extension: INVALIDATE surface 1ABFFCD5-8877-40AC-9243-F0831826340A display 1, teardown in 15 s unless re-acquired
+2026-09-17 14:56:16.704 Df WallpaperAgent[82635:fe164] [com.apple.wallpaper:extension-proxy] AA856BBC: END - [app.livepaper.spike.extension] wallpaper(1ABFFCD5) invalidate
+2026-09-17 14:56:16.704 Df WallpaperAgent[82635:fe164] [com.apple.wallpaper:extension] Scheduling disconnection for 5 minutes from now for app.livepaper.spike.extension
+2026-09-17 14:56:31.790 Df LivepaperExtension[82639:f6685] [app.livepaper.spike:spike] extension: torn down surface 844ABFB1-B606-42C7-BDF1-80FB707F9ABA (1 left)
+2026-09-17 14:56:31.791 Df LivepaperExtension[82639:f6685] [app.livepaper.spike:spike] extension: torn down surface 1ABFFCD5-8877-40AC-9243-F0831826340A (0 left)
+2026-09-17 14:56:41.503 Df WallpaperAgent[96779:ff149] [com.apple.wallpaper:export-controller] Successfully read existing exported wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>'
+2026-09-17 14:56:41.505 Df WallpaperAgent[96779:ff148] [com.apple.wallpaper:catalog] 07C49687: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:56:41.508 Df WallpaperAgent[96779:ff13e] [com.apple.wallpaper:extension-proxy] 034686F9: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:56:41.508 Df WallpaperAgent[96779:ff13e] [com.apple.wallpaper:extension-proxy] 4511CB5C: BEGIN - [app.livepaper.spike.extension] connect
+2026-09-17 14:56:41.521 Df WallpaperAgent[96779:ff13e] [com.apple.extensionkit:launch] Launching process with config: identity: RecordIdentity(record: ExtensionFoundation.Database._ExtensionRecord(lsRecord: <LSApplicationExtensionRecord 0x7628c2daa0> { bundleID: app.livepaper.spike.extension, URL: file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/, super: <LSApplicati
+2026-09-17 14:56:41.521 I  WallpaperAgent[96779:ff13e] [com.apple.runningboard:general] Sending launch request: <RBSLaunchRequest| extension<app.livepaper.spike.extension[config:6E69CA09-34E3-3493-B8FC-B5021E1ACB71]((null):96779)(501)>; "(null)">
+2026-09-17 14:56:41.528 Df WallpaperAgent[96779:ff13e] [com.apple.wallpaper:extension-proxy] 4511CB5C: END - [app.livepaper.spike.extension] connect
+2026-09-17 14:56:41.539 Df LivepaperExtension[96782:ff15d] [app.livepaper.spike:spike] extension: INIT pid 96782 build 20260917145059 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 14:56:41.540 Df LivepaperExtension[96782:ff15d] [app.livepaper.spike:spike] bridge: WallpaperExtensionKit loaded, all 15 payload classes present
+2026-09-17 14:56:41.540 Df LivepaperExtension[96782:ff15d] [app.livepaper.spike:spike] s1: NSHomeDirectory = ~/Library/Containers/app.livepaper.spike.extension/Data; real home = ~
+2026-09-17 14:56:41.540 Df LivepaperExtension[96782:ff15d] [app.livepaper.spike:spike] s1: location a (Application Support + exception): READABLE, 8 entries, config 80 bytes
+2026-09-17 14:56:41.541 Df LivepaperExtension[96782:ff15d] [app.livepaper.spike:spike] s1: location b (own container): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 14:56:41.562 Df LivepaperExtension[96782:ff15f] [app.livepaper.spike:spike] extension: accepted connection from pid 96779
+2026-09-17 14:56:41.563 Df LivepaperExtension[96782:ff15d] [app.livepaper.spike:spike] extension: config generation 162 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:56:41.570 Df LivepaperExtension[96782:ff15d] [app.livepaper.spike:spike] extension: ACQUIRE new surface 02530E1B-2DF0-4278-8C8D-7A39F563293D ctx 2193425775 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview false pid 96779 (1 surfaces)
+2026-09-17 14:56:41.628 Df LivepaperExtension[96782:ff15d] [app.livepaper.spike:spike] extension: surface 02530E1B-2DF0-4278-8C8D-7A39F563293D display 1 now on b-1080p30-h264.mp4 (generation 162)
+2026-09-17 14:56:41.628 Df WallpaperAgent[96779:ff13f] [com.apple.wallpaper:extension-proxy] 034686F9: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:56:41.628 Df WallpaperAgent[96779:ff13f] [com.apple.wallpaper:extension] Scheduling disconnection for 5 minutes from now for app.livepaper.spike.extension
+2026-09-17 14:56:41.628 Df WallpaperAgent[96779:ff14f] [com.apple.wallpaper:catalog] 07C49687: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:56:41.631 Df WallpaperAgent[96779:ff13c] [com.apple.wallpaper:catalog] D3D33251: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:56:41.631 Df WallpaperAgent[96779:ff13c] [com.apple.wallpaper:extension-proxy] FCD9DD7A: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:56:41.632 Df LivepaperExtension[96782:ff15d] [app.livepaper.spike:spike] extension: ACQUIRE new surface 1E38F8F5-5662-42D3-B1F6-C584D9C39F21 ctx 1025311794 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview true pid 96779 (2 surfaces)
+2026-09-17 14:56:41.646 Df LivepaperExtension[96782:ff15d] [app.livepaper.spike:spike] extension: surface 1E38F8F5-5662-42D3-B1F6-C584D9C39F21 display 1 now on b-1080p30-h264.mp4 (generation 162)
+2026-09-17 14:56:41.646 Df WallpaperAgent[96779:ff148] [com.apple.wallpaper:extension-proxy] FCD9DD7A: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:56:41.646 Df WallpaperAgent[96779:ff148] [com.apple.wallpaper:catalog] D3D33251: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:56:48.242 Df Livepaper[97054:ff3a1] [app.livepaper.spike:spike] s8: screen Built-in Retina Display: desktopImageURL = /System/Library/CoreServices/DefaultDesktop.heic, options = []
+2026-09-17 14:56:57.781 Df Livepaper[97459:ff75c] [app.livepaper.spike:spike] s8: screen Built-in Retina Display: desktopImageURL = /System/Library/CoreServices/DefaultDesktop.heic, options = []
+2026-09-17 14:56:57.782 Df Livepaper[97459:ff75c] [app.livepaper.spike:spike] s8: setDesktopImageURL(/System/Library/Desktop Pictures/Solid Colors/Cyan.png) on Built-in Retina Display: ok
+2026-09-17 14:56:59.883 Df Livepaper[97459:ff75c] [app.livepaper.spike:spike] s8: after set: desktopImageURL = /System/Library/Desktop Pictures/Solid Colors/Cyan.png
+2026-09-17 14:57:03.203 Df WallpaperAgent[96779:ff7d8] [com.apple.wallpaper:runtime] Marking shared wallpaper for '[content: <ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>, display: 37D8832A]' as inactive. Will be purged in next resolution.
+2026-09-17 14:57:03.203 Df WallpaperAgent[96779:ff7d8] [com.apple.wallpaper:runtime] Marking shared wallpaper for '[content: <ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>, display: 37D8832A]' as inactive. Will be purged in next resolution.
+2026-09-17 14:57:03.205 Df WallpaperAgent[96779:ff7d4] [com.apple.wallpaper:extension-proxy] BD224FFD: BEGIN - [app.livepaper.spike.extension] wallpaper(02530E1B) invalidate
+2026-09-17 14:57:03.205 Df WallpaperAgent[96779:ff7d9] [com.apple.wallpaper:extension-proxy] E37CC251: BEGIN - [app.livepaper.spike.extension] wallpaper(1E38F8F5) invalidate
+2026-09-17 14:57:03.206 Df LivepaperExtension[96782:ff15d] [app.livepaper.spike:spike] extension: INVALIDATE surface 02530E1B-2DF0-4278-8C8D-7A39F563293D display 1, teardown in 15 s unless re-acquired
+2026-09-17 14:57:03.206 Df LivepaperExtension[96782:ff15d] [app.livepaper.spike:spike] extension: INVALIDATE surface 1E38F8F5-5662-42D3-B1F6-C584D9C39F21 display 1, teardown in 15 s unless re-acquired
+2026-09-17 14:57:03.206 Df WallpaperAgent[96779:ff7d4] [com.apple.wallpaper:extension-proxy] BD224FFD: END - [app.livepaper.spike.extension] wallpaper(02530E1B) invalidate
+2026-09-17 14:57:03.206 Df WallpaperAgent[96779:ff7d4] [com.apple.wallpaper:extension-proxy] E37CC251: END - [app.livepaper.spike.extension] wallpaper(1E38F8F5) invalidate
+2026-09-17 14:57:03.206 Df WallpaperAgent[96779:ff7d8] [com.apple.wallpaper:extension] Scheduling disconnection for 5 minutes from now for app.livepaper.spike.extension
+2026-09-17 14:57:18.323 Df LivepaperExtension[96782:ff15d] [app.livepaper.spike:spike] extension: torn down surface 02530E1B-2DF0-4278-8C8D-7A39F563293D (1 left)
+2026-09-17 14:57:18.325 Df LivepaperExtension[96782:ff15d] [app.livepaper.spike:spike] extension: torn down surface 1E38F8F5-5662-42D3-B1F6-C584D9C39F21 (0 left)
+2026-09-17 14:57:21.650 Df WallpaperAgent[98579:100156] [com.apple.wallpaper:export-controller] Successfully read existing exported wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>'
+2026-09-17 14:57:29.778 Df Livepaper[98804:1003b2] [app.livepaper.spike:spike] s8: screen Built-in Retina Display: desktopImageURL = /System/Library/CoreServices/DefaultDesktop.heic, options = []
+2026-09-17 14:57:29.858 Df Livepaper[98835:10041d] [app.livepaper.spike:spike] s8: screen Built-in Retina Display: desktopImageURL = /System/Library/CoreServices/DefaultDesktop.heic, options = []
+2026-09-17 14:57:29.860 Df Livepaper[98835:10041d] [app.livepaper.spike:spike] s8: setDesktopImageURL(/System/Library/Desktop Pictures/iMac Blue.heic) on Built-in Retina Display: ok
+2026-09-17 14:57:31.963 Df Livepaper[98835:10041d] [app.livepaper.spike:spike] s8: after set: desktopImageURL = /System/Library/Desktop Pictures/iMac Blue.heic
+2026-09-17 14:58:07.315 E  WallpaperAgent[1096:101348] [com.apple.wallpaper:assetManager] Could not find translator for: app.livepaper.spike.extension; eagerly assuming it's an extension with the same identifier
+2026-09-17 14:58:07.315 Df WallpaperAgent[1096:101348] [com.apple.wallpaper:catalog] 3B42C5CB: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:58:07.319 Df WallpaperAgent[1096:101347] [com.apple.wallpaper:extension-proxy] 5A313C74: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:58:07.319 Df WallpaperAgent[1096:101347] [com.apple.wallpaper:extension-proxy] DDC206CD: BEGIN - [app.livepaper.spike.extension] connect
+2026-09-17 14:58:07.333 Df WallpaperAgent[1096:101345] [com.apple.extensionkit:launch] Launching process with config: identity: RecordIdentity(record: ExtensionFoundation.Database._ExtensionRecord(lsRecord: <LSApplicationExtensionRecord 0x775ec2da40> { bundleID: app.livepaper.spike.extension, URL: file:///Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex/, super: <LSApplicati
+2026-09-17 14:58:07.333 I  WallpaperAgent[1096:101345] [com.apple.runningboard:general] Sending launch request: <RBSLaunchRequest| extension<app.livepaper.spike.extension[config:6E69CA09-34E3-3493-B8FC-B5021E1ACB71]((null):1096)(501)>; "(null)">
+2026-09-17 14:58:07.341 Df WallpaperAgent[1096:101345] [com.apple.wallpaper:extension-proxy] DDC206CD: END - [app.livepaper.spike.extension] connect
+2026-09-17 14:58:07.356 Df LivepaperExtension[1101:10135b] [app.livepaper.spike:spike] extension: INIT pid 1101 build 20260917145059 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 14:58:07.357 Df LivepaperExtension[1101:10135b] [app.livepaper.spike:spike] bridge: WallpaperExtensionKit loaded, all 15 payload classes present
+2026-09-17 14:58:07.357 Df LivepaperExtension[1101:10135b] [app.livepaper.spike:spike] s1: NSHomeDirectory = ~/Library/Containers/app.livepaper.spike.extension/Data; real home = ~
+2026-09-17 14:58:07.357 Df LivepaperExtension[1101:10135b] [app.livepaper.spike:spike] s1: location a (Application Support + exception): READABLE, 8 entries, config 80 bytes
+2026-09-17 14:58:07.357 Df LivepaperExtension[1101:10135b] [app.livepaper.spike:spike] s1: location b (own container): NOT readable: NSCocoaErrorDomain 260
+2026-09-17 14:58:07.373 Df LivepaperExtension[1101:10135d] [app.livepaper.spike:spike] extension: accepted connection from pid 1096
+2026-09-17 14:58:07.374 Df LivepaperExtension[1101:10135b] [app.livepaper.spike:spike] extension: config generation 162 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:58:07.377 Df LivepaperExtension[1101:10135b] [app.livepaper.spike:spike] extension: ACQUIRE new surface 3767C0E8-F456-4380-B554-541FBDAAC7C9 ctx 299191712 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview false pid 1096 (1 surfaces)
+2026-09-17 14:58:07.436 Df LivepaperExtension[1101:10135b] [app.livepaper.spike:spike] extension: surface 3767C0E8-F456-4380-B554-541FBDAAC7C9 display 1 now on b-1080p30-h264.mp4 (generation 162)
+2026-09-17 14:58:07.436 Df WallpaperAgent[1096:101346] [com.apple.wallpaper:extension-proxy] 5A313C74: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:58:07.436 Df WallpaperAgent[1096:101346] [com.apple.wallpaper:extension] Scheduling disconnection for 5 minutes from now for app.livepaper.spike.extension
+2026-09-17 14:58:07.436 Df WallpaperAgent[1096:101345] [com.apple.wallpaper:catalog] 3B42C5CB: END - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:58:07.437 Df WallpaperAgent[1096:101339] [com.apple.wallpaper:export-controller] 90AB1BFC: BEGIN - Exporting wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>'
+2026-09-17 14:58:07.437 Df WallpaperAgent[1096:101339] [com.apple.wallpaper:export-controller] 90AB1BFC: LOG - Exporting wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>' - translating
+2026-09-17 14:58:07.437 Df WallpaperAgent[1096:101339] [com.apple.wallpaper:export-controller] 90AB1BFC: LOG - Exporting wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>' - wallpaper lookup
+2026-09-17 14:58:07.437 Df WallpaperAgent[1096:101339] [com.apple.wallpaper:export-controller] 90AB1BFC: LOG - Exporting wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>' - snapshotting
+2026-09-17 14:58:07.437 Df WallpaperAgent[1096:101346] [com.apple.wallpaper:extension-proxy] FF302340: BEGIN - [app.livepaper.spike.extension] wallpaper(3767C0E8) snapshot
+2026-09-17 14:58:07.437 Df LivepaperExtension[1101:10135b] [app.livepaper.spike:spike] extension: SNAPSHOT requested by pid 1096 -> solid colour
+2026-09-17 14:58:07.438 Df WallpaperAgent[1096:101348] [com.apple.wallpaper:catalog] 90E3250F: BEGIN - makeWallpaper for '[extension] app.livepaper.spike.extension'
+2026-09-17 14:58:07.438 Df WallpaperAgent[1096:101348] [com.apple.wallpaper:extension-proxy] 39123A2B: BEGIN - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:58:07.440 Df LivepaperExtension[1101:10135b] [app.livepaper.spike:spike] extension: ACQUIRE new surface C3F8CA86-7459-4812-8307-04CCE2E17E03 ctx 1836800178 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 preview true pid 1096 (2 surfaces)
+2026-09-17 14:58:07.440 Df WallpaperAgent[1096:101337] [com.apple.wallpaper:extension-proxy] FF302340: END - [app.livepaper.spike.extension] wallpaper(3767C0E8) snapshot
+2026-09-17 14:58:07.441 Df WallpaperAgent[1096:101337] [com.apple.wallpaper:export-controller] 90AB1BFC: LOG - Exporting wallpaper '<ChoiceDescriptor provider=app.livepaper.spike.extension, configuration=999C53B4>' - writing
+2026-09-17 14:58:07.464 Df LivepaperExtension[1101:10135b] [app.livepaper.spike:spike] extension: surface C3F8CA86-7459-4812-8307-04CCE2E17E03 display 1 now on b-1080p30-h264.mp4 (generation 162)
+2026-09-17 14:58:07.464 Df WallpaperAgent[1096:101347] [com.apple.wallpaper:extension-proxy] 39123A2B: END - [app.livepaper.spike.extension] Wallpaper Timeline: Acquire Wallpaper
+2026-09-17 14:58:07.464 Df WallpaperAgent[1096:101337] [com.apple.wallpaper:catalog] 90E3250F: END - makeWallpaper for '[extension] app.livepaper.spike.extension'

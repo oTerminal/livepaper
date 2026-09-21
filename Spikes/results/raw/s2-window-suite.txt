@@ -1,0 +1,15 @@
+== 1080p30-h264-200 (200 loops)
+  a-1080p30-h264.mp4 [decoder reset: strip, 801 markers skipped]: loops 200 (199 seams observed), renderer dropped 0/30000, seam step 1.000, min seam lead 1.19 s, max presented gap 1.32 frames, over 1.5: 0
+  frames never displayed: none
+== 1080p30-bframes (20 loops)
+  a-1080p30-bframes.mp4 [decoder reset: strip, 81 markers skipped]: loops 20 (19 seams observed), renderer dropped 0/3000, seam step 1.000, min seam lead 1.32 s, max presented gap 1.32 frames, over 1.5: 0
+  frames never displayed: none
+== 1080p30-long-audio (20 loops)
+  a-1080p30-long-audio.mp4 [decoder reset: strip, 81 markers skipped]: loops 20 (19 seams observed), renderer dropped 0/3000, seam step 1.000, min seam lead 1.25 s, max presented gap 1.09 frames, over 1.5: 0
+  frames never displayed: none
+== 1080p60-hevc (20 loops)
+  a-1080p60-hevc.mov [decoder reset: strip, 81 markers skipped]: loops 20 (19 seams observed), renderer dropped 2/6000, seam step 1.000, min seam lead 1.19 s, max presented gap 1.24 frames, over 1.5: 0
+  frames never displayed: none
+== 4k60-hevc (20 loops)
+  a-4k60-hevc.mov [decoder reset: strip, 81 markers skipped]: loops 20 (19 seams observed), renderer dropped 2/6000, seam step 1.000, min seam lead 1.28 s, max presented gap 1.68 frames, over 1.5: 1
+  frames never displayed: [(151, 'pass 0 + 151')]

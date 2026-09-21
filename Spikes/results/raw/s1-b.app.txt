@@ -1,0 +1,5 @@
+[spike] s1: wrote a-1080p30-h264.mp4 and config generation 3 to ~/Library/Containers/app.livepaper.spike.extension/Data/Documents/library in 0.03 s
+[spike] app: heartbeat from extension: generation 3, loops 19 (extension -> app notification works)
+[spike] app: heartbeat from extension: generation 3, loops 20 (extension -> app notification works)
+[spike] app: heartbeat from extension: generation 3, loops 20 (extension -> app notification works)
+[spike] app: heartbeat from extension: generation 3, loops 20 (extension -> app notification works)

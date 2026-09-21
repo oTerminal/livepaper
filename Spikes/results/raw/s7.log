@@ -1,0 +1,204 @@
+2026-09-17 14:50:20.884 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:20.885 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 113 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:20.889 Df LivepaperExtension[78431:f3656] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 113)
+2026-09-17 14:50:20.889 Df LivepaperExtension[78431:f39c8] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 113)
+2026-09-17 14:50:21.084 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:21.084 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 114 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:21.087 Df LivepaperExtension[78431:f3660] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 114)
+2026-09-17 14:50:21.087 Df LivepaperExtension[78431:f49ce] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 114)
+2026-09-17 14:50:21.285 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:21.285 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 115 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:21.289 Df LivepaperExtension[78431:f49ce] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 115)
+2026-09-17 14:50:21.289 Df LivepaperExtension[78431:f49d2] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 115)
+2026-09-17 14:50:21.485 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:21.485 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 116 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:21.489 Df LivepaperExtension[78431:f49d0] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 116)
+2026-09-17 14:50:21.489 Df LivepaperExtension[78431:f49ce] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 116)
+2026-09-17 14:50:21.685 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:21.685 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 117 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:21.689 Df LivepaperExtension[78431:f39c8] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 117)
+2026-09-17 14:50:21.690 Df LivepaperExtension[78431:f3656] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 117)
+2026-09-17 14:50:21.884 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:21.885 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 118 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:21.888 Df LivepaperExtension[78431:f49d0] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 118)
+2026-09-17 14:50:21.888 Df LivepaperExtension[78431:f3660] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 118)
+2026-09-17 14:50:22.085 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:22.085 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 119 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:22.089 Df LivepaperExtension[78431:f3663] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 119)
+2026-09-17 14:50:22.089 Df LivepaperExtension[78431:f49ce] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 119)
+2026-09-17 14:50:22.285 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:22.285 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 120 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:22.289 Df LivepaperExtension[78431:f3663] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 120)
+2026-09-17 14:50:22.289 Df LivepaperExtension[78431:f49bf] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 120)
+2026-09-17 14:50:22.485 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:22.486 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 121 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:22.490 Df LivepaperExtension[78431:f49cd] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 121)
+2026-09-17 14:50:22.490 Df LivepaperExtension[78431:f3656] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 121)
+2026-09-17 14:50:22.684 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:22.684 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 122 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:22.688 Df LivepaperExtension[78431:f49cd] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 122)
+2026-09-17 14:50:22.688 Df LivepaperExtension[78431:f364b] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 122)
+2026-09-17 14:50:22.884 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:22.884 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 123 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:22.887 Df LivepaperExtension[78431:f39c8] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 123)
+2026-09-17 14:50:22.887 Df LivepaperExtension[78431:f49ce] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 123)
+2026-09-17 14:50:23.085 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:23.086 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 124 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:23.090 Df LivepaperExtension[78431:f49d2] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 124)
+2026-09-17 14:50:23.090 Df LivepaperExtension[78431:f3656] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 124)
+2026-09-17 14:50:23.285 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:23.286 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 125 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:23.290 Df LivepaperExtension[78431:f3663] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 125)
+2026-09-17 14:50:23.290 Df LivepaperExtension[78431:f3660] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 125)
+2026-09-17 14:50:23.485 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:23.485 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 126 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:23.489 Df LivepaperExtension[78431:f3663] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 126)
+2026-09-17 14:50:23.489 Df LivepaperExtension[78431:f49cd] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 126)
+2026-09-17 14:50:23.685 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:23.685 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 127 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:23.689 Df LivepaperExtension[78431:f3660] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 127)
+2026-09-17 14:50:23.689 Df LivepaperExtension[78431:f3663] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 127)
+2026-09-17 14:50:23.885 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:23.885 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 128 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:23.889 Df LivepaperExtension[78431:f49bf] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 128)
+2026-09-17 14:50:23.889 Df LivepaperExtension[78431:f3656] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 128)
+2026-09-17 14:50:24.085 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:24.086 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 129 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:24.090 Df LivepaperExtension[78431:f3656] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 129)
+2026-09-17 14:50:24.090 Df LivepaperExtension[78431:f49d2] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 129)
+2026-09-17 14:50:24.284 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:24.284 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 130 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:24.288 Df LivepaperExtension[78431:f3656] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 130)
+2026-09-17 14:50:24.288 Df LivepaperExtension[78431:f39c8] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 130)
+2026-09-17 14:50:24.484 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:24.484 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 131 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:24.487 Df LivepaperExtension[78431:f49d2] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 131)
+2026-09-17 14:50:24.488 Df LivepaperExtension[78431:f49bf] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 131)
+2026-09-17 14:50:24.683 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:24.684 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 132 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:24.687 Df LivepaperExtension[78431:f49bf] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 132)
+2026-09-17 14:50:24.688 Df LivepaperExtension[78431:f3663] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 132)
+2026-09-17 14:50:24.883 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:24.884 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 133 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:24.887 Df LivepaperExtension[78431:f49d0] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 133)
+2026-09-17 14:50:24.887 Df LivepaperExtension[78431:f49bf] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 133)
+2026-09-17 14:50:25.085 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:25.085 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 134 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:25.089 Df LivepaperExtension[78431:f3660] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 134)
+2026-09-17 14:50:25.089 Df LivepaperExtension[78431:f49cd] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 134)
+2026-09-17 14:50:25.285 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:25.285 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 135 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:25.289 Df LivepaperExtension[78431:f3660] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 135)
+2026-09-17 14:50:25.289 Df LivepaperExtension[78431:f49ce] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 135)
+2026-09-17 14:50:25.484 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:25.485 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 136 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:25.488 Df LivepaperExtension[78431:f3660] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 136)
+2026-09-17 14:50:25.488 Df LivepaperExtension[78431:f49d0] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 136)
+2026-09-17 14:50:25.685 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:25.685 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 137 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:25.689 Df LivepaperExtension[78431:f49cd] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 137)
+2026-09-17 14:50:25.689 Df LivepaperExtension[78431:f4a0d] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 137)
+2026-09-17 14:50:25.885 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:25.885 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 138 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:25.889 Df LivepaperExtension[78431:f4a0d] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 138)
+2026-09-17 14:50:25.889 Df LivepaperExtension[78431:f3660] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 138)
+2026-09-17 14:50:26.084 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:26.084 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 139 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:26.088 Df LivepaperExtension[78431:f3660] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 139)
+2026-09-17 14:50:26.088 Df LivepaperExtension[78431:f3663] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 139)
+2026-09-17 14:50:26.284 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:26.284 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 140 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:26.288 Df LivepaperExtension[78431:f49cd] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 140)
+2026-09-17 14:50:26.289 Df LivepaperExtension[78431:f3656] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 140)
+2026-09-17 14:50:26.484 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:26.485 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 141 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:26.488 Df LivepaperExtension[78431:f4a0d] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 141)
+2026-09-17 14:50:26.488 Df LivepaperExtension[78431:f49d2] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 141)
+2026-09-17 14:50:26.685 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:26.685 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 142 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:26.689 Df LivepaperExtension[78431:f39c8] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 142)
+2026-09-17 14:50:26.689 Df LivepaperExtension[78431:f4a0d] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 142)
+2026-09-17 14:50:26.884 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:26.885 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 143 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:26.888 Df LivepaperExtension[78431:f39c8] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 143)
+2026-09-17 14:50:26.888 Df LivepaperExtension[78431:f49ce] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 143)
+2026-09-17 14:50:27.084 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:27.085 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 144 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:27.089 Df LivepaperExtension[78431:f364b] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 144)
+2026-09-17 14:50:27.089 Df LivepaperExtension[78431:f49d0] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 144)
+2026-09-17 14:50:27.285 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:27.285 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 145 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:27.290 Df LivepaperExtension[78431:f49bf] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 145)
+2026-09-17 14:50:27.290 Df LivepaperExtension[78431:f4a0d] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 145)
+2026-09-17 14:50:27.484 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:27.485 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 146 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:27.488 Df LivepaperExtension[78431:f49d0] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 146)
+2026-09-17 14:50:27.488 Df LivepaperExtension[78431:f39c8] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 146)
+2026-09-17 14:50:27.684 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:27.685 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 147 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:27.689 Df LivepaperExtension[78431:f39c8] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 147)
+2026-09-17 14:50:27.689 Df LivepaperExtension[78431:f49d2] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 147)
+2026-09-17 14:50:27.885 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:27.885 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 148 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:27.889 Df LivepaperExtension[78431:f49bf] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 148)
+2026-09-17 14:50:27.890 Df LivepaperExtension[78431:f39c8] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 148)
+2026-09-17 14:50:28.085 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:28.085 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 149 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:28.089 Df LivepaperExtension[78431:f364b] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 149)
+2026-09-17 14:50:28.089 Df LivepaperExtension[78431:f49d2] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 149)
+2026-09-17 14:50:28.285 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:28.286 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 150 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:28.290 Df LivepaperExtension[78431:f39c8] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 150)
+2026-09-17 14:50:28.290 Df LivepaperExtension[78431:f49d2] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 150)
+2026-09-17 14:50:28.484 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:28.485 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 151 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:28.488 Df LivepaperExtension[78431:f49ce] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 151)
+2026-09-17 14:50:28.489 Df LivepaperExtension[78431:f3660] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 151)
+2026-09-17 14:50:28.685 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:28.686 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 152 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:28.690 Df LivepaperExtension[78431:f3656] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 152)
+2026-09-17 14:50:28.690 Df LivepaperExtension[78431:f4a0d] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 152)
+2026-09-17 14:50:28.885 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:28.885 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 153 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:28.889 Df LivepaperExtension[78431:f364b] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 153)
+2026-09-17 14:50:28.889 Df LivepaperExtension[78431:f3656] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 153)
+2026-09-17 14:50:29.085 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:29.085 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 154 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:29.089 Df LivepaperExtension[78431:f3656] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 154)
+2026-09-17 14:50:29.089 Df LivepaperExtension[78431:f3660] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 154)
+2026-09-17 14:50:29.285 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:29.285 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 155 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:29.290 Df LivepaperExtension[78431:f3656] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 155)
+2026-09-17 14:50:29.290 Df LivepaperExtension[78431:f3663] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 155)
+2026-09-17 14:50:29.484 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:29.484 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 156 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:29.488 Df LivepaperExtension[78431:f49bf] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 156)
+2026-09-17 14:50:29.488 Df LivepaperExtension[78431:f4a0d] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 156)
+2026-09-17 14:50:29.683 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:29.684 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 157 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:29.688 Df LivepaperExtension[78431:f3663] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 157)
+2026-09-17 14:50:29.688 Df LivepaperExtension[78431:f49ce] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 157)
+2026-09-17 14:50:29.884 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:29.884 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 158 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:29.887 Df LivepaperExtension[78431:f39c8] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 158)
+2026-09-17 14:50:29.887 Df LivepaperExtension[78431:f364b] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 158)
+2026-09-17 14:50:30.084 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:30.085 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 159 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:30.088 Df LivepaperExtension[78431:f39c8] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 159)
+2026-09-17 14:50:30.088 Df LivepaperExtension[78431:f3656] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 159)
+2026-09-17 14:50:30.285 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:30.285 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 160 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:30.289 Df LivepaperExtension[78431:f4a0d] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 160)
+2026-09-17 14:50:30.289 Df LivepaperExtension[78431:f3660] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 160)
+2026-09-17 14:50:30.485 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:30.485 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 161 mode video video a-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:30.490 Df LivepaperExtension[78431:f3663] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on a-1080p30-h264.mp4 (generation 161)
+2026-09-17 14:50:30.490 Df LivepaperExtension[78431:f364b] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on a-1080p30-h264.mp4 (generation 161)
+2026-09-17 14:50:30.685 Df Livepaper[80377:f494b] [app.livepaper.spike:spike] s7: sent 50 switches in 10.0 s; last was generation 162 -> b-1080p30-h264.mp4
+2026-09-17 14:50:30.685 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: configChanged received (app -> extension notification works)
+2026-09-17 14:50:30.685 Df LivepaperExtension[78431:f3648] [app.livepaper.spike:spike] extension: config generation 162 mode video video b-1080p30-h264.mp4 from ~/Library/Application Support/LivepaperSpike
+2026-09-17 14:50:30.689 Df LivepaperExtension[78431:f3660] [app.livepaper.spike:spike] extension: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 now on b-1080p30-h264.mp4 (generation 162)
+2026-09-17 14:50:30.689 Df LivepaperExtension[78431:f4a0d] [app.livepaper.spike:spike] extension: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 now on b-1080p30-h264.mp4 (generation 162)
+2026-09-17 14:50:36.984 Df Livepaper[80377:f494b] [app.livepaper.spike:spike] s7: extension reports generation 162: PASS, ended on the last request  (check `log show` for the 'now on' line too)
+2026-09-17 14:50:39.073 Df LivepaperExtension[78431:f3663] [app.livepaper.spike:spike] s4: after check request: surface DBB685F7-149C-401B-ABF0-1DAC8F68F125 display 1 on b-1080p30-h264.mp4 showed 61 new pictures in 2 s: PASS
+2026-09-17 14:50:39.073 Df LivepaperExtension[78431:f49bf] [app.livepaper.spike:spike] s4: after check request: surface 3CC44A4A-9ED9-415E-AB12-D7E861C979CA display 1 on b-1080p30-h264.mp4 showed 3 new pictures in 2 s: FAIL

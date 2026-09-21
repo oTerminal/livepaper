@@ -1,0 +1,61 @@
+# M1 engine spike (docs/specs/M1-engine-spike.md). Throwaway: the product never
+# imports anything from here, and the root project.yml does not know this exists.
+#
+#   cd Spikes && xcodegen generate && scripts/build.sh
+name: LivepaperSpike
+
+options:
+  bundleIdPrefix: app.livepaper.spike
+  deploymentTarget:
+    macOS: "26.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    # Swift 5 mode on purpose: the spike is about the OS, not about isolation.
+    SWIFT_VERSION: "5.0"
+    ARCHS: arm64
+    ONLY_ACTIVE_ARCH: YES
+    MARKETING_VERSION: "0.0.1"
+    # scripts/build.sh passes a fresh CURRENT_PROJECT_VERSION so two builds differ.
+    CURRENT_PROJECT_VERSION: "1"
+    # Xcode does not sign. scripts/sign.sh signs inside-out afterwards (extension
+    # first, with its entitlements; then the app; never --deep), once per variant.
+    CODE_SIGNING_ALLOWED: NO
+    CODE_SIGN_IDENTITY: ""
+    DEVELOPMENT_TEAM: ""
+    ENABLE_HARDENED_RUNTIME: NO
+
+targets:
+  Livepaper:
+    type: application
+    platform: macOS
+    sources: [App, Shared]
+    scheme: {}
+    settings:
+      base:
+        PRODUCT_NAME: Livepaper
+        PRODUCT_BUNDLE_IDENTIFIER: app.livepaper.spike
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Livepaper
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
+        SWIFT_OBJC_BRIDGING_HEADER: App/BridgingHeader.h
+        ENABLE_APP_SANDBOX: NO
+    dependencies:
+      - target: LivepaperExtension
+
+  LivepaperExtension:
+    type: extensionkit-extension
+    platform: macOS
+    sources:
+      - path: Extension
+        excludes: ["*.entitlements"]
+      - Shared
+    settings:
+      base:
+        PRODUCT_NAME: LivepaperExtension
+        PRODUCT_BUNDLE_IDENTIFIER: app.livepaper.spike.extension
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_FILE: Extension/Info.plist
+        INFOPLIST_KEY_CFBundleDisplayName: Livepaper
+        SWIFT_OBJC_BRIDGING_HEADER: Extension/BridgingHeader.h

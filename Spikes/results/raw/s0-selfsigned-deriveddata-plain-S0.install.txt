@@ -1,0 +1,25 @@
+<repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/Extensions/LivepaperExtension.appex: replacing existing signature
+<repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app: replacing existing signature
+  verify: <repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app: valid on disk
+  verify: <repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app: satisfies its Designated Requirement
+  variant: selfsigned / plain / entitlements S0
+  Livepaper.app:
+    Identifier=app.livepaper.spike
+    CodeDirectory v=20400 size=876 flags=0x0(none) hashes=21+3 location=embedded
+    Signature size=1667
+    Authority=Livepaper Spike Self-Signed
+    TeamIdentifier=not set
+designated => identifier "app.livepaper.spike" and certificate leaf = H"67414494ac0200d42031aa6a382507f4197d3de7"
+  LivepaperExtension.appex:
+    Identifier=app.livepaper.spike.extension
+    CodeDirectory v=20400 size=1494 flags=0x0(none) hashes=36+7 location=embedded
+    Signature size=1667
+    Authority=Livepaper Spike Self-Signed
+    TeamIdentifier=not set
+designated => identifier "app.livepaper.spike.extension" and certificate leaf = H"67414494ac0200d42031aa6a382507f4197d3de7"
+  extension entitlements:
+    {
+      "com.apple.security.app-sandbox" => true
+    }
+  pluginkit:
+         app.livepaper.spike.extension(0.0.1)	69E45EE1-9D07-4AC1-9DB0-FFE40E821B2D	2026-09-17 12:32:34 +0000	<repo>/Spikes/build/DerivedData/Build/Products/Release/Livepaper.app/Contents/Extensions/LivepaperExtension.appex

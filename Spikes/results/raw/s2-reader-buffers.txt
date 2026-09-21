@@ -1,0 +1,52 @@
+== a-1080p30-h264.mp4
+samples vended: 154  reader status: 2
+sample 0: numSamples 0 size 0 pts 0/15360 dts invalid dur 0/1 out-pts 0.0 out-dur 0.0
+   buffer attachments (mode 1): ["EditBoundary": 1]
+sample 1: numSamples 1 size 45816 pts 0/15360 dts 0/15360 dur 512/15360 out-pts 0.0 out-dur 0.03333333333333333
+   buffer attachments (mode 1): ["ResetDecoderBeforeDecoding": 1]
+   sample attachments: [[:]]
+sample 151: numSamples 0 size 0 pts 0/0 dts invalid dur 0/1 out-pts nan out-dur 0.0
+   buffer attachments (mode 1): ["DrainAfterDecoding": 1]
+sample 152: numSamples 0 size 0 pts 0/0 dts invalid dur 0/1 out-pts nan out-dur 0.0
+   buffer attachments (mode 1): ["PostNotificationWhenConsumed": {
+    EndPresentationTimesStamp =     {
+        epoch = 0;
+        flags = 5;
+        timescale = 0;
+        value = 0;
+    };
+    StartPresentationTimesStamp =     {
+        epoch = 0;
+        flags = 1;
+        timescale = 1000;
+        value = 5000;
+    };
+}]
+sample 153: numSamples 0 size 0 pts 5000/1000 dts invalid dur 0/1 out-pts 5.0 out-dur 0.0
+   buffer attachments (mode 1): ["EmptyMedia": 1, "PermanentEmptyMedia": 1]
+== a-1080p30-bframes.mp4
+samples vended: 154  reader status: 2
+sample 0: numSamples 0 size 0 pts 1024/15360 dts invalid dur 0/1 out-pts 0.0 out-dur 0.0
+   buffer attachments (mode 1): ["EditBoundary": 1]
+sample 1: numSamples 1 size 41513 pts 1024/15360 dts 0/15360 dur 512/15360 out-pts 0.0 out-dur 0.03333333333333333
+   buffer attachments (mode 1): ["ResetDecoderBeforeDecoding": 1]
+   sample attachments: [[:]]
+sample 151: numSamples 0 size 0 pts 0/0 dts invalid dur 0/1 out-pts nan out-dur 0.0
+   buffer attachments (mode 1): ["DrainAfterDecoding": 1]
+sample 152: numSamples 0 size 0 pts 0/0 dts invalid dur 0/1 out-pts nan out-dur 0.0
+   buffer attachments (mode 1): ["PostNotificationWhenConsumed": {
+    EndPresentationTimesStamp =     {
+        epoch = 0;
+        flags = 5;
+        timescale = 0;
+        value = 0;
+    };
+    StartPresentationTimesStamp =     {
+        epoch = 0;
+        flags = 1;
+        timescale = 1000;
+        value = 5000;
+    };
+}]
+sample 153: numSamples 0 size 0 pts 5000/1000 dts invalid dur 0/1 out-pts 5.0 out-dur 0.0
+   buffer attachments (mode 1): ["PermanentEmptyMedia": 1, "EmptyMedia": 1]

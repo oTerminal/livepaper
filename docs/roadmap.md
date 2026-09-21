@@ -36,9 +36,9 @@ Research that shaped it:
 | Menu-bar tint | Colour-matched still set as the system wallpaper, original restored when disabled. Only needed if the window renderer ends up being used; in extension mode macOS handles it |
 | Rendering | Private wallpaper extension in v1.0 for desktop + lock screen + screensaver. **Extension only, no fallback renderer** |
 | Contingency | If the downloaded build's extension does not load on a second Mac, the public desktop-window renderer becomes the main path and the extension becomes a bonus for source builders |
-| Selection | One "Livepaper" entry in System Settings > Wallpaper, chosen once; the app drives what plays after that |
-| Quit | Quit stops the live wallpaper and restores the previous system wallpaper |
-| First run | Short onboarding (drop a video / launch at login / choose Livepaper as wallpaper) + 2-3 bundled CC0 sample loops with recorded provenance |
+| Selection | One "Livepaper" entry in System Settings > Wallpaper, selected once by the app itself in onboarding (record 0003; the user's click is the fallback); the app drives what plays after that |
+| Quit | Quit stops the live wallpaper: the extension holds the current wallpaper's poster as a still and releases its decoders. The system wallpaper stays "Livepaper", because no public API could select it again at the next launch (record 0003). Leaving Livepaper for good is a choice in Settings |
+| First run | Short onboarding (drop a video / launch at login / Livepaper becomes the wallpaper) + 2-3 bundled CC0 sample loops with recorded provenance |
 | Testing | TDD with Swift Testing on core logic; no UI snapshot tests; UI checked in a Gallery target, previews and manual runs; GitHub Actions CI |
 | Build order | Engine spike, then design system, then screens |
 | Execution | One PR per milestone. After the spike, independent lanes can run in parallel Conductor workspaces. Each milestone gets a spec in `docs/specs/` so it can be run with `/implement` (TDD at agreed seams, `/code-review` at the end, commit to the branch) |
@@ -90,7 +90,7 @@ protocol LibraryStore: Sendable { func load() throws -> Library; func save(_: Li
   func apply(_ state: RenderState) async           // full state, idempotent
   var status: AsyncStream<RenderHostStatus> { get }
   func recover(_ level: RecoveryLevel) async
-  func deactivate() async                          // restores the previous system wallpaper
+  func deactivate() async                          // stopped render state: the extension holds a still (record 0003)
 }
 ```
 
@@ -122,7 +122,7 @@ After M1, three lanes can run in parallel: A engine (M5), B design system and sc
 | M5 | Production engine, supervisor, render host | Spike tests S2-S7 pass again on product code; inspector preview reuses the engine |
 | M6 | Screens on fakes, then wired | Manual script: drop → tile → hover preview → Set on display → delete → undo |
 | M7 | Login item, hotkeys, Services entry, URL scheme, CLI, Dock/menu-bar drop, rotation driver, onboarding, diagnostics export | Each shown working end to end; login toggle always matches real status |
-| M8 | Hardening | 24 h soak with lid cycles, zero unrecovered stalls; hot-plug loop; idle app ~0% CPU; 4K60 energy within the M1 budget; VoiceOver and keyboard pass |
+| M8 | Hardening | 24 h soak with lid cycles, zero unrecovered stalls; hot-plug loop; idle app ~0% CPU; 4K60 energy within the M1 budget (`Spikes/results/S2.md`, "Energy budget"); VoiceOver and keyboard pass |
 | M9 | Release engineering: inside-out signing script, DMG, Sparkle + appcast, release workflow, samples + provenance, README install steps, move-to-Applications prompt | Second Mac installs from a real download; an N → N+1 Sparkle update keeps login item, extension and assignments |
 | M10 | 1.0 | Checklist for testing each macOS beta seed exists |
 
@@ -155,7 +155,8 @@ Spike matrix (M1):
 | Display hot-plug | Assignments keyed by UUID and remembered while unplugged; reconfiguration debounced |
 | Sparkle without Apple signing | EdDSA required; sign inside-out including Sparkle's helpers; no hardened-runtime library validation; update path tested in M9 |
 | App run from the download folder (translocation) | Detect and offer to move to /Applications before registering anything |
-| Restoring the previous wallpaper on Quit may be impossible for Aerial/dynamic wallpapers | S8 finds out; if so, Quit restores what it can and says what it couldn't |
+| The wallpaper store (`com.apple.wallpaper/Store/Index.plist`) is undocumented and can change with any macOS update | It is edited at two moments only, selecting in onboarding and leaving (record 0003); the code checks what it reads and falls back to the user's click in System Settings; the select/deselect check is on the beta-seed checklist |
+| Restoring the previous wallpaper on Quit may be impossible for Aerial/dynamic wallpapers | S8 found that it is, and that selecting Livepaper again is impossible too. Quit holds a still instead (record 0003); the previous wallpaper, an Aerial included, comes back from a kept copy of the wallpaper store when the user leaves Livepaper |
 | ffmpeg parsing untrusted files | Separate process, minimal build, no network; replaceable binary to satisfy the LGPL |
 
 Unverified claims carried from research, to confirm at M0/M1: hosted CI image Xcode versions; the self-signed identity behaviour on macOS 27; Homebrew's 2026-09-01 cask policy (not relied on).
@@ -166,5 +167,5 @@ Unverified claims carried from research, to confirm at M0/M1: hosted CI image Xc
 - M1: each spike row produces a written result in its ADR, with `log stream` excerpts for WallpaperAgent, pkd and amfid where relevant. S0's second-Mac rows are run by hand from the checklist in `docs/specs/M1-engine-spike.md`.
 - M2/M4: `swift test` on `LivepaperKit`; import fixtures checked by the loop-seam validator.
 - M3: Gallery app reviewed per component with the two review skills.
-- M5-M8: run the app; walk the manual scripts (drop → set → lock → sleep/wake → hot-plug → quit restores wallpaper); 24 h soak log shows zero unrecovered stalls.
+- M5-M8: run the app; walk the manual scripts (drop → set → lock → sleep/wake → hot-plug → quit holds a still, relaunch resumes); 24 h soak log shows zero unrecovered stalls.
 - M9: fresh download on the second Mac, then an update from the previous build through Sparkle.

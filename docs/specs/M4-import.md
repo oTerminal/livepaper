@@ -1,0 +1,61 @@
+# M4: import pipeline and the ffmpeg helper
+
+Turn a source file the user provides into a wallpaper in the library: one optimised copy that loops without a gap, a poster and a hover preview. Lane C. See `docs/roadmap.md` (Import stages) and decision records 0002, 0005 and 0006.
+
+## Rules
+
+- Code goes in `LivepaperImport` (nonisolated) and `Helpers/ffmpeg/`. Models and the `Library` come from `LivepaperCore` (M2).
+- The source file is never modified or moved. The library keeps only the optimised copy.
+- ffmpeg runs as a separate process with a fixed argument list, no network, a time limit and a size limit. It never runs at playback time. It is built from source without GPL or non-free parts (record 0006).
+- Every stage can be cancelled, and a cancelled or failed import leaves nothing behind.
+- The planner and the WE parser are pure and table-tested first. Stages that touch AVFoundation are tested against fixture files.
+
+## What the spike settled
+
+- The library is `~/Library/Application Support/Livepaper/` (record 0002). Staging is `.staging/` inside it, so the final move is a rename on one volume.
+- The engine reads the video track only, with `AVAssetReaderTrackOutput` and no output settings. Two things it found decide what "loops without a gap" means for a file:
+  - The reader brackets the frames with marker buffers that carry no media (an edit-boundary marker first; drain, notification and empty-media markers last, the last one stamped with the track's duration). Treating any of them as a frame makes every loop one frame too long. Frames are the buffers with at least one sample.
+  - The reader leaves PTS in media time and carries the edit list as a separate output time, and the display layer honours the output time. ffmpeg's usual B-frame edit list (first frame at media time 0.0667) made the first pass run two frames ahead of the rest and held the last picture for three frame durations at the first seam. The engine now stamps everything in output time, but a file with no edit list cannot have the problem at all.
+  - The next pass continues at `end of last frame − PTS of first frame`. A file whose first frame is not at zero, whose frame durations are uneven, or whose track is longer than its frames, would stall at the seam. Normalising fixes the file; the validator proves it.
+
+## Stages
+
+| Stage | Does | Tested by |
+|---|---|---|
+| Discover | A file, a folder, or a Wallpaper Engine folder → candidate source files. WE folders are recognised by `project.json`; only `type: video` is accepted (record 0005), with the title and preview taken from the project | Table tests on `project.json` samples: video, scene, web, malformed, missing file, path escaping the folder |
+| Fingerprint | SHA-256 of the source file, before any conversion; a match in the library ends the import as a duplicate | Fixture pair with identical bytes and different names |
+| Probe | Container, codec, size, frame rate (constant or variable), duration of each track, edit list, transfer function (HDR or not), rotation | Fixture corpus |
+| Plan | Pure: probe result → `remux` (already H.264/HEVC, SDR, constant rate, clean timing) / `transcode` with AVFoundation / `ffmpeg` then normalise (WebM, MKV, AVI, WMV, GIF) / `reject` with a reason the UI can show | Table tests: one row per combination that changes the answer |
+| Convert | Runs the plan into `.staging/<id>/`. Progress as an `AsyncStream` | Fixture corpus; cancel mid-convert |
+| Normalise | First frame at zero and a sync sample; no edit list; constant frame durations; track duration equal to the sum of its frames; the audio track trimmed to the video track, never the reverse; closed first GOP; HDR tone-mapped to SDR | Fixtures: audio longer than video, edit list, variable frame rate, B-frames with a start offset, HDR |
+| Artefacts | Poster (first frame that is not black), hover preview (small, low rate, no audio). A colour-matched tint still only if record 0001 ends on the desktop-window host | Sizes and existence; poster skips a black lead-in |
+| Validate | The loop-seam validator, below. A failure sends the file back through transcode once, then rejects | Every fixture passes after normalise; a deliberately broken file fails |
+| Commit | Add to the `Library`, save the manifest, rename `.staging/<id>` into place. Manifest first on disk only after the rename succeeds | Kill between steps in a test double; no orphan folder, no manifest entry without files |
+
+## Loop-seam validator
+
+Reads the optimised copy exactly as the engine will (video track, `AVAssetReaderTrackOutput`, no output settings) and ignores buffers with no samples. Passes when:
+
+1. The first frame's PTS is zero and it is a sync sample.
+2. Sorted by PTS, every step between frames equals the frame duration, within one tick of the track's timescale.
+3. The end of the last frame equals the track's duration, and the asset has no edit list.
+4. So the seam step, `first PTS + loop length − last PTS`, is one frame duration.
+5. No frame's decode depends on a frame before the first sync sample.
+
+It reports the numbers, not just pass or fail, so an import failure can say what was wrong with the file.
+
+## ffmpeg helper
+
+`Helpers/ffmpeg/build.sh` with a pinned version and sha256, the configure flags (decoders and demuxers for the accepted inputs, the VideoToolbox HEVC encoder, no network, no GPL, no non-free), and the licence texts. A CI job builds it for arm64, runs it on the fixtures, and publishes the binary together with the exact source archive. `FFmpegTool` finds the bundled binary, or a replacement the user points it at (the LGPL's relinking requirement).
+
+## Done when
+
+- The fixture corpus imports correctly: audio longer than video, edit lists, variable frame rate, HDR, WebM, GIF, a Wallpaper Engine folder, duplicates.
+- The validator finds no seam in any optimised copy. (While `Spikes/` still builds, its displayed-picture probe, `s2 … probe=2`, is a useful cross-check on a couple of them; it is throwaway code and not a requirement.)
+- Cancelling at any stage leaves no residue in `.staging/`.
+- CI publishes the ffmpeg artefact and its source.
+- `make gen build test lint` is green.
+
+## Out of scope
+
+Drag and drop, the Open panel, Services and the URL scheme (M6, M7). Downloading anything. Wallpaper Engine scenes and web items, permanently.

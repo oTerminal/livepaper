@@ -1,0 +1,6 @@
+2026-09-17 13:25:23.459 E  WallpaperAgent[668:94f32] [com.apple.extensionkit:discovery] Extension is not entitled to run in the App Sandbox : <_EXExtensionIdentity: 0x7b5cc468b0>
+2026-09-17 13:25:24.838 E  WallpaperAgent[668:94f32] [com.apple.extensionkit:discovery] Extension is not entitled to run in the App Sandbox : <_EXExtensionIdentity: 0x7b5cc44d80>
+2026-09-17 13:25:29.317 E  WallpaperAgent[668:94f32] [com.apple.extensionkit:discovery] Extension is not entitled to run in the App Sandbox : <_EXExtensionIdentity: 0x7b5cc45470>
+2026-09-17 13:26:36.211 Df WallpaperAgent[668:96276] [com.apple.wallpaper:catalog] Received an updated set of 12 Wallpaper extensions
+2026-09-17 13:26:36.212 Df WallpaperAgent[668:96276] [com.apple.wallpaper:catalog] Notifying about 1 new Wallpaper extensions
+2026-09-17 13:26:36.212 Df WallpaperAgent[668:96276] [com.apple.wallpaper:assetManager] Wallpaper extension was added: <private>

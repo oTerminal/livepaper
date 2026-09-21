@@ -16,6 +16,14 @@ Package.resolved
 # Workspace-local agent scratch space
 .context/
 
+# Signing material and release artefacts never belong in the repo
+*.p12
+*.pem
+*.key
+*.keychain-db
+*.dmg
+.env
+
 # Built helper binaries (built from source by Helpers/ffmpeg/build.sh)
 Helpers/ffmpeg/out/
 Helpers/ffmpeg/src/

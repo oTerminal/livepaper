@@ -1,0 +1,20 @@
+$ scripts/find-livepaper-in-settings.sh   (2026-09-17 15:20:29, macOS 27.0)
+window: Wallpaper
+accessibility elements: 287
+text: Your live wallpaper
+text: Show on all Spaces
+text: Dynamic Wallpapers
+text: Your Photos
+text: Livepaper
+text: Landscape
+text: Cityscape
+text: Underwater
+text: Earth
+text: Mac
+text: Shuffle Aerials
+text: Pictures
+text: Colours
+text: Wallpaper
+
+$ plutil -extract Displays.<uuid>.Desktop.Content.Choices.0.Provider raw …/com.apple.wallpaper/Store/Index.plist
+app.livepaper.spike.extension

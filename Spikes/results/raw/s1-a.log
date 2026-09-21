@@ -1,0 +1,4 @@
+2026-09-17 13:37:22.591 Df WallpaperAgent[49698:a2f88] [com.apple.wallpaper:extension-proxy] interruptionHandler called for app.livepaper.spike.extension
+2026-09-17 13:37:22.621 Df Livepaper[50278:a37bb] [app.livepaper.spike:spike] s1: wrote a-1080p30-h264.mp4 and config generation 1 to ~/Library/Application Support/LivepaperSpike in 0.00 s
+2026-09-17 13:37:22.644 Df WallpaperAgent[49698:a37eb] [com.apple.wallpaper:extension-proxy] onInterruption handler called for app.livepaper.spike.extension
+2026-09-17 13:37:31.018 Df Livepaper[50278:a37bb] [app.livepaper.spike:spike] app: NO heartbeat in 8 s (extension not running, or notifications blocked)

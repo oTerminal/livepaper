@@ -1,0 +1,11 @@
+agent pid before: 42051, extension pid before: 
+15:29:27 killall WallpaperAgent
+15:29:47 agent pid after: 42435, extension pid after: 42438
+in the 20 s after the kill: extension starts 1, acquires 2, connections accepted 1, empty connections 0
+2026-09-17 15:29:27.772 extension: INIT pid 42438 build 20260917152856 path /Applications/Livepaper.app/Contents/Extensions/LivepaperExtension.appex
+2026-09-17 15:29:27.798 extension: ACQUIRE new surface 7295DC4B-F587-48EC-971A-3890F5CFCA11 ctx 3888017900 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 pr
+2026-09-17 15:29:27.863 extension: surface 7295DC4B-F587-48EC-971A-3890F5CFCA11 display 1 now on b-1080p30-h264.mp4 (generation 171)
+2026-09-17 15:29:27.867 extension: ACQUIRE new surface A2805D23-867C-4536-AE21-4EFBF5C87D68 ctx 2319213647 display 1 37D8832A-2D66-02CA-B9F7-8F30A301B230 size 1800x1169@2.0 pr
+2026-09-17 15:29:27.881 extension: surface A2805D23-867C-4536-AE21-4EFBF5C87D68 display 1 now on b-1080p30-h264.mp4 (generation 171)
+2026-09-17 15:29:49.748 s4: after check request: preview surface 7295DC4B-F587-48EC-971A-3890F5CFCA11 display 1 on b-1080p30-h264.mp4 showed 60 new pictures in 2 s: PASS
+2026-09-17 15:29:49.748 s4: after check request: desktop surface A2805D23-867C-4536-AE21-4EFBF5C87D68 display 1 on b-1080p30-h264.mp4 showed 60 new pictures in 2 s: PASS

@@ -1,0 +1,26 @@
+$ scripts/package-dmg.sh   (2026-09-17 15:32:02)
+  verify: <tmp>/Livepaper.app valid on disk
+  verify: <tmp>/Livepaper.app satisfies its Designated Requirement
+  variant: selfsigned / plain / entitlements S1
+designated => identifier "app.livepaper.spike" and certificate leaf = H"67414494ac0200d42031aa6a382507f4197d3de7"
+designated => identifier "app.livepaper.spike.extension" and certificate leaf = H"67414494ac0200d42031aa6a382507f4197d3de7"
+hdiutil: WARNING: 'hdiutil create -volname -format ...' is deprecated. Please use 'diskutil image create from/blank --volumeName --format ...' instead.
+wrote <repo>/Spikes/build/Livepaper-spike-20260917152856-selfsigned-plain-S1.dmg (568K)
+spctl says (expected: rejected, this is what Open Anyway overrides):
+  <tmp>/Livepaper.app rejected
+  origin=Livepaper Spike Self-Signed
+
+$ what is inside Livepaper-spike-20260917152856-selfsigned-plain-S1.dmg
+Applications
+Livepaper.app
+Identifier=app.livepaper.spike
+CodeDirectory v=20400 size=940 flags=0x0(none) hashes=23+3 location=embedded
+Authority=Livepaper Spike Self-Signed
+codesign --verify --strict: ok
+extension entitlements:
+{
+  "com.apple.security.app-sandbox" => true
+  "com.apple.security.temporary-exception.files.home-relative-path.read-only" => [
+    0 => "/Library/Application Support/LivepaperSpike/"
+  ]
+}

@@ -73,7 +73,7 @@ The state in which Livepaper, rather than a system wallpaper, is what the displa
 _Avoid_: Active mode, running
 
 **Previous wallpaper**:
-The system wallpaper that was set before the live wallpaper started, restored when it stops.
+The system wallpaper that was set before the user chose Livepaper. Stopping does not bring it back (record 0003); it is put back when the user leaves Livepaper.
 _Avoid_: Original wallpaper, backup
 
 ### Rendering
