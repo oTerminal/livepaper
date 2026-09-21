@@ -15,6 +15,27 @@ struct GalleryPage: Identifiable {
 
     /// One page per component, in the order of docs/specs/M3-design-system.md.
     static let all: [GalleryPage] = [
+        GalleryPage("SidebarRow", systemImage: "sidebar.left") { SidebarRowPage() },
         GalleryPage("WallpaperTile", systemImage: "photo.on.rectangle") { WallpaperTilePage() },
+        GalleryPage("FitModePicker", systemImage: "rectangle.split.3x1") { FitModePickerPage() },
+        GalleryPage("VolumeSlider", systemImage: "speaker.wave.2") { VolumeSliderPage() },
+        GalleryPage("FocalPointEditor", systemImage: "scope") { FocalPointEditorPage() },
+        GalleryPage("PanZoomEditor", systemImage: "arrow.up.and.down.and.arrow.left.and.right") { PanZoomEditorPage() },
+        GalleryPage("SetOnDisplayButton", systemImage: "display") { SetOnDisplayButtonPage() },
+        GalleryPage("DetailsList", systemImage: "list.bullet.rectangle") { DetailsListPage() },
+        GalleryPage("GlassPopover", systemImage: "bubble.middle.top") { GlassPopoverPage() },
+        GalleryPage("DisplayNowPlayingCard", systemImage: "play.display") { DisplayNowPlayingCardPage() },
+        GalleryPage("TransportCluster", systemImage: "playpause") { TransportClusterPage() },
+        GalleryPage("PlaylistPicker", systemImage: "rectangle.stack") { PlaylistPickerPage() },
+        GalleryPage("RecentsStrip", systemImage: "clock.arrow.circlepath") { RecentsStripPage() },
+        GalleryPage("DropZoneOverlay", systemImage: "square.and.arrow.down") { DropZoneOverlayPage() },
+        GalleryPage("ImportProgressRow", systemImage: "arrow.down.circle") { ImportProgressRowPage() },
+        GalleryPage("Toast and UndoToast", systemImage: "rectangle.bottomthird.inset.filled") { ToastPage() },
+        GalleryPage("EmptyState", systemImage: "tray") { EmptyStatePage() },
+        GalleryPage("OnboardingCard", systemImage: "rectangle.stack.badge.play") { OnboardingCardPage() },
+        GalleryPage("HotkeyRecorder", systemImage: "keyboard") { HotkeyRecorderPage() },
+        GalleryPage("LoginItemRow", systemImage: "power") { LoginItemRowPage() },
+        GalleryPage("PauseRuleToggle", systemImage: "pause.circle") { PauseRuleTogglePage() },
+        GalleryPage("StatusLine", systemImage: "text.line.last.and.arrowtriangle.forward") { StatusLinePage() },
     ]
 }
