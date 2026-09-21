@@ -56,6 +56,22 @@ It reports the numbers, not just pass or fail, so an import failure can say what
 - CI publishes the ffmpeg artefact and its source.
 - `make gen build test lint` is green.
 
+## As built
+
+What M4 found out or decided on the way, for whoever builds on it (M6, M7, M9).
+
+- **Normalise is not a pass of its own.** Both writers, the remux and the transcode, write a normalised file: frames stamped by counting from zero, the movie's timescale set to the track's so that the track's duration is exact, the session ended where the frames end, the audio decoded over the video's range and written as AAC. The ffmpeg route is ffmpeg, probe, plan again, then one of the two. ffmpeg is asked for no B-frames and a constant rate, so its output is remuxed, not encoded twice.
+- **Validate comes before artefacts.** A failed validation transcodes again, and the artefacts are made from the copy that is kept.
+- **B-frames cannot be remuxed clean.** `AVAssetWriter` puts back the start-offset edit list for reordered frames (media time 1024/15360 to 0), the very thing the spike found. So reordered frames are a reason to transcode, and the transcode switches reordering off.
+- **"No edit list" means no edit that does anything.** `AVAssetWriter` always writes one edit from zero over the whole track. The validator accepts a single edit that plays the media from zero, unscaled, to its end, and nothing else.
+- **A variable frame rate is made constant by the importer, not by AVFoundation.** `AVAssetReaderVideoCompositionOutput` vends a frame only when the picture changes, even on a fixed grid. `ConstantRateResampler` holds a frame over the slots the next one leaves empty, at the rate of the shortest frame, 60 at most.
+- **Nothing in the module blocks on Swift's own threads.** `copyNextSampleBuffer()` waits, and a batch of imports doing that on the cooperative pool takes every thread and never comes back (found by the tests, which run in parallel). Reading and writing run on threads of their own (`onOwnThread`).
+- **ffmpeg's `-fs` is not the size limit.** It stops quietly and reports success with half a file. The helper's output is measured while it runs and once more after it exits.
+- **The commit is rename, then manifest.** `ImportLibrary.insert` is the one writer of the manifest; if it throws, the folder goes again. A process killed between the two leaves a folder the manifest does not list, and `sweepInterruptedImports`, which the app is to call at launch, removes it together with whatever is in `.staging/`. It judges folders against the manifest on disk only, and touches none when that cannot be read.
+- **No tint still**, since record 0001 ended on the extension host.
+- **The hover preview is optional.** One that cannot be made or would not loop is left out and the wallpaper is imported without it.
+- **Not done here:** bundling the helper into the app (`FFmpegTool.locate(replacement:bundled:)` is ready for it; M6 or M9), publishing the helper as a Release rather than a workflow artefact (M9), AV1 (ffmpeg's own decoder needs hardware), and the spike's `probe=2` cross-check.
+
 ## Out of scope
 
 Drag and drop, the Open panel, Services and the URL scheme (M6, M7). Downloading anything. Wallpaper Engine scenes and web items, permanently.

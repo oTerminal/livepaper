@@ -34,5 +34,11 @@ let package = Package(
             resources: [.copy("Fixtures")],
             swiftSettings: approachableConcurrency
         ),
+        .testTarget(
+            name: "LivepaperImportTests",
+            dependencies: ["LivepaperImport", "LivepaperCore"],
+            resources: [.copy("Fixtures")],
+            swiftSettings: approachableConcurrency
+        ),
     ]
 )

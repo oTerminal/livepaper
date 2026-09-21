@@ -24,6 +24,7 @@ make            # generate the Xcode project, lint, test, build
 | `make lint` | SwiftLint, including the design rules |
 | `make test` | Swift Testing suites in both packages |
 | `make build` | Build the app, the Gallery and the CLI |
+| `make ffmpeg` | Build the ffmpeg helper from source (`Helpers/ffmpeg/`). The import tests that convert WebM, MKV, AVI, WMV and GIF are skipped without it |
 
 ## Layout
 
@@ -34,6 +35,7 @@ make            # generate the Xcode project, lint, test, build
 | `CLI/` | The `livepaper` command-line tool |
 | `Packages/LivepaperKit/` | Core models and rules, import, playback, system services |
 | `Packages/DesignSystem/` | Tokens and components |
+| `Helpers/ffmpeg/` | Build script, licences and notes for the bundled LGPL ffmpeg helper |
 | `docs/` | Roadmap, milestone specs, decision records |
 | `CONTEXT.md` | The project's vocabulary |
 | `.agents/skills/` | Agent skills used to build the project (`.claude/skills/` links to them) |
@@ -42,4 +44,4 @@ The skills come from [emilkowalski/skills](https://github.com/emilkowalski/skill
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE). The ffmpeg helper is a separate program under the LGPL, built from source by `Helpers/ffmpeg/build.sh`; see `Helpers/ffmpeg/README.md`.

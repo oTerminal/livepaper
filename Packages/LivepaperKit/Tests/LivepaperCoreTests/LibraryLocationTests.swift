@@ -32,6 +32,12 @@ struct LibraryLocationTests {
         #expect(Self.location.contains(Self.location.staging))
     }
 
+    @Test func `the wallpapers' folders are inside the root, where the manifest's paths point`() throws {
+        #expect(Self.location.wallpapers.path == Self.root + "/wallpapers")
+        #expect(try Self.location.resolve("wallpapers/AAAAAAAA-0000-0000-0000-000000000001/wallpaper.mov").path
+            .hasPrefix(Self.location.wallpapers.path + "/"))
+    }
+
     @Test func `the manifest and the render state are inside the root`() {
         #expect(Self.location.manifest.path == Self.root + "/library.json")
         #expect(Self.location.renderState.path == Self.root + "/render-state.json")

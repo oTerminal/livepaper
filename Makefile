@@ -3,7 +3,7 @@ DESTINATION := platform=macOS,arch=arm64
 DERIVED_DATA := build/DerivedData
 XCODEBUILD := xcodebuild -project $(PROJECT) -destination '$(DESTINATION)' -derivedDataPath $(DERIVED_DATA) -quiet
 
-.PHONY: all gen build test lint strings clean
+.PHONY: all gen build test lint strings ffmpeg clean
 
 all: gen lint test build
 
@@ -27,6 +27,9 @@ lint:
 strings: build
 	xcrun xcstringstool sync Packages/DesignSystem/Sources/DesignSystem/Resources/Localizable.xcstrings \
 		--stringsdata $$(find $(DERIVED_DATA) -name '*.stringsdata' -path '*DesignSystem-t.build*')
+
+ffmpeg:
+	Helpers/ffmpeg/build.sh
 
 clean:
 	rm -rf build $(PROJECT) Packages/*/.build
