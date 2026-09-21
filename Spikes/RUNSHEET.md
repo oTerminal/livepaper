@@ -6,12 +6,12 @@ demand, so it moved to where it is looked at anyway:
 
 | Row | Goes to |
 |---|---|
-| S3: second display, Spaces, fullscreen, Stage Manager, replug | M5 (built against one display, keyed by display UUID), checked in M8. An extended AirPlay display is enough to try it; its UUID may not be stable across sessions, which says nothing about real monitors |
+| S3: second display, Spaces, fullscreen, Stage Manager, resolution, replug, lock with two displays | Run 2026-09-21 with a real monitor: `results/S3.md`. Two things for M5: a covered display reports no displayed pictures, and a mode change stretches the surface |
 | S3: two identical monitors, cable swaps | Dropped. If a user hits it, it is a bug report |
 | S4: 20 lid cycles, 30-minute sleep, fast user switching | M8's soak test |
 | S5 and S7, eyes-on halves; S6 lock transitions | M5, when the real engine is on screen |
 
-## One optional check (2 minutes, no extra hardware)
+## The first check (2 minutes, no extra hardware): done, `results/S4.md`
 
 Sleep/wake was Wallper's worst recurring bug, so it is worth knowing early. All commands from `Spikes/`.
 
@@ -21,6 +21,17 @@ Sleep/wake was Wallper's worst recurring bug, so it is worth knowing early. All 
 4. Lock (ctrl-cmd-Q): is it playing on the lock screen? Any grey flash going in or coming out?
 
 If nothing shows, `killall WallpaperAgent` once and look again (`results/S0.md`, "Hazard").
+
+## The second check (2 minutes, needs the external monitor): done, `results/S3.md`
+
+Start with different clips on the two displays (`results/S3.md` has the command; clip A has a red first bar,
+clip B a green one).
+
+1. Pull the monitor's cable, count to five, plug it back. Does the monitor come back on its own clip, moving?
+2. Pull it again, wait 30 seconds (the extension tears an abandoned surface down after 15), plug it back. Same question.
+3. Lock (ctrl-cmd-Q) with both attached: video on both lock screens? Any grey flash on either, going in or coming out?
+4. `scripts/logs.sh show 10m | grep -E "ACQUIRE|INVALIDATE|teardown|s4:"` and keep the output: the display UUID
+   after each `ACQUIRE` must be the one from before.
 
 ## When done
 
