@@ -17,6 +17,8 @@ public nonisolated enum Motion {
         public static let panel: TimeInterval = 0.25
         /// Sheets and onboarding cards travel further, so they alone may exceed 300 ms.
         public static let sheet: TimeInterval = 0.35
+        /// With Reduce Motion, movement becomes a crossfade of this length.
+        public static let reducedCrossfade: TimeInterval = 0.2
 
         /// Exits run faster than enters: the user has already decided.
         public static func exit(for enter: TimeInterval) -> TimeInterval {
@@ -59,5 +61,14 @@ public nonisolated enum Motion {
     /// An ease-out animation for a leaving element, quicker than its enter.
     public static func exit(_ enterDuration: TimeInterval) -> Animation {
         .timingCurve(Curve.easeOut, duration: Duration.exit(for: enterDuration))
+    }
+
+    /// What movement becomes with Reduce Motion: gentler, not absent.
+    public static let reducedCrossfade = Animation.timingCurve(Curve.easeOut, duration: Duration.reducedCrossfade)
+
+    /// `animation`, or the crossfade when Reduce Motion is on. Pair it with a
+    /// transition or effect that drops its movement too.
+    public static func resolve(_ animation: Animation, reduceMotion: Bool) -> Animation {
+        reduceMotion ? reducedCrossfade : animation
     }
 }

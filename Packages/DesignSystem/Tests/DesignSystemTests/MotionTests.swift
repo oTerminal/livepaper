@@ -25,3 +25,17 @@ struct MotionTests {
         #expect(Motion.Duration.exit(for: enter) < enter)
     }
 }
+
+struct ReducedMotionTests {
+    @Test func `the Reduce Motion crossfade lasts 200 ms`() {
+        #expect(Motion.Duration.reducedCrossfade == 0.2)
+    }
+
+    @Test func `with Reduce Motion the crossfade replaces a bouncy spring`() {
+        #expect(Motion.resolve(Motion.Spring.momentum, reduceMotion: true) == Motion.reducedCrossfade)
+    }
+
+    @Test func `without Reduce Motion the animation is unchanged`() {
+        #expect(Motion.resolve(Motion.Spring.momentum, reduceMotion: false) == Motion.Spring.momentum)
+    }
+}
