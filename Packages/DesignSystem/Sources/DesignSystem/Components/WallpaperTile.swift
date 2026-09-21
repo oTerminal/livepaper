@@ -76,10 +76,17 @@ public struct WallpaperTile<ID: Hashable, LivePreview: View>: View {
                     .scaledToFill()
             }
             .overlay {
-                if isLive {
-                    livePreview()
-                        .transition(.opacity)
+                // A crossfade in place, scoped to the preview alone; it leaves quicker than it came.
+                ZStack {
+                    if isLive {
+                        livePreview()
+                            .transition(.opacity)
+                    }
                 }
+                .animation(
+                    accessibility.fade(isLive ? Motion.enter(Motion.Duration.panel) : Motion.exit(Motion.Duration.panel)),
+                    value: isLive
+                )
             }
             .overlay(alignment: .topTrailing) {
                 if isFavourite {
@@ -92,16 +99,30 @@ public struct WallpaperTile<ID: Hashable, LivePreview: View>: View {
             }
             .clipShape(shape)
             .imageOutline(shape)
-            // Selection is state, so it is a border; elevation below is a shadow.
+            .contentShape(.focusEffect, shape)
+            .background { elevation(shape) }
+            // Selection is state, so it is a border; elevation is a shadow.
             .overlay {
                 RoundedRectangle(cornerRadius: Radius.outer(inner: Radius.tile, padding: SelectionRing.outset), style: .continuous)
                     .strokeBorder(Color.accentColor, lineWidth: SelectionRing.width)
                     .padding(-SelectionRing.outset)
                     .opacity(isSelected ? 1 : 0)
             }
-            .shadow(color: .black.opacity(isHovered ? 0.22 : 0.12), radius: isHovered ? 10 : 4, y: isHovered ? 5 : 2)
-            .animation(accessibility.animation(Motion.enter(Motion.Duration.hover)), value: isHovered)
-            .animation(accessibility.animation(Motion.enter(Motion.Duration.panel)), value: isLive)
+    }
+
+    /// Two fixed shadows behind the poster. Hover fades the deeper one in, so
+    /// only an opacity animates: a shadow whose radius animates is re-blurred on
+    /// every frame, under a pointer that sweeps the grid constantly.
+    private func elevation(_ shape: RoundedRectangle) -> some View {
+        ZStack {
+            shape.fill(.black).shadow(color: .black.opacity(0.12), radius: 4, y: 2)
+            shape.fill(.black).shadow(color: .black.opacity(0.22), radius: 10, y: 5)
+                .opacity(isHovered ? 1 : 0)
+                .animation(
+                    accessibility.fade(isHovered ? Motion.enter(Motion.Duration.hover) : Motion.exit(Motion.Duration.hover)),
+                    value: isHovered
+                )
+        }
     }
 }
 
