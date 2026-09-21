@@ -28,6 +28,16 @@ final class GallerySettings {
     var busyBackdrop = false
     var appearance = Appearance.system
 
+    /// Switches can be preset from the command line, such as `-busyBackdrop YES -appearance Dark`.
+    init(defaults: UserDefaults = .standard) {
+        slowMotion = defaults.bool(forKey: "slowMotion")
+        reduceMotion = defaults.bool(forKey: "reduceMotion")
+        reduceTransparency = defaults.bool(forKey: "reduceTransparency")
+        increaseContrast = defaults.bool(forKey: "increaseContrast")
+        busyBackdrop = defaults.bool(forKey: "busyBackdrop")
+        appearance = defaults.string(forKey: "appearance").flatMap(Appearance.init) ?? .system
+    }
+
     /// Only the switches that are on override anything; the rest follow the system.
     var overrides: AccessibilityOverrides {
         AccessibilityOverrides(

@@ -26,20 +26,23 @@ public nonisolated enum Outline {
 
 extension View {
     /// Draws the image outline inside `shape`, without changing the layout.
-    public func imageOutline(_ shape: some InsettableShape) -> some View {
+    public func imageOutline(_ shape: some Shape) -> some View {
         modifier(ImageOutline(shape: shape))
     }
 }
 
-private struct ImageOutline<S: InsettableShape>: ViewModifier {
+private struct ImageOutline<S: Shape>: ViewModifier {
     @Environment(\.colorScheme) private var scheme
     @Accessibility private var accessibility
     let shape: S
 
     func body(content: Content) -> some View {
         content.overlay {
+            // Not every shape can inset itself (`ConcentricRectangle` cannot), so
+            // stroke at double width and clip away the outer half.
             shape
-                .strokeBorder(Outline.stroke(scheme: scheme, contrast: accessibility.contrast).color, lineWidth: Outline.width)
+                .stroke(Outline.stroke(scheme: scheme, contrast: accessibility.contrast).color, lineWidth: Outline.width * 2)
+                .clipShape(shape)
                 .allowsHitTesting(false)
         }
     }

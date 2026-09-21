@@ -33,4 +33,16 @@ struct RubberbandTests {
     @Test func `a zero limit gives no offset`() {
         #expect(rubberband(offset: 50, limit: 0) == 0)
     }
+
+    @Test(arguments: [CGFloat(-900), -40, 0, 12.5, 300, 5000])
+    func `the drag that produced an offset can be recovered`(drag: CGFloat) {
+        let offset = rubberband(offset: drag, limit: 60)
+
+        #expect(abs(unrubberband(offset: offset, limit: 60) - drag) < 1e-6)
+    }
+
+    @Test func `an offset at or past the limit has no finite drag behind it`() {
+        #expect(unrubberband(offset: 60, limit: 60) == .greatestFiniteMagnitude)
+        #expect(unrubberband(offset: -75, limit: 60) == -.greatestFiniteMagnitude)
+    }
 }

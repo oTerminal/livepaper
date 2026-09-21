@@ -10,13 +10,19 @@ struct StateSection<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.small) {
-            Text(title)
-                .font(.headline)
-            if let note {
-                Text(note)
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: Spacing.tight) {
+                Text(title)
+                    .font(.headline)
+                if let note {
+                    Text(note)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
             }
+            // An opaque plate, so the labels stay readable over the busy backdrop.
+            .padding(Spacing.small)
+            .background(Color(nsColor: .windowBackgroundColor), in: .rect(cornerRadius: Radius.control))
+            .padding(-Spacing.small)
             content
                 .padding(.top, Spacing.tight)
         }

@@ -3,7 +3,8 @@ import SwiftUI
 
 struct GalleryWindow: View {
     @State private var settings = GallerySettings()
-    @State private var selection: GalleryPage.ID? = GalleryPage.all.first?.id
+    /// `-page <title>` on the command line opens that page, for review screenshots.
+    @State private var selection: GalleryPage.ID? = UserDefaults.standard.string(forKey: "page") ?? GalleryPage.all.first?.id
 
     var body: some View {
         NavigationSplitView {

@@ -51,7 +51,18 @@ public nonisolated enum Motion {
         public static let move = Animation.spring(duration: 0.4, bounce: 0)
         /// Only after a gesture that carried velocity.
         public static let momentum = Animation.spring(duration: 0.4, bounce: 0.2)
+
+        /// `momentum`, starting at the speed the gesture was released at, so a
+        /// thrown element carries on rather than stopping dead and setting off
+        /// again. `initialVelocity` is in distances-to-the-target per second.
+        public static func momentum(initialVelocity: Double) -> Animation {
+            .interpolatingSpring(duration: 0.4, bounce: 0.2, initialVelocity: initialVelocity)
+        }
     }
+
+    /// The scale an element enters from and leaves to, combined with opacity and
+    /// anchored at its trigger. Nothing appears from nothing.
+    public static let enterScale: CGFloat = 0.96
 
     /// An ease-out animation for an entering element.
     public static func enter(_ duration: TimeInterval) -> Animation {

@@ -29,6 +29,18 @@ public nonisolated struct AccessibilitySettings: Equatable, Sendable {
         return motionSpeed == 1 ? resolved : resolved.speed(motionSpeed)
     }
 
+    /// The animation for a change of opacity or colour only. Nothing moves, so
+    /// Reduce Motion leaves it as it is: reduced motion keeps fades and drops movement.
+    public func fade(_ animation: Animation) -> Animation {
+        motionSpeed == 1 ? animation : animation.speed(motionSpeed)
+    }
+
+    /// How an SF Symbol swaps for another: the replace effect, or a plain fade
+    /// under Reduce Motion.
+    public var symbolReplace: ContentTransition {
+        reduceMotion ? .opacity : .symbolEffect(.replace)
+    }
+
     /// The entrance delay for the item at `index` of a staggered group.
     public func staggerDelay(forIndex index: Int) -> TimeInterval {
         Stagger.delay(forIndex: index, reduceMotion: reduceMotion) / motionSpeed

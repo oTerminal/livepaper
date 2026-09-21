@@ -3,7 +3,7 @@ DESTINATION := platform=macOS,arch=arm64
 DERIVED_DATA := build/DerivedData
 XCODEBUILD := xcodebuild -project $(PROJECT) -destination '$(DESTINATION)' -derivedDataPath $(DERIVED_DATA) -quiet
 
-.PHONY: all gen build test lint clean
+.PHONY: all gen build test lint strings clean
 
 all: gen lint test build
 
@@ -21,6 +21,12 @@ test:
 
 lint:
 	swiftlint lint --strict --quiet
+
+# Brings the design system's string catalog up to date with the strings the
+# last Xcode build found in its sources.
+strings: build
+	xcrun xcstringstool sync Packages/DesignSystem/Sources/DesignSystem/Resources/Localizable.xcstrings \
+		--stringsdata $$(find $(DERIVED_DATA) -name '*.stringsdata' -path '*DesignSystem-t.build*')
 
 clean:
 	rm -rf build $(PROJECT) Packages/*/.build
