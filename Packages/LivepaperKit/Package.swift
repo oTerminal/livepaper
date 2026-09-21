@@ -19,12 +19,20 @@ let package = Package(
         .library(name: "LivepaperImport", targets: ["LivepaperImport"]),
         .library(name: "LivepaperPlayback", targets: ["LivepaperPlayback"]),
         .library(name: "LivepaperSystem", targets: ["LivepaperSystem"]),
+        .library(name: "LivepaperTestSupport", targets: ["LivepaperTestSupport"]),
     ],
     targets: [
         .target(name: "LivepaperCore", swiftSettings: approachableConcurrency),
         .target(name: "LivepaperImport", dependencies: ["LivepaperCore"], swiftSettings: approachableConcurrency),
         .target(name: "LivepaperPlayback", dependencies: ["LivepaperCore"], swiftSettings: approachableConcurrency),
         .target(name: "LivepaperSystem", dependencies: ["LivepaperCore"], swiftSettings: mainActorByDefault),
-        .testTarget(name: "LivepaperCoreTests", dependencies: ["LivepaperCore"], swiftSettings: approachableConcurrency),
+        // Fakes and deterministic inputs, for this package's tests and for screens built on fakes (M6).
+        .target(name: "LivepaperTestSupport", dependencies: ["LivepaperCore"], swiftSettings: approachableConcurrency),
+        .testTarget(
+            name: "LivepaperCoreTests",
+            dependencies: ["LivepaperCore", "LivepaperTestSupport"],
+            resources: [.copy("Fixtures")],
+            swiftSettings: approachableConcurrency
+        ),
     ]
 )
