@@ -31,6 +31,9 @@ build 3 adhoc: # designated => cdhash H"d91783581c09bb802df8e694928fc066459b0690
 The `login:` lines above are the output of `Livepaper login register|unregister|status` (they are also in
 `raw/hazard-timeline.log`); the `notRegistered` line is the `unregister` between the two halves.
 
-NOT YET OBSERVED: the row's real criterion, that after a logout the login item registered by build 1
-launches build 2, with one row in System Settings > Login Items. `SMAppService.status` staying `enabled`
-is necessary for that, not proof of it. It is on the run sheet.
+The logout half, reported by Vaibhav, 2026-09-17: "Works all the time. Register and unregister both work.
+Ad-hoc also works." That is: after a logout the login item registered by build 1 launched build 2, for the
+self-signed build and for the ad-hoc one. (Whether Login Items showed exactly one row was not reported
+separately.) So on macOS 27 the login item follows the bundle, not the designated requirement, and an ad-hoc
+build's changing code hash did not orphan it. The self-signed certificate is still what keeps the designated
+requirement stable (above), which is what Gatekeeper and TCC key on.

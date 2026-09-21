@@ -10,12 +10,12 @@ What the M1 spike observed on macOS 27.0 (`Spikes/results/S0.md`, `S0c.md`):
 - **A self-signed certificate gives a stable identity; ad-hoc does not.** Two builds with a source change between them had the same designated requirement, `identifier "app.livepaper.spike" and certificate leaf = H"6741…3de7"`. The ad-hoc builds' requirement is `cdhash H"…"`, different for every build.
 - `codesign` signs with a certificate that nothing trusts; it only has to be in a keychain on the search list. The spike keeps it in its own keychain.
 - The hardened runtime changed nothing for loading, so it stays off: it buys nothing without notarization, and it would put library validation between Sparkle and its helpers.
-- `SMAppService.mainApp` reported `enabled` after the app was replaced by a second build, for both kinds of signature. Whether the login item then really launches the new build, with one row in Login Items, takes a logout and is on the run sheet; this record is revisited if the self-signed build fails that.
+- `SMAppService.mainApp` reported `enabled` after the app was replaced by a second build, and after a logout the login item launched the new build, for both kinds of signature (`Spikes/results/S0c.md`). The login item follows the bundle, so ad-hoc would not orphan it; the designated requirement, which Gatekeeper and TCC key on, is what the certificate keeps stable.
 
 Consequences:
 
 - Losing the certificate's private key changes the app's identity for every user. It is backed up outside the repo and lives in CI as a secret (M9).
-- The second-Mac test (S0b) decides whether any of this reaches users. Until it is run this record describes what works on the development Mac.
+- The second-Mac test passed (`Spikes/results/S0b.md`): a quarantined download of the self-signed build ran, extension included, after Open Anyway alone, with no `xattr` step. First-launch instructions therefore only need to cover Open Anyway.
 - `hdiutil create` is deprecated on macOS 27 in favour of `diskutil image create`. The spike's DMG script still produced a valid image with it (`Spikes/results/raw/s0b-package-dmg.txt`); M9 should move.
 
 ## Considered options

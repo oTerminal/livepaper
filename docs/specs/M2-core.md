@@ -2,7 +2,7 @@
 
 Write the decisions the app makes as pure code in `LivepaperCore`, tests first, before anything plays or draws. Lane C. See `docs/roadmap.md` (Architecture, Key seams) and decision records 0001 and 0002.
 
-Two inputs are not settled yet, and the rows that depend on them say so: record 0001 holds on the development Mac but gate G1 is open until the second-Mac test is run, and record 0003 is only proposed.
+One input is not settled yet, and the rows that depend on it say so: record 0003 is only proposed. (Record 0001 is decided: gate G1 passed.)
 
 ## Rules
 

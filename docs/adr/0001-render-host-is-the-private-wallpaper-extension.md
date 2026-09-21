@@ -1,10 +1,10 @@
 # The render host is the private wallpaper extension
 
-**Status: holds on the development Mac; gate G1 is still open.** The second-Mac download test (S0b) has not been run. If it fails even after its step 6, the last section of this record takes effect instead.
-
 macOS has no public API for video on the lock screen. The route that reaches it is an ExtensionKit extension registered at the private `com.apple.wallpaper` extension point: WallpaperAgent launches it, asks it for a remote `CAContext` per surface, and composites that on the desktop, the lock screen and the Settings preview. Phosphene (MIT) showed the protocol. The open question was whether macOS would load such an extension from an app that Apple has not signed.
 
-It does. The M1 spike (`Spikes/results/S0.md`, macOS 27.0) built a minimal extension and ran it ad-hoc signed and self-signed, from DerivedData and from /Applications, with the hardened runtime on and off, and after a rebuild: in all nine cases it was registered, launched by WallpaperAgent and acquired for the desktop and the Settings preview, and "Livepaper" appeared in System Settings > Wallpaper. So the render host is the extension, and `RenderWindowHost` is not built.
+It does. The M1 spike (`Spikes/results/S0.md`, macOS 27.0) built a minimal extension and ran it ad-hoc signed and self-signed, from DerivedData and from /Applications, with the hardened runtime on and off, and after a rebuild: in all nine cases it was registered, launched by WallpaperAgent and acquired for the desktop and the Settings preview, and "Livepaper" appeared in System Settings > Wallpaper. A person then confirmed the colour on the desktop and the lock screen, and again after a reboot with the app never launched.
+
+Gate G1 passed (`Spikes/results/S0b.md`): the same self-signed, non-notarized build, downloaded as a DMG on a second Mac running macOS 27, showed its colour on the desktop and the lock screen after Open Anyway alone; `xattr -dr com.apple.quarantine` was not needed. So the render host is the extension, and `RenderWindowHost` is not built.
 
 What the spike established about living inside that host:
 
@@ -15,16 +15,12 @@ What the spike established about living inside that host:
 - **The selection survives everything we did to the app**: re-signing, moving, rebuilding. The wallpaper store keys it by the extension's bundle id.
 - **Hazard: replacing the app kills the running extension once, and nothing restarts it.** pkd asks launchd to remove the extension's instances on every launch of the host app. Normally none is found. But the first instance started after the bundle had been replaced and re-registered was found and killed, on the first or second host-app launch that followed: 17 times that day, every one of them an instance started after an install or re-sign. WallpaperAgent logged the interruption and did not start the extension again (77 s in the one case that was left alone; restarting the agent brought it back every time). Instances started by that agent restart were then left alone through at least 112 further launches. An update is exactly this sequence, so after every launch the app waits for the heartbeat and walks the recovery ladder (up to restarting the agent) when there is none. It is the same ladder the watchdog needs after wake. Evidence: `Spikes/results/S0.md`, "Hazard".
 - **A surface that is not on screen is throttled.** A covered test window dropped to about one update per second, and the Settings preview surface showed 3 to 4 new pictures in 2 s while the desktop surface showed 61 (that the Settings window was covered at the time is an assumption; it was not checked). The watchdog may only judge surfaces that are visible.
-- **Killing WallpaperAgent is survivable** (S7, run before the S0b result; void if G1 fires): the agent came back by itself, launched the extension once, acquired each surface once, and the desktop surface was showing new pictures of the right wallpaper when checked. 50 switches in 10 s ended on the last one requested.
+- **Killing WallpaperAgent is survivable** (S7): the agent came back by itself, launched the extension once, acquired each surface once, and the desktop surface was showing new pictures of the right wallpaper when checked. 50 switches in 10 s ended on the last one requested.
 - **The gapless loop works inside the extension** with `AVSampleBufferDisplayLayer` and two readers: 200 loops with no presented gap over 1.5 frame durations, in a window and in the extension. It took two fixes that the engine's own bookkeeping could not see and a displayed-picture probe could: the reader's marker buffers must not be enqueued, and timestamps have to be the reader's output (edit-list-adjusted) times (`Spikes/results/S2.md`). Progress has to be judged by displayed pictures, not by the timebase, and not by `AVVideoPerformanceMetrics` either.
 
-Not yet observed, and on the run sheet (`Spikes/RUNSHEET.md`): the colour with a person's eyes on the desktop and the lock screen, after a reboot, two displays and Spaces (S3), lid cycles and long sleep (S4), lock transitions (S6).
+Not observed in the spike, deliberately (`Spikes/RUNSHEET.md`): a second display and Spaces (S3) and the eyes-on halves of S5, S6 and S7 go to M5; lid cycles and long sleep (S4) go to M8's soak test; two identical monitors are dropped. None of them can move the render host back to a window.
 
 ## Considered options
 
-- **A desktop-level window per display** (public API). No lock screen, needs a tint still for the menu bar, and the spike saw the window server throttle a covered window to about one update per second, which is welcome for energy but means occlusion has to be handled rather than assumed. Kept as the G1 fallback only.
+- **A desktop-level window per display** (public API). No lock screen, needs a tint still for the menu bar, and the spike saw the window server throttle a covered window to about one update per second, which is welcome for energy but means occlusion has to be handled rather than assumed. It was the G1 fallback; G1 passed, so it is not built.
 - **Both hosts, chosen at run time.** Twice the surface to test for a fallback the product decision says it does not want.
-
-## If S0b fails (gate G1)
-
-The desktop-window render host becomes the main path: M5 builds `RenderWindowHost` and the tint service, the extension target (`targets/extension.yml`) is left out of release builds and stays available to people who build from source, and the lock screen shows a matching still. Record here what failed on the second Mac, with the `pluginkit` output.

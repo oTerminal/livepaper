@@ -1,6 +1,6 @@
 # The user selects Livepaper once; stopping holds a still instead of switching the system wallpaper back
 
-**Status: proposed.** It replaces the roadmap's "Quit restores the previous system wallpaper", so it needs a yes from the product owner before M5 builds on it. Run before the second-Mac test; void if gate G1 fires.
+**Status: proposed.** It replaces the roadmap's "Quit restores the previous system wallpaper", so it needs a yes from the product owner before M5 builds on it. (Gate G1 has passed, so the extension host it assumes is settled.)
 
 The roadmap wanted two things from macOS: that the app could make "Livepaper" the system wallpaper itself, and that Quit could put back whatever was there before, including an Aerial or a dynamic wallpaper. The M1 spike (S8, `Spikes/results/S8.md`, macOS 27.0) recorded what public API can do:
 
