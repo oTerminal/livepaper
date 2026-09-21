@@ -18,7 +18,7 @@ Put together: if Quit switched the system wallpaper back through public API, the
 
 These changed with it: the roadmap's Quit row ("Quit stops the live wallpaper and restores the previous system wallpaper") and its Risks row about restoring Aerials; the comment on `RenderHost.deactivate()` ("restores the previous system wallpaper"); and `CONTEXT.md`'s **Previous wallpaper**, which becomes something the app can offer to put back when it is an image file, not something it restores on every stop.
 
-For comparison, Wallper 1.11.2 (looked at on 2026-09-21, bundle contents only) ships no wallpaper extension: it draws in a desktop-level window and sets a frame of the video as the system wallpaper through `setDesktopImageURL`, which is why it needs nobody's click and why quitting it leaves a freeze frame. A still after Quit is therefore what users of this kind of app already see; the extension host adds the lock screen, which a window cannot reach.
+For comparison, Wallper 1.11.2 (looked at on 2026-09-21, bundle contents only) ships no wallpaper extension: it draws in a desktop-level window and sets a frame of the video as the system wallpaper through `setDesktopImageURL`, which is why it needs nobody's click and why quitting it leaves a freeze frame. A still after Quit is therefore what users of this kind of app already see. (The product owner also sees it play on the lock screen; how a window-based app gets there was not looked into.)
 
 The extension must therefore be able to show something sensible with no app running: it reads the last render state on its own, and falls back to the poster when the state says stopped or is missing.
 
