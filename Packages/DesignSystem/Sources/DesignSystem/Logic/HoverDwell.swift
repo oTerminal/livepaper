@@ -1,9 +1,8 @@
 /// Decides which wallpaper tile, if any, shows its live preview. The pointer has
 /// to rest on a tile for `dwell` first, so sweeping across the grid starts
 /// nothing, and `live` being one value means two tiles are never live at once.
-public nonisolated struct HoverDwell<ID: Hashable & Sendable, Instant: InstantProtocol>: Sendable
-    where Instant.Duration == Duration {
-    public enum Event: Sendable {
+public nonisolated struct HoverDwell<ID: Hashable, Instant: InstantProtocol> where Instant.Duration == Duration {
+    public enum Event {
         case enter(ID)
         case exit(ID)
         /// Time has passed. Send one at `deadline`.
@@ -57,3 +56,6 @@ public nonisolated struct HoverDwell<ID: Hashable & Sendable, Instant: InstantPr
         }
     }
 }
+
+extension HoverDwell: Sendable where ID: Sendable {}
+extension HoverDwell.Event: Sendable where ID: Sendable {}

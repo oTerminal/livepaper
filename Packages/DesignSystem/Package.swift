@@ -10,12 +10,13 @@ let uiSettings: [SwiftSetting] = [
 
 let package = Package(
     name: "DesignSystem",
+    defaultLocalization: "en",
     platforms: [.macOS(.v26)],
     products: [
         .library(name: "DesignSystem", targets: ["DesignSystem"]),
     ],
     targets: [
-        .target(name: "DesignSystem", swiftSettings: uiSettings),
+        .target(name: "DesignSystem", resources: [.process("Resources")], swiftSettings: uiSettings),
         .testTarget(name: "DesignSystemTests", dependencies: ["DesignSystem"], swiftSettings: uiSettings),
     ]
 )
