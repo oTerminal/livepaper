@@ -13,7 +13,7 @@ demand, so it moved to where it is looked at anyway:
 
 ## The first check (2 minutes, no extra hardware): done, `results/S4.md`
 
-Sleep/wake was Wallper's worst recurring bug, so it is worth knowing early. All commands from `Spikes/`.
+Playback not resuming after sleep is the bug Wallper's users reported most often (`docs/roadmap.md`), so it is worth knowing early. All commands from `Spikes/`.
 
 1. Open `/Applications/Livepaper.app`, choose "Livepaper" in System Settings > Wallpaper.
 2. `scripts/lp config mode=video video=a-1080p30-h264.mp4`

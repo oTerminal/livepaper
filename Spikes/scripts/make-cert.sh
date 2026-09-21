@@ -5,7 +5,7 @@
 set -euo pipefail
 NAME="Livepaper Spike Self-Signed"
 KEYCHAIN="$HOME/Library/Keychains/livepaper-spike.keychain-db"
-PASS=spike
+PASS=spike # not a secret: it locks a throwaway keychain whose key is generated on this machine by this script
 WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT
 

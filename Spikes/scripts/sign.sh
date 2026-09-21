@@ -16,7 +16,7 @@ APPEX="$APP/Contents/Extensions/LivepaperExtension.appex"
 
 case "$IDENTITY_KIND" in
   adhoc) IDENTITY="-" ;;
-  selfsigned)
+  selfsigned) # "spike" is make-cert.sh's throwaway keychain password, not a secret
     IDENTITY="Livepaper Spike Self-Signed"
     security unlock-keychain -p spike "$HOME/Library/Keychains/livepaper-spike.keychain-db" ;;
   *) echo "unknown identity kind $IDENTITY_KIND"; exit 2 ;;

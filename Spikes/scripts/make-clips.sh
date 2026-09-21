@@ -27,7 +27,7 @@ gen a-4k60-hevc.mov     3840x2160 60 hevc_videotoolbox -b:v 40M -tag:v hvc1
   -f lavfi -i "testsrc2=size=3840x2160:rate=60:duration=5" -vf "hue=h=120" \
   -c:v hevc_videotoolbox -b:v 40M -tag:v hvc1 -pix_fmt yuv420p -an clips/b-4k60-hevc.mov
 
-# The Wallper bug: an audio track longer than the video track. The engine reads
+# The loop-seam flash reported in Wallper: an audio track longer than the video track. The engine reads
 # the video track only, so this must loop exactly like the silent clip.
 [ -f clips/a-1080p30-long-audio.mp4 ] || ffmpeg -hide_banner -loglevel error -y \
   -f lavfi -i "testsrc2=size=1920x1080:rate=30:duration=5" \
