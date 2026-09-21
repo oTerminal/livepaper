@@ -37,7 +37,7 @@ Research that shaped it:
 | Rendering | Private wallpaper extension in v1.0 for desktop + lock screen + screensaver. **Extension only, no fallback renderer** |
 | Contingency | If the downloaded build's extension does not load on a second Mac, the public desktop-window renderer becomes the main path and the extension becomes a bonus for source builders |
 | Selection | One "Livepaper" entry in System Settings > Wallpaper, chosen once; the app drives what plays after that |
-| Quit | Quit stops the live wallpaper and restores the previous system wallpaper |
+| Quit | Quit stops the live wallpaper: the extension holds the current wallpaper's poster as a still and releases its decoders. The system wallpaper stays "Livepaper", because no public API could select it again at the next launch (record 0003). Leaving Livepaper for good is a choice in Settings |
 | First run | Short onboarding (drop a video / launch at login / choose Livepaper as wallpaper) + 2-3 bundled CC0 sample loops with recorded provenance |
 | Testing | TDD with Swift Testing on core logic; no UI snapshot tests; UI checked in a Gallery target, previews and manual runs; GitHub Actions CI |
 | Build order | Engine spike, then design system, then screens |
@@ -90,7 +90,7 @@ protocol LibraryStore: Sendable { func load() throws -> Library; func save(_: Li
   func apply(_ state: RenderState) async           // full state, idempotent
   var status: AsyncStream<RenderHostStatus> { get }
   func recover(_ level: RecoveryLevel) async
-  func deactivate() async                          // restores the previous system wallpaper
+  func deactivate() async                          // stopped render state: the extension holds a still (record 0003)
 }
 ```
 
@@ -155,7 +155,7 @@ Spike matrix (M1):
 | Display hot-plug | Assignments keyed by UUID and remembered while unplugged; reconfiguration debounced |
 | Sparkle without Apple signing | EdDSA required; sign inside-out including Sparkle's helpers; no hardened-runtime library validation; update path tested in M9 |
 | App run from the download folder (translocation) | Detect and offer to move to /Applications before registering anything |
-| Restoring the previous wallpaper on Quit may be impossible for Aerial/dynamic wallpapers | S8 finds out; if so, Quit restores what it can and says what it couldn't |
+| Restoring the previous wallpaper on Quit may be impossible for Aerial/dynamic wallpapers | S8 found that it is, and that selecting Livepaper again is impossible too. Quit holds a still instead (record 0003); the previous wallpaper is offered back only when the user leaves Livepaper and it was an image file |
 | ffmpeg parsing untrusted files | Separate process, minimal build, no network; replaceable binary to satisfy the LGPL |
 
 Unverified claims carried from research, to confirm at M0/M1: hosted CI image Xcode versions; the self-signed identity behaviour on macOS 27; Homebrew's 2026-09-01 cask policy (not relied on).
@@ -166,5 +166,5 @@ Unverified claims carried from research, to confirm at M0/M1: hosted CI image Xc
 - M1: each spike row produces a written result in its ADR, with `log stream` excerpts for WallpaperAgent, pkd and amfid where relevant. S0's second-Mac rows are run by hand from the checklist in `docs/specs/M1-engine-spike.md`.
 - M2/M4: `swift test` on `LivepaperKit`; import fixtures checked by the loop-seam validator.
 - M3: Gallery app reviewed per component with the two review skills.
-- M5-M8: run the app; walk the manual scripts (drop → set → lock → sleep/wake → hot-plug → quit restores wallpaper); 24 h soak log shows zero unrecovered stalls.
+- M5-M8: run the app; walk the manual scripts (drop → set → lock → sleep/wake → hot-plug → quit holds a still, relaunch resumes); 24 h soak log shows zero unrecovered stalls.
 - M9: fresh download on the second Mac, then an update from the previous build through Sparkle.

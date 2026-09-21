@@ -1,6 +1,6 @@
 # The user selects Livepaper once; stopping holds a still instead of switching the system wallpaper back
 
-**Status: proposed.** It replaces the roadmap's "Quit restores the previous system wallpaper", so it needs a yes from the product owner before M5 builds on it. (Gate G1 has passed, so the extension host it assumes is settled.)
+Accepted by the product owner on 2026-09-21, from the four options under "Considered options". It replaces the roadmap's earlier "Quit restores the previous system wallpaper".
 
 The roadmap wanted two things from macOS: that the app could make "Livepaper" the system wallpaper itself, and that Quit could put back whatever was there before, including an Aerial or a dynamic wallpaper. The M1 spike (S8, `Spikes/results/S8.md`, macOS 27.0) recorded what public API can do:
 
@@ -16,7 +16,9 @@ Put together: if Quit switched the system wallpaper back through public API, the
 - **Leaving.** "Stop using Livepaper as wallpaper" in Settings, and the uninstall instructions, open the Wallpaper pane for the user to pick something else. If the wallpaper before Livepaper was an image file, the app offers to put it back with `setDesktopImageURL` and says that this covers the current Space.
 - The store-file swap is not used by the product. `Spikes/results/S8.md` documents it for diagnostics.
 
-If this is accepted, these change with it: the roadmap's Quit row ("Quit stops the live wallpaper and restores the previous system wallpaper") and its Risks row about restoring Aerials; the comment on `RenderHost.deactivate()` ("restores the previous system wallpaper"); and `CONTEXT.md`'s **Previous wallpaper**, which becomes something the app can offer to put back when it is an image file, not something it restores on every stop. None of them has been edited yet.
+These changed with it: the roadmap's Quit row ("Quit stops the live wallpaper and restores the previous system wallpaper") and its Risks row about restoring Aerials; the comment on `RenderHost.deactivate()` ("restores the previous system wallpaper"); and `CONTEXT.md`'s **Previous wallpaper**, which becomes something the app can offer to put back when it is an image file, not something it restores on every stop.
+
+For comparison, Wallper 1.11.2 (looked at on 2026-09-21, bundle contents only) ships no wallpaper extension: it draws in a desktop-level window and sets a frame of the video as the system wallpaper through `setDesktopImageURL`, which is why it needs nobody's click and why quitting it leaves a freeze frame. A still after Quit is therefore what users of this kind of app already see; the extension host adds the lock screen, which a window cannot reach.
 
 The extension must therefore be able to show something sensible with no app running: it reads the last render state on its own, and falls back to the poster when the state says stopped or is missing.
 
@@ -24,4 +26,5 @@ The extension must therefore be able to show something sensible with no app runn
 
 - **Quit restores through public API.** Partial (active Space only, never an Aerial) and it costs a trip to System Settings on every launch.
 - **Quit restores by swapping the store file.** Complete, but built on an undocumented format that any update can change, with a visible agent restart, and it can silently undo the user's own wallpaper changes.
+- **Stay selected, and show a copy of the previous wallpaper's image while stopped.** Looks like switching back on every Space and costs nothing at launch, but cannot work for an Aerial or a time-of-day wallpaper, and a desktop that looks like the old wallpaper while System Settings says "Livepaper" is its own confusion. Offered to the product owner, who chose the still.
 - **Drive System Settings through accessibility to make the click.** Works (the spike did it to get going) but needs the Accessibility permission, and the roadmap rules out permission-gated API.

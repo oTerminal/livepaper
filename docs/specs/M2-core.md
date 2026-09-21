@@ -2,7 +2,7 @@
 
 Write the decisions the app makes as pure code in `LivepaperCore`, tests first, before anything plays or draws. Lane C. See `docs/roadmap.md` (Architecture, Key seams) and decision records 0001 and 0002.
 
-One input is not settled yet, and the rows that depend on it say so: record 0003 is only proposed. (Record 0001 is decided: gate G1 passed.)
+Its inputs are settled: record 0001 (gate G1 passed) and record 0003 (accepted 2026-09-21).
 
 ## Rules
 
@@ -18,7 +18,7 @@ One input is not settled yet, and the rows that depend on it say so: record 0003
 - App to extension: `render-state.json`, replaced atomically, then a Darwin notification. Extension to app: a Darwin notification whose 64-bit state is the heartbeat. Both directions work from inside the sandbox.
 - A running timebase does not prove that pictures are reaching the display. Progress is measured in displayed pictures (record 0001, S4 helper).
 - Replacing the app kills the running extension and nothing restarts it (record 0001). A missing heartbeat after launch is an ordinary state with a defined recovery, not an error.
-- **Not settled:** record 0003 proposes that stopping does not switch the system wallpaper away. If it is accepted, the render state has a stopped form, in which the extension holds the poster and releases its decoders, and the extension must cope with no app running at all. Do not build the stopped form before 0003 is decided.
+- Stopping does not switch the system wallpaper away (record 0003). The render state has a stopped form, in which the extension holds the poster and releases its decoders, and the extension must cope with no app running at all. Do not build the stopped form before 0003 is decided.
 
 ## Seams
 
@@ -31,11 +31,11 @@ One input is not settled yet, and the rows that depend on it say so: record 0003
 | Display mapping | `resolveAssignments(_ saved: [DisplayIdentity: Assignment], connected: [DisplayIdentity], applyToAll: Assignment?) -> [DisplayIdentity: Assignment]` (new) | Assignments survive a display being absent; a new display takes "apply to all" or nothing; two identical displays are two identities |
 | Presentation geometry | `pictureRect(for p: Presentation, source: Size, surface: Size) -> Rect` (new; own `Size`/`Rect`, no CoreGraphics) | Fill, Fit, Stretch; the focal point stays in view when filling; pan and zoom clamp so the picture always covers the surface; portrait on landscape and the reverse |
 | Path containment | `LibraryLocation(home:)`, `resolve(_ relative: String) throws -> URL` (new) | `..`, absolute paths, empty strings, symlink-looking names and paths that normalise outside the root are rejected; the staging folder is inside the root |
-| Render state codec | `RenderState` `Codable`, `encode`/`decode` with version, generation, per-display wallpaper + presentation + volume + user-paused, pause rules, sensed conditions with a timestamp (and, if record 0003 is accepted, a stopped form) | Round trip; migration: the version-1 fixture keeps decoding as the schema moves on; a newer minor field is ignored; an unknown major version fails closed (the extension keeps what it shows); generation only increases |
+| Render state codec | `RenderState` `Codable`, `encode`/`decode` with version, generation, per-display wallpaper + presentation + volume + user-paused, pause rules, sensed conditions with a timestamp and a stopped form (record 0003) | Round trip; migration: the version-1 fixture keeps decoding as the schema moves on; a newer minor field is ignored; an unknown major version fails closed (the extension keeps what it shows); generation only increases |
 | Heartbeat codec | `Heartbeat(generation: UInt32, flags: …).packed: UInt64` and back (new); flags include "a desktop surface is acquired", which is how the app learns that the user has selected Livepaper | Round trip of every flag; generation wraps safely |
 | Heartbeat judgement | `judgeHeartbeat(last: Date?, now: Date, launchedAt: Date) -> RecoveryLevel?` (new). After an install or update the first extension instance is killed once by the next app launch and the agent does not reconnect (record 0001); the spike established no time window for it, so the rule is simply "no heartbeat after the grace period" | Silent during the grace period after launch; escalates while the heartbeat stays missing; quiet again as soon as one arrives |
 | Library | `Library` value type: insert (the last step of an import), rename, favourite, delete, restore (undo), sort, search, duplicate lookup by fingerprint | Each operation returns a new value; delete then restore is the identity; search is case- and diacritic-insensitive |
-| Library store | `protocol LibraryStore: Sendable { func load() throws -> Library; func save(_: Library) throws }`, `FileLibraryStore` writing a versioned JSON manifest atomically | Against a temporary directory: round trip, the version-1 fixture loads, a truncated file loads the last good manifest instead of an empty library (the Wallper "library emptied on restart" bug) |
+| Library store | `protocol LibraryStore: Sendable { func load() throws -> Library; func save(_: Library) throws }`, `FileLibraryStore` writing a versioned JSON manifest atomically | Against a temporary directory: round trip, the version-1 fixture loads, a truncated file loads the last good manifest instead of an empty library (the "library emptied on restart" bug reported in Wallper) |
 
 `RenderHost`, `HostCapabilities` and `RenderHostStatus` are declared here as protocols and values only; `FakeRenderHost` lives in the test support target for M6 to build screens on.
 
