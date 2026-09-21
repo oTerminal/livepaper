@@ -1,16 +1,15 @@
 import Foundation
 import Testing
-@testable import LivepaperCore
+import LivepaperCore
 
 struct HeartbeatTests {
     static let everyFlag: [Row<Heartbeat.Flags, UInt64>] = [
         Row("no flags", [], 0x0000_0000_0000_0007),
         Row("a desktop surface is acquired: the user has selected Livepaper", .desktopSurfaceAcquired, 0x0000_0001_0000_0007),
-        Row("a lock screen surface is acquired", .lockScreenSurfaceAcquired, 0x0000_0002_0000_0007),
-        Row("holding a still", .holdingStill, 0x0000_0004_0000_0007),
-        Row("a reconnect spiral, asking for an agent restart", .spiralDetected, 0x0000_0008_0000_0007),
-        Row("the launch self-check failed", .selfCheckFailed, 0x0000_0010_0000_0007),
-        Row("several at once", [.desktopSurfaceAcquired, .lockScreenSurfaceAcquired, .holdingStill], 0x0000_0007_0000_0007),
+        Row("holding a still", .holdingStill, 0x0000_0002_0000_0007),
+        Row("a reconnect spiral, asking for an agent restart", .spiralDetected, 0x0000_0004_0000_0007),
+        Row("the launch self-check failed", .selfCheckFailed, 0x0000_0008_0000_0007),
+        Row("several at once", [.desktopSurfaceAcquired, .holdingStill, .selfCheckFailed], 0x0000_000B_0000_0007),
         Row("a flag from a newer extension survives", Heartbeat.Flags(rawValue: 0x8000_0000), 0x8000_0000_0000_0007),
     ]
 
@@ -23,9 +22,7 @@ struct HeartbeatTests {
     }
 
     @Test func `every flag has its own bit`() {
-        let all: [Heartbeat.Flags] = [
-            .desktopSurfaceAcquired, .lockScreenSurfaceAcquired, .holdingStill, .spiralDetected, .selfCheckFailed,
-        ]
+        let all: [Heartbeat.Flags] = [.desktopSurfaceAcquired, .holdingStill, .spiralDetected, .selfCheckFailed]
 
         #expect(Set(all.map(\.rawValue)).count == all.count)
         #expect(all.allSatisfy { $0.rawValue.nonzeroBitCount == 1 })

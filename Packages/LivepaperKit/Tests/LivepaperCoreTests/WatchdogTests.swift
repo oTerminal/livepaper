@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import LivepaperCore
+import LivepaperCore
 
 struct WatchdogTests {
     struct Sample: Sendable {
@@ -54,15 +54,15 @@ struct AgentRestartLimitTests {
 
     static let rows: [Row<Request, Bool>] = [
         Row("the first restart is always allowed", Request(last: nil, now: Moment.launch), true),
-        Row("a second restart a second later is refused", Request(last: Moment.launch, now: Moment.seconds(1)), false),
-        Row("a second restart just inside 10 minutes is refused", Request(last: Moment.launch, now: Moment.seconds(599.9)), false),
-        Row("a restart exactly 10 minutes later is allowed", Request(last: Moment.launch, now: Moment.seconds(600)), true),
-        Row("a restart an hour later is allowed", Request(last: Moment.launch, now: Moment.seconds(3600)), true),
-        Row("the gap is the caller's", Request(last: Moment.launch, now: Moment.seconds(61), minimumGap: .seconds(60)), true),
+        Row("a second restart a second later is refused", Request(last: Moment.launch, now: Moment.after(1)), false),
+        Row("a second restart just inside 10 minutes is refused", Request(last: Moment.launch, now: Moment.after(599.9)), false),
+        Row("a restart exactly 10 minutes later is allowed", Request(last: Moment.launch, now: Moment.after(600)), true),
+        Row("a restart an hour later is allowed", Request(last: Moment.launch, now: Moment.after(3600)), true),
+        Row("the gap is the caller's", Request(last: Moment.launch, now: Moment.after(61), minimumGap: .seconds(60)), true),
         Row(
-            "a last restart in the future means the clock moved, and does not block recovery",
-            Request(last: Moment.seconds(900), now: Moment.launch),
-            true
+            "a clock that moved back does not open the gap early",
+            Request(last: Moment.after(900), now: Moment.launch),
+            false
         ),
     ]
 
@@ -74,8 +74,8 @@ struct AgentRestartLimitTests {
     }
 
     @Test func `the default gap is 10 minutes`() {
-        #expect(!allowAgentRestart(last: Moment.launch, now: Moment.seconds(599)))
-        #expect(allowAgentRestart(last: Moment.launch, now: Moment.seconds(600)))
+        #expect(!allowAgentRestart(last: Moment.launch, now: Moment.after(599)))
+        #expect(allowAgentRestart(last: Moment.launch, now: Moment.after(600)))
     }
 }
 
@@ -89,25 +89,25 @@ struct HeartbeatJudgementTests {
     // and the ladder climbs one level every 10 s after that.
     static let rows: [Row<Observation, RecoveryLevel?>] = [
         Row("silent at launch", Observation(last: nil, now: Moment.launch), nil),
-        Row("silent through the grace period with no heartbeat", Observation(last: nil, now: Moment.seconds(19.9)), nil),
-        Row("no heartbeat after the grace period starts the ladder", Observation(last: nil, now: Moment.seconds(20)), .flush),
-        Row("still missing 10 s on, rebuild the surface", Observation(last: nil, now: Moment.seconds(30)), .rebuildSurface),
-        Row("still missing 20 s on, rebuild the pipeline", Observation(last: nil, now: Moment.seconds(40)), .rebuildPipeline),
-        Row("still missing 30 s on, restart the agent", Observation(last: nil, now: Moment.seconds(50)), .restartAgent),
-        Row("it stays at restarting the agent", Observation(last: nil, now: Moment.seconds(5000)), .restartAgent),
+        Row("silent through the grace period with no heartbeat", Observation(last: nil, now: Moment.after(19.9)), nil),
+        Row("no heartbeat after the grace period starts the ladder", Observation(last: nil, now: Moment.after(20)), .flush),
+        Row("still missing 10 s on, rebuild the surface", Observation(last: nil, now: Moment.after(30)), .rebuildSurface),
+        Row("still missing 20 s on, rebuild the pipeline", Observation(last: nil, now: Moment.after(40)), .rebuildPipeline),
+        Row("still missing 30 s on, restart the agent", Observation(last: nil, now: Moment.after(50)), .restartAgent),
+        Row("it stays at restarting the agent", Observation(last: nil, now: Moment.after(5000)), .restartAgent),
 
-        Row("quiet as soon as a heartbeat arrives", Observation(last: Moment.seconds(49), now: Moment.seconds(50)), nil),
-        Row("a heartbeat 15 s old still counts", Observation(last: Moment.seconds(100), now: Moment.seconds(115)), nil),
-        Row("a heartbeat that stopped starts the ladder", Observation(last: Moment.seconds(100), now: Moment.seconds(115.5)), .flush),
-        Row("and it escalates while it stays missing", Observation(last: Moment.seconds(100), now: Moment.seconds(136)), .rebuildPipeline),
+        Row("quiet as soon as a heartbeat arrives", Observation(last: Moment.after(49), now: Moment.after(50)), nil),
+        Row("a heartbeat 15 s old still counts", Observation(last: Moment.after(100), now: Moment.after(115)), nil),
+        Row("a heartbeat that stopped starts the ladder", Observation(last: Moment.after(100), now: Moment.after(115.5)), .flush),
+        Row("and it escalates while it stays missing", Observation(last: Moment.after(100), now: Moment.after(136)), .rebuildPipeline),
         Row(
             "an early heartbeat that stopped is still inside the grace period",
-            Observation(last: Moment.seconds(1), now: Moment.seconds(18)),
+            Observation(last: Moment.after(1), now: Moment.after(18)),
             nil
         ),
         Row(
             "a heartbeat from before launch is no heartbeat",
-            Observation(last: Moment.seconds(-5), now: Moment.seconds(20)),
+            Observation(last: Moment.after(-5), now: Moment.after(20)),
             .flush
         ),
     ]

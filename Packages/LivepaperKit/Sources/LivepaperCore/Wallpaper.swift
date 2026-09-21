@@ -46,17 +46,16 @@ public struct WallpaperDetails: Codable, Equatable, Sendable {
 
 /// A looping video in the library that can be shown on a display.
 ///
-/// Its files are named by paths relative to the library root, which go
-/// through `LibraryLocation.resolve` before anything is opened.
+/// Its files are named by paths relative to the library root.
 public struct Wallpaper: Codable, Equatable, Identifiable, Sendable {
     public let id: WallpaperID
     public var name: String
     public var isFavourite: Bool
-    public let addedAt: Date
+    public let importedAt: Date
     public var fingerprint: Fingerprint
-    public var optimisedCopy: String
-    public var poster: String
-    public var hoverPreview: String?
+    public var optimisedCopy: LibraryPath
+    public var poster: LibraryPath
+    public var hoverPreview: LibraryPath?
     public var details: WallpaperDetails
     public var presentation: Presentation
     /// 0 to 1. Wallpapers are imported silent.
@@ -66,11 +65,11 @@ public struct Wallpaper: Codable, Equatable, Identifiable, Sendable {
         id: WallpaperID,
         name: String,
         isFavourite: Bool = false,
-        addedAt: Date,
+        importedAt: Date,
         fingerprint: Fingerprint,
-        optimisedCopy: String,
-        poster: String,
-        hoverPreview: String? = nil,
+        optimisedCopy: LibraryPath,
+        poster: LibraryPath,
+        hoverPreview: LibraryPath? = nil,
         details: WallpaperDetails,
         presentation: Presentation = Presentation(),
         volume: Double = 0
@@ -78,7 +77,7 @@ public struct Wallpaper: Codable, Equatable, Identifiable, Sendable {
         self.id = id
         self.name = name
         self.isFavourite = isFavourite
-        self.addedAt = addedAt
+        self.importedAt = importedAt
         self.fingerprint = fingerprint
         self.optimisedCopy = optimisedCopy
         self.poster = poster

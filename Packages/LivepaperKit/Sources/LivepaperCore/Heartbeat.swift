@@ -14,13 +14,12 @@ public struct Heartbeat: Equatable, Sendable {
         /// WallpaperAgent has acquired a desktop surface. This is how the app
         /// learns that the user has selected Livepaper (record 0003).
         public static let desktopSurfaceAcquired = Flags(rawValue: 1 << 0)
-        public static let lockScreenSurfaceAcquired = Flags(rawValue: 1 << 1)
         /// The extension is holding posters as stills: the stopped render state, or none it could read.
-        public static let holdingStill = Flags(rawValue: 1 << 2)
+        public static let holdingStill = Flags(rawValue: 1 << 1)
         /// The agent is reconnecting in a loop, and the app should restart it.
-        public static let spiralDetected = Flags(rawValue: 1 << 3)
+        public static let spiralDetected = Flags(rawValue: 1 << 2)
         /// The private API the extension needs was not found at launch.
-        public static let selfCheckFailed = Flags(rawValue: 1 << 4)
+        public static let selfCheckFailed = Flags(rawValue: 1 << 3)
     }
 
     /// The low 32 bits of the generation of the render state being shown.

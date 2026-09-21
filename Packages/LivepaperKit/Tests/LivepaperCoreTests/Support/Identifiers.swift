@@ -11,6 +11,14 @@ private func numberedUUID(_ prefix: String, _ number: Int) -> UUID {
     return uuid
 }
 
+extension LibraryPath {
+    /// A path the tests know to be a good one.
+    static func known(_ relative: String) -> LibraryPath {
+        guard let path = try? LibraryPath(relative) else { preconditionFailure("not a library path: \(relative)") }
+        return path
+    }
+}
+
 extension WallpaperID {
     static func numbered(_ number: Int) -> WallpaperID {
         WallpaperID(uuid: numberedUUID("AAAAAAAA", number))

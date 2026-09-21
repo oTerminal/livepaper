@@ -39,21 +39,23 @@ public struct Library: Equatable, Sendable {
     // MARK: Changes
 
     /// The last step of an import.
-    public func inserting(_ wallpaper: Wallpaper) throws(LibraryError) -> Library {
-        guard self[wallpaper.id] == nil else { throw .alreadyInLibrary(wallpaper.id) }
-        if let existing = self.wallpaper(withFingerprint: wallpaper.fingerprint) { throw .duplicate(of: existing.id) }
+    public func inserting(_ wallpaper: Wallpaper) throws -> Library {
+        guard self[wallpaper.id] == nil else { throw LibraryError.alreadyInLibrary(wallpaper.id) }
+        if let existing = self.wallpaper(withFingerprint: wallpaper.fingerprint) {
+            throw LibraryError.duplicate(of: existing.id)
+        }
         var library = self
         library.wallpapers.append(wallpaper)
         return library
     }
 
-    public func renaming(_ id: WallpaperID, to name: String) throws(LibraryError) -> Library {
+    public func renaming(_ id: WallpaperID, to name: String) throws -> Library {
         let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !name.isEmpty else { throw .emptyName }
+        guard !name.isEmpty else { throw LibraryError.emptyName }
         return try updating(id) { $0.name = name }
     }
 
-    public func settingFavourite(_ isFavourite: Bool, for id: WallpaperID) throws(LibraryError) -> Library {
+    public func settingFavourite(_ isFavourite: Bool, for id: WallpaperID) throws -> Library {
         try updating(id) { $0.isFavourite = isFavourite }
     }
 
@@ -63,26 +65,31 @@ public struct Library: Equatable, Sendable {
         let index: Int
     }
 
-    public func deleting(_ id: WallpaperID) throws(LibraryError) -> (library: Library, removal: Removal) {
-        guard let index = wallpapers.firstIndex(where: { $0.id == id }) else { throw .noSuchWallpaper(id) }
+    public func deleting(_ id: WallpaperID) throws -> (library: Library, removal: Removal) {
+        let index = try index(of: id)
         var library = self
         let wallpaper = library.wallpapers.remove(at: index)
         return (library, Removal(wallpaper: wallpaper, index: index))
     }
 
     /// Undoes a delete: the wallpaper goes back where it was.
-    public func restoring(_ removal: Removal) throws(LibraryError) -> Library {
-        guard self[removal.wallpaper.id] == nil else { throw .alreadyInLibrary(removal.wallpaper.id) }
+    public func restoring(_ removal: Removal) throws -> Library {
+        guard self[removal.wallpaper.id] == nil else { throw LibraryError.alreadyInLibrary(removal.wallpaper.id) }
         var library = self
         library.wallpapers.insert(removal.wallpaper, at: min(removal.index, wallpapers.count))
         return library
     }
 
-    private func updating(_ id: WallpaperID, _ change: (inout Wallpaper) -> Void) throws(LibraryError) -> Library {
-        guard let index = wallpapers.firstIndex(where: { $0.id == id }) else { throw .noSuchWallpaper(id) }
+    private func updating(_ id: WallpaperID, _ change: (inout Wallpaper) -> Void) throws -> Library {
+        let index = try index(of: id)
         var library = self
         change(&library.wallpapers[index])
         return library
+    }
+
+    private func index(of id: WallpaperID) throws -> Int {
+        guard let index = wallpapers.firstIndex(where: { $0.id == id }) else { throw LibraryError.noSuchWallpaper(id) }
+        return index
     }
 
     // MARK: Sort and search
@@ -112,8 +119,8 @@ extension Sequence<Wallpaper> {
     public func sorted(by order: Library.SortOrder) -> [Wallpaper] {
         sorted { lhs, rhs in
             let comparison: ComparisonResult = switch order {
-            case .newestFirst: rhs.addedAt.compare(lhs.addedAt)
-            case .oldestFirst: lhs.addedAt.compare(rhs.addedAt)
+            case .newestFirst: rhs.importedAt.compare(lhs.importedAt)
+            case .oldestFirst: lhs.importedAt.compare(rhs.importedAt)
             case .name: lhs.name.compare(rhs.name, options: [.caseInsensitive, .diacriticInsensitive, .numeric], range: nil, locale: nil)
             }
             // Equal keys fall back to the identifier, so the order never depends on where the sort started.
@@ -149,7 +156,7 @@ extension Library: Codable {
         let version = try container.decode(SchemaVersion.self, forKey: .version)
         // When major version 2 arrives, version 1 is decoded here by a frozen
         // copy of this shape and migrated, and `library-v1.0.json` proves it.
-        guard version.major == Self.schemaVersion.major else { throw SchemaError.unsupportedVersion(version) }
+        try version.requireReadable(by: Self.schemaVersion)
 
         wallpapers = try container.decode([Wallpaper].self, forKey: .wallpapers)
         guard Set(wallpapers.map(\.id)).count == wallpapers.count else {

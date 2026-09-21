@@ -45,27 +45,26 @@ public struct SensedConditions: Codable, Equatable, Sendable {
 public struct RenderState: Codable, Equatable, Sendable {
     public static let schemaVersion = SchemaVersion(major: 1, minor: 0)
 
-    /// What one display shows. Paths are relative to the library root and go
-    /// through `LibraryLocation.resolve` before anything is opened.
+    /// What one display shows. Paths are relative to the library root.
     public struct Display: Codable, Equatable, Sendable {
-        public var display: DisplayIdentity
+        public var identity: DisplayIdentity
         public var wallpaper: WallpaperID
-        public var optimisedCopy: String
-        public var poster: String
+        public var optimisedCopy: LibraryPath
+        public var poster: LibraryPath
         public var presentation: Presentation
         public var volume: Double
         public var userPaused: Bool
 
         public init(
-            display: DisplayIdentity,
+            identity: DisplayIdentity,
             wallpaper: WallpaperID,
-            optimisedCopy: String,
-            poster: String,
+            optimisedCopy: LibraryPath,
+            poster: LibraryPath,
             presentation: Presentation,
             volume: Double,
             userPaused: Bool
         ) {
-            self.display = display
+            self.identity = identity
             self.wallpaper = wallpaper
             self.optimisedCopy = optimisedCopy
             self.poster = poster
@@ -111,7 +110,7 @@ public struct RenderState: Codable, Equatable, Sendable {
     /// nothing sensed, only the user's pause reaches the policy.
     public func playbackConditions(for display: DisplayIdentity, now: Date) -> PlaybackConditions {
         PlaybackConditions(
-            userPaused: displays.first { $0.display == display }?.userPaused ?? false,
+            userPaused: displays.first { $0.identity == display }?.userPaused ?? false,
             desktopCovered: conditions?.coveredDisplays.contains(display) ?? false,
             displayAsleep: conditions?.asleepDisplays.contains(display) ?? false,
             displayLocked: conditions?.locked ?? false,
@@ -124,6 +123,13 @@ public struct RenderState: Codable, Equatable, Sendable {
 }
 
 // MARK: - Codec
+
+extension RenderState.Display {
+    private enum CodingKeys: String, CodingKey {
+        case wallpaper, optimisedCopy, poster, presentation, volume, userPaused
+        case identity = "display"
+    }
+}
 
 extension RenderState {
     private enum CodingKeys: String, CodingKey {
@@ -146,7 +152,7 @@ extension RenderState {
         let version = try container.decode(SchemaVersion.self, forKey: .version)
         // When major version 2 arrives, version 1 is decoded here by a frozen
         // copy of this shape and migrated, and `render-state-v1.0.json` proves it.
-        guard version.major == Self.schemaVersion.major else { throw SchemaError.unsupportedVersion(version) }
+        try version.requireReadable(by: Self.schemaVersion)
 
         generation = try container.decode(UInt64.self, forKey: .generation)
         isStopped = try container.decode(Bool.self, forKey: .isStopped)

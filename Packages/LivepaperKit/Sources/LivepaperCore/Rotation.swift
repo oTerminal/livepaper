@@ -56,8 +56,10 @@ public enum RotationEvent: Equatable, Sendable {
 public func nextRotation(
     _ playlist: Playlist, _ state: RotationState, _ event: RotationEvent, rng: inout some RandomNumberGenerator
 ) -> (RotationState, WallpaperID?) {
-    if case .tick(let now) = event, let last = state.lastRotation,
-       Duration.seconds(now.timeIntervalSince(last)) < playlist.interval {
+    // A tick waits for the interval, unless what is showing has been deleted.
+    let currentIsGone = state.current.map { !playlist.wallpapers.contains($0) } ?? false
+    if case .tick(let now) = event, let last = state.lastRotation, !currentIsGone,
+       now.elapsed(since: last) < playlist.interval {
         return (state, nil)
     }
 

@@ -1,11 +1,11 @@
 import Foundation
 import Testing
-@testable import LivepaperCore
+import LivepaperCore
 
 struct LibraryTests {
     // MARK: Insert
 
-    @Test func `insert adds the wallpaper and returns a new value`() throws {
+    @Test func `insert puts the wallpaper in the library and returns a new value`() throws {
         let empty = Library()
 
         let library = try empty.inserting(.numbered(1))

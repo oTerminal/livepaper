@@ -15,6 +15,11 @@ public struct SchemaVersion: Codable, Hashable, Sendable, CustomStringConvertibl
     }
 
     public var description: String { "\(major).\(minor)" }
+
+    /// Throws unless a reader of `current` can read a file of this version.
+    func requireReadable(by current: SchemaVersion) throws {
+        guard major == current.major else { throw SchemaError.unsupportedVersion(self) }
+    }
 }
 
 public enum SchemaError: Error, Equatable, Sendable {
@@ -22,30 +27,26 @@ public enum SchemaError: Error, Equatable, Sendable {
     case unsupportedVersion(SchemaVersion)
 }
 
-/// JSON as Livepaper's files are written: stable key order so that the same
-/// value gives the same bytes, and dates a person can read.
+/// JSON as Livepaper's files are written: stable key order, so that the same
+/// value gives the same bytes.
+///
+/// Dates are written as `Date` encodes itself, in seconds since 2001. It is
+/// the one form that gives back exactly the date that went in, so a value read
+/// from disk equals the value that was written.
 enum PersistedJSON {
     static func encoder() -> JSONEncoder {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
-        encoder.dateEncodingStrategy = .custom { date, encoder in
-            var container = encoder.singleValueContainer()
-            try container.encode(date.formatted(withMilliseconds))
-        }
         return encoder
     }
 
     static func decoder() -> JSONDecoder {
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .custom { decoder in
-            let text = try decoder.singleValueContainer().decode(String.self)
-            if let date = try? Date(text, strategy: withMilliseconds) ?? Date(text, strategy: .iso8601) {
-                return date
-            }
-            throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath, debugDescription: "not an ISO 8601 date: \(text)"))
-        }
-        return decoder
+        JSONDecoder()
     }
+}
 
-    private static let withMilliseconds = Date.ISO8601FormatStyle(includingFractionalSeconds: true)
+extension Date {
+    func elapsed(since earlier: Date) -> Duration {
+        .seconds(timeIntervalSince(earlier))
+    }
 }

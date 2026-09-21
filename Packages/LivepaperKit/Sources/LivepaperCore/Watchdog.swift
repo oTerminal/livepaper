@@ -50,10 +50,7 @@ public func judgeProgress(before: Int, after: Int, expected: Int, attempt: Int) 
 /// twice within `minimumGap`.
 public func allowAgentRestart(last: Date?, now: Date, minimumGap: Duration = .seconds(600)) -> Bool {
     guard let last else { return true }
-    let elapsed = Duration.seconds(now.timeIntervalSince(last))
-    // A last restart in the future means the clock was moved. Refusing until it
-    // catches up could block recovery for as long as the clock was wrong by.
-    return elapsed < .zero || elapsed >= minimumGap
+    return now.elapsed(since: last) >= minimumGap
 }
 
 /// How long the app waits for the extension's heartbeat before acting.
@@ -84,12 +81,12 @@ public struct HeartbeatTiming: Equatable, Sendable {
 /// after the grace period". The level depends on time alone: the caller acts
 /// when it changes, and sends `.restartAgent` through `allowAgentRestart`.
 public func judgeHeartbeat(last: Date?, now: Date, launchedAt: Date, timing: HeartbeatTiming = .standard) -> RecoveryLevel? {
-    let sinceLaunch = Duration.seconds(now.timeIntervalSince(launchedAt))
+    let sinceLaunch = now.elapsed(since: launchedAt)
     guard sinceLaunch >= timing.grace else { return nil }
 
     let overdue: Duration
     if let last, last >= launchedAt {
-        overdue = Duration.seconds(now.timeIntervalSince(last)) - timing.lifetime
+        overdue = now.elapsed(since: last) - timing.lifetime
         guard overdue > .zero else { return nil }
     } else {
         overdue = sinceLaunch - timing.grace

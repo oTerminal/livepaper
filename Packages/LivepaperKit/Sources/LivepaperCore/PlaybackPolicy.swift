@@ -41,7 +41,7 @@ public struct PlaybackConditions: Equatable, Sendable {
     }
 
     var isStale: Bool {
-        Duration.seconds(now.timeIntervalSince(sensedAt)) > Self.expiry
+        now.elapsed(since: sensedAt) > Self.expiry
     }
 }
 

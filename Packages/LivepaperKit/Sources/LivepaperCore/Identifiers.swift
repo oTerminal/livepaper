@@ -4,7 +4,7 @@ import Foundation
 public struct WallpaperID: Hashable, Codable, Sendable, CustomStringConvertible {
     public let uuid: UUID
 
-    public init(uuid: UUID = UUID()) {
+    public init(uuid: UUID) {
         self.uuid = uuid
     }
 
@@ -25,7 +25,7 @@ public struct WallpaperID: Hashable, Codable, Sendable, CustomStringConvertible 
 public struct PlaylistID: Hashable, Codable, Sendable, CustomStringConvertible {
     public let uuid: UUID
 
-    public init(uuid: UUID = UUID()) {
+    public init(uuid: UUID) {
         self.uuid = uuid
     }
 

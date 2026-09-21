@@ -1,10 +1,10 @@
 import Foundation
 import Testing
-@testable import LivepaperCore
+import LivepaperCore
 
 struct PlaybackPolicyTests {
     struct Situation: Sendable {
-        var conditions = PlaybackConditions(sensedAt: Moment.launch, now: Moment.seconds(1))
+        var conditions = PlaybackConditions(sensedAt: Moment.launch, now: Moment.after(1))
         var rules = PauseRules()
         var host = HostCapabilities(showsLockScreen: true)
 
@@ -82,16 +82,16 @@ struct PlaybackPolicyTests {
         // Conditions expire after 30 s: an app that died must not freeze the wallpaper.
         Row(
             "conditions 30 s old still count",
-            .when { $0.desktopCovered = true; $0.now = Moment.seconds(30) },
+            .when { $0.desktopCovered = true; $0.now = Moment.after(30) },
             .pause(.desktopCovered)
         ),
-        Row("conditions older than 30 s are ignored", .when { $0.desktopCovered = true; $0.now = Moment.seconds(30.5) }, .play),
+        Row("conditions older than 30 s are ignored", .when { $0.desktopCovered = true; $0.now = Moment.after(30.5) }, .play),
         Row(
             "stale suspending conditions are ignored too",
-            .when(rules: allRulesOn) { $0.displayAsleep = true; $0.onBattery = true; $0.now = Moment.seconds(300) },
+            .when(rules: allRulesOn) { $0.displayAsleep = true; $0.onBattery = true; $0.now = Moment.after(300) },
             .play
         ),
-        Row("user pause outlives stale conditions", .when { $0.userPaused = true; $0.now = Moment.seconds(300) }, .pause(.user)),
+        Row("user pause outlives stale conditions", .when { $0.userPaused = true; $0.now = Moment.after(300) }, .pause(.user)),
     ]
 
     @Test(arguments: rows)

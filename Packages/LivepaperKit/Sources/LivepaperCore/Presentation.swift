@@ -37,7 +37,8 @@ public struct Presentation: Codable, Equatable, Sendable {
 /// The fit mode gives the size, and zoom enlarges it. The focal point is then
 /// brought as near to the middle of the surface as it can be, pan moves the
 /// picture from there, and last each axis is clamped: an axis the picture
-/// covers never shows a gap, and an axis it does not cover (Fit's bars) is centred.
+/// covers never shows a gap and keeps the focal point on the surface, and an
+/// axis it does not cover (Fit's bars) is centred.
 public func pictureRect(for presentation: Presentation, source: Size, surface: Size) -> Rect {
     guard source.width > 0, source.height > 0 else {
         return Rect(origin: Point(x: 0, y: 0), size: surface)
@@ -67,7 +68,10 @@ private func placed(length: Double, within available: Double, focal: Double, pan
     let focal = focal.isFinite ? min(max(focal, 0), 1) : 0.5
     let pan = pan.isFinite ? pan : 0
     let wanted = available / 2 - focal * length + pan * available
-    return min(max(wanted, available - length), 0)
+    // Both limits at once: no gap at either edge, and the focal point on the surface.
+    let lowest = max(available - length, -focal * length)
+    let highest = min(0, available - focal * length)
+    return min(max(wanted, lowest), highest)
 }
 
 extension Size {

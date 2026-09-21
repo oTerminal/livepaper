@@ -1,7 +1,7 @@
 import Foundation
 import LivepaperTestSupport
 import Testing
-@testable import LivepaperCore
+import LivepaperCore
 
 struct RotationTests {
     static let one = WallpaperID.numbered(1)
@@ -19,7 +19,7 @@ struct RotationTests {
         var rng = SeededGenerator(seed: seed)
         var state = state
         return (0..<count).map { step in
-            let (next, shown) = nextRotation(playlist, state, .wake(at: Moment.seconds(Double(step))), rng: &rng)
+            let (next, shown) = nextRotation(playlist, state, .wake(at: Moment.after(Double(step))), rng: &rng)
             state = next
             return shown
         }
@@ -34,12 +34,12 @@ struct RotationTests {
 
     /// A 10 minute playlist of [one, two, three] that is showing `one`.
     static let eventRows: [Row<Step, WallpaperID?>] = [
-        Row("a tick before the interval changes nothing", Step(lastRotation: Moment.launch, event: .tick(at: Moment.seconds(599))), nil),
-        Row("a tick at the interval rotates", Step(lastRotation: Moment.launch, event: .tick(at: Moment.seconds(600))), two),
-        Row("a tick long after the interval rotates once", Step(lastRotation: Moment.launch, event: .tick(at: Moment.seconds(9000))), two),
+        Row("a tick before the interval changes nothing", Step(lastRotation: Moment.launch, event: .tick(at: Moment.after(599))), nil),
+        Row("a tick at the interval rotates", Step(lastRotation: Moment.launch, event: .tick(at: Moment.after(600))), two),
+        Row("a tick long after the interval rotates once", Step(lastRotation: Moment.launch, event: .tick(at: Moment.after(9000))), two),
         Row("a tick with no rotation on record rotates", Step(lastRotation: nil, event: .tick(at: Moment.launch)), two),
-        Row("wake rotates without waiting for the interval", Step(lastRotation: Moment.launch, event: .wake(at: Moment.seconds(5))), two),
-        Row("login rotates without waiting for the interval", Step(lastRotation: Moment.launch, event: .login(at: Moment.seconds(5))), two),
+        Row("wake rotates without waiting for the interval", Step(lastRotation: Moment.launch, event: .wake(at: Moment.after(5))), two),
+        Row("login rotates without waiting for the interval", Step(lastRotation: Moment.launch, event: .login(at: Moment.after(5))), two),
     ]
 
     @Test(arguments: eventRows)
@@ -58,8 +58,8 @@ struct RotationTests {
         let playlist = Self.playlist([Self.one, Self.two, Self.three])
         let showingOne = RotationState(current: Self.one, lastRotation: Moment.launch)
 
-        let (afterWake, _) = nextRotation(playlist, showingOne, .wake(at: Moment.seconds(590)), rng: &rng)
-        let (_, shown) = nextRotation(playlist, afterWake, .tick(at: Moment.seconds(600)), rng: &rng)
+        let (afterWake, _) = nextRotation(playlist, showingOne, .wake(at: Moment.after(590)), rng: &rng)
+        let (_, shown) = nextRotation(playlist, afterWake, .tick(at: Moment.after(600)), rng: &rng)
 
         #expect(shown == nil)
     }
@@ -134,13 +134,27 @@ struct RotationTests {
         let (showingTwo, _) = nextRotation(
             Self.playlist([Self.one, Self.two, Self.three]),
             RotationState(current: Self.one, lastRotation: Moment.launch),
-            .wake(at: Moment.seconds(1)),
+            .wake(at: Moment.after(1)),
             rng: &rng
         )
 
-        let (_, shown) = nextRotation(Self.playlist([Self.one, Self.three]), showingTwo, .wake(at: Moment.seconds(2)), rng: &rng)
+        let (_, shown) = nextRotation(Self.playlist([Self.one, Self.three]), showingTwo, .wake(at: Moment.after(2)), rng: &rng)
 
         #expect(shown == Self.three)
+    }
+
+    @Test(arguments: [false, true])
+    func `a deleted wallpaper does not stay up until the interval has passed`(shuffle: Bool) {
+        var rng = SeededGenerator(seed: 1)
+        let showingTwo = RotationState(current: Self.two, position: 1, lastRotation: Moment.launch)
+
+        let (next, shown) = nextRotation(
+            Self.playlist([Self.one, Self.three], shuffle: shuffle), showingTwo, .tick(at: Moment.after(5)), rng: &rng
+        )
+
+        #expect(shown != nil && shown != Self.two)
+        #expect(next.current == shown)
+        #expect(next.lastRotation == Moment.after(5))
     }
 
     @Test func `in order, deleting the last wallpaper while it shows wraps to the first`() {

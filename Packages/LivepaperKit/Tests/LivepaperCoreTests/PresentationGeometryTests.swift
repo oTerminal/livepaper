@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import LivepaperCore
+import LivepaperCore
 
 struct PresentationGeometryTests {
     static let landscape = Size(width: 2000, height: 1000)
@@ -102,6 +102,13 @@ struct PresentationGeometryTests {
             rect(-2000, -1000, 4000, 2000)
         ),
         Row(
+            "pan stops where the focal point would leave the surface",
+            Fitting(
+                presentation: Presentation(focalPoint: Point(x: 0.75, y: 0.5), pan: Point(x: 1, y: 0)), source: landscape, surface: portrait
+            ),
+            rect(-2000, 0, 4000, 2000)
+        ),
+        Row(
             "zoom below 1 clamps to 1",
             Fitting(presentation: Presentation(zoom: 0.5), source: small, surface: landscape),
             rect(0, 0, 2000, 1000)
@@ -142,35 +149,48 @@ struct PresentationGeometryTests {
         #expect(picture.isClose(to: row.expected), "\(picture)")
     }
 
+    struct Shapes: Sendable, CustomTestStringConvertible {
+        var source: Size
+        var surface: Size
+
+        var testDescription: String {
+            "\(Int(source.width))x\(Int(source.height)) on \(Int(surface.width))x\(Int(surface.height))"
+        }
+    }
+
     static let sources = [landscape, portrait, small, Size(width: 3840, height: 2160), Size(width: 1080, height: 1350)]
     static let surfaces = [landscape, portrait, Size(width: 3024, height: 1964), Size(width: 1440, height: 2560)]
+    static let shapes: [Shapes] = sources.flatMap { source in
+        surfaces.map { Shapes(source: source, surface: $0) }
+    }
 
-    @Test(arguments: sources, surfaces)
-    func `when filling, the picture covers the surface and the focal point stays in view`(source: Size, surface: Size) {
-        let steps = [0.0, 0.25, 0.5, 0.75, 1.0]
-        for focalX in steps {
-            for focalY in steps {
-                for zoom in [1.0, 1.7, 4.0] {
-                    let presentation = Presentation(
-                        focalPoint: Point(x: focalX, y: focalY), zoom: zoom, pan: Point(x: focalY - 0.5, y: 0.5 - focalX)
-                    )
-                    let picture = pictureRect(for: presentation, source: source, surface: surface)
-                    let focal = Point(
-                        x: picture.origin.x + focalX * picture.size.width,
-                        y: picture.origin.y + focalY * picture.size.height
-                    )
-                    let slack = 1e-9
-
-                    #expect(picture.origin.x <= slack && picture.origin.y <= slack, "\(presentation) \(picture)")
-                    #expect(picture.maxX >= surface.width - slack && picture.maxY >= surface.height - slack, "\(presentation) \(picture)")
-                    #expect(abs(picture.size.width / picture.size.height - source.width / source.height) < slack)
-                    if presentation.pan == Point(x: 0, y: 0) {
-                        #expect((-slack...surface.width + slack).contains(focal.x), "\(presentation) \(picture)")
-                        #expect((-slack...surface.height + slack).contains(focal.y), "\(presentation) \(picture)")
-                    }
+    /// Every focal point on a 5 x 5 grid, at three zooms, with no pan and with a pan far past every edge.
+    static let fillPresentations: [Presentation] = [0.0, 0.25, 0.5, 0.75, 1.0].flatMap { focalX in
+        [0.0, 0.25, 0.5, 0.75, 1.0].flatMap { focalY in
+            [1.0, 1.7, 4.0].flatMap { zoom in
+                [Point(x: 0, y: 0), Point(x: 3, y: -3), Point(x: -3, y: 3)].map { pan in
+                    Presentation(fit: .fill, focalPoint: Point(x: focalX, y: focalY), zoom: zoom, pan: pan)
                 }
             }
         }
+    }
+
+    @Test(arguments: shapes, fillPresentations)
+    func `when filling, the picture covers the surface and the focal point stays in view`(shapes: Shapes, presentation: Presentation) {
+        let (source, surface) = (shapes.source, shapes.surface)
+        let slack = 1e-9
+
+        let picture = pictureRect(for: presentation, source: source, surface: surface)
+
+        let focal = Point(
+            x: picture.origin.x + presentation.focalPoint.x * picture.size.width,
+            y: picture.origin.y + presentation.focalPoint.y * picture.size.height
+        )
+        #expect(picture.origin.x <= slack && picture.origin.y <= slack, "\(picture)")
+        #expect(picture.maxX >= surface.width - slack && picture.maxY >= surface.height - slack, "\(picture)")
+        #expect(abs(picture.size.width / picture.size.height - source.width / source.height) < slack, "\(picture)")
+        #expect((-slack...surface.width + slack).contains(focal.x), "\(picture)")
+        #expect((-slack...surface.height + slack).contains(focal.y), "\(picture)")
     }
 
     @Test func `a presentation is fill, centred and unzoomed unless the user says otherwise`() {

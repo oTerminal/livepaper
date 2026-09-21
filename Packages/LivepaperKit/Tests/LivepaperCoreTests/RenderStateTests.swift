@@ -1,14 +1,14 @@
 import Foundation
 import Testing
-@testable import LivepaperCore
+import LivepaperCore
 
 struct RenderStateTests {
     static func display(_ number: Int, userPaused: Bool = false) -> RenderState.Display {
         RenderState.Display(
-            display: .numbered(number),
+            identity: .numbered(number),
             wallpaper: .numbered(number),
-            optimisedCopy: "wallpapers/\(WallpaperID.numbered(number))/wallpaper.mov",
-            poster: "wallpapers/\(WallpaperID.numbered(number))/poster.heic",
+            optimisedCopy: .known("wallpapers/\(WallpaperID.numbered(number))/wallpaper.mov"),
+            poster: .known("wallpapers/\(WallpaperID.numbered(number))/poster.heic"),
             presentation: Presentation(),
             volume: 0,
             userPaused: userPaused
@@ -45,6 +45,14 @@ struct RenderStateTests {
             ()
         ),
         Row(
+            "conditions sensed by the real clock, with all its digits",
+            RenderState(
+                generation: 1, displays: [], pauseRules: PauseRules(),
+                conditions: SensedConditions(sensedAt: Date(timeIntervalSinceReferenceDate: 811_677_600.123_456_7))
+            ),
+            ()
+        ),
+        Row(
             "a generation beyond 32 bits",
             RenderState(generation: 5_000_000_000, displays: [display(1)], pauseRules: PauseRules(), conditions: nil),
             ()
@@ -58,11 +66,14 @@ struct RenderStateTests {
         #expect(decoded == row.input)
     }
 
-    @Test func `encodes the same state to the same bytes`() throws {
+    @Test func `writes sets in a fixed order, so the same state gives the same bytes`() throws {
         var state = Self.fixtureState
-        state.conditions?.coveredDisplays = Set((1...8).map(DisplayIdentity.numbered))
+        state.conditions?.coveredDisplays = Set([5, 2, 8, 1, 7, 3, 6, 4].map(DisplayIdentity.numbered))
 
-        #expect(try state.encode() == state.encode())
+        let json = try #require(JSONSerialization.jsonObject(with: state.encode()) as? [String: Any])
+        let conditions = try #require(json["conditions"] as? [String: Any])
+
+        #expect(conditions["coveredDisplays"] as? [String] == (1...8).map { DisplayIdentity.numbered($0).description })
     }
 
     @Test func `writes its schema version`() throws {
@@ -100,6 +111,14 @@ struct RenderStateTests {
         Row("a file cut short", #"{"version":{"major":1,"minor":0},"generation":1,"stop"#, nil),
         Row("an empty file", "", nil),
     ]
+
+    @Test func `a state that names a file outside the library does not decode`() throws {
+        let json = try #require(String(bytes: try Self.fixtureState.encode(), encoding: .utf8))
+            .replacing("wallpapers/\(WallpaperID.numbered(2))/wallpaper.mov", with: "/etc/passwd")
+        #expect(json.contains("/etc/passwd"))
+
+        #expect(throws: LibraryPathError.absolute) { try RenderState.decode(Data(json.utf8)) }
+    }
 
     /// The extension keeps what it shows when the state cannot be read.
     @Test(arguments: failsClosed)

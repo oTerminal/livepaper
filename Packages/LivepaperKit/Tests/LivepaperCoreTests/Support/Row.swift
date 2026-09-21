@@ -21,7 +21,7 @@ struct Row<Input: Sendable, Expected: Sendable>: Sendable, CustomTestStringConve
 enum Moment {
     static let launch = Date(timeIntervalSince1970: 1_790_000_000)
 
-    static func seconds(_ offset: TimeInterval) -> Date {
-        launch.addingTimeInterval(offset)
+    static func after(_ seconds: TimeInterval) -> Date {
+        launch.addingTimeInterval(seconds)
     }
 }

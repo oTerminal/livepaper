@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import LivepaperCore
+import LivepaperCore
 
 struct LibraryLocationTests {
     static let home = URL(filePath: "/Users/sam", directoryHint: .isDirectory)
@@ -9,6 +9,22 @@ struct LibraryLocationTests {
 
     @Test func `the library is in the caller's home, never the sandbox container's`() {
         #expect(Self.location.root.path == Self.root)
+    }
+
+    @Test func `the same home gives the same library, whatever is on the disk`() {
+        // Foundation's own standardising drops `/private` only when the path exists.
+        let home = URL(filePath: "/private/var/nobody-\(UInt64.max)/home", directoryHint: .isDirectory)
+        let location = LibraryLocation(home: home)
+
+        #expect(location == LibraryLocation(home: home))
+        #expect(location.root.path == "/private/var/nobody-\(UInt64.max)/home/Library/Application Support/Livepaper")
+        #expect(throws: Never.self) { try location.resolve("library.json") }
+    }
+
+    @Test func `a home written with parent steps is worked out by name`() {
+        let location = LibraryLocation(home: URL(filePath: "/Users/alex/../sam/./", directoryHint: .isDirectory))
+
+        #expect(location == Self.location)
     }
 
     @Test func `the staging folder is inside the root`() {
@@ -67,8 +83,23 @@ struct LibraryLocationTests {
 
     @Test(arguments: rejected)
     func `rejects a path that could leave the library`(row: Row<String, LibraryPathError>) {
-        #expect(throws: row.expected) {
-            try Self.location.resolve(row.input)
+        #expect(throws: row.expected) { try Self.location.resolve(row.input) }
+        #expect(throws: row.expected) { try LibraryPath(row.input) }
+    }
+
+    @Test func `a checked path is inside the library by construction`() throws {
+        let path = try LibraryPath("wallpapers/AAAAAAAA-0000-0000-0000-000000000001/poster.heic")
+
+        #expect(Self.location.url(for: path).path == Self.root + "/wallpapers/AAAAAAAA-0000-0000-0000-000000000001/poster.heic")
+        #expect(Self.location.contains(Self.location.url(for: path)))
+    }
+
+    @Test func `a path is checked again when it is decoded`() throws {
+        let good = try JSONDecoder().decode([LibraryPath].self, from: Data(#"["wallpapers/x/poster.heic"]"#.utf8))
+
+        #expect(good == [try LibraryPath("wallpapers/x/poster.heic")])
+        #expect(throws: LibraryPathError.illegalComponent("..")) {
+            try JSONDecoder().decode([LibraryPath].self, from: Data(#"["wallpapers/../../x"]"#.utf8))
         }
     }
 

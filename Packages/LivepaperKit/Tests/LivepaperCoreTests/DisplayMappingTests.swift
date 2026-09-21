@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import LivepaperCore
+import LivepaperCore
 
 struct DisplayMappingTests {
     static let builtIn = DisplayIdentity.numbered(1)
