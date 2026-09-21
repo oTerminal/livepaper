@@ -1,6 +1,6 @@
 import CoreGraphics
 import Testing
-@testable import DesignSystem
+import DesignSystem
 
 struct RubberbandTests {
     @Test func `no overshoot gives no offset`() {

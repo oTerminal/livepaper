@@ -1,6 +1,6 @@
 import CoreGraphics
 import Testing
-@testable import DesignSystem
+import DesignSystem
 
 struct SpacingTests {
     @Test func `the scale sits on a 4 pt grid with a 2 pt hairline step`() {

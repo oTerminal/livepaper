@@ -120,11 +120,13 @@ public struct FitModePicker<Value: Hashable>: View {
     }
 
     private func move(_ direction: MoveCommandDirection) {
-        guard isEnabled, let index = selectedIndex else { return }
+        guard isEnabled else { return }
         let target: Int
-        switch direction {
-        case .left: target = index - 1
-        case .right: target = index + 1
+        switch (direction, selectedIndex) {
+        case (.left, let index?): target = index - 1
+        case (.right, let index?): target = index + 1
+        // With nothing selected yet, either arrow picks the first option.
+        case (.left, nil), (.right, nil): target = 0
         default: return
         }
         guard options.indices.contains(target) else { return }

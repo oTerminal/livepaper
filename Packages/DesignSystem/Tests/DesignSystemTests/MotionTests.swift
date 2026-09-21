@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import DesignSystem
+import DesignSystem
 
 struct MotionTests {
     @Test(arguments: [

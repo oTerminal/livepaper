@@ -1,6 +1,6 @@
 import SwiftUI
 import Testing
-@testable import DesignSystem
+import DesignSystem
 
 struct OutlineTests {
     @Test func `the outline is one point wide`() {

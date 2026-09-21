@@ -1,5 +1,5 @@
 import Testing
-@testable import DesignSystem
+import DesignSystem
 
 struct HotkeyRecorderStateTests {
     private let next = Hotkey(keyCode: 45, modifiers: [.control, .option], keyLabel: "N")
@@ -111,6 +111,14 @@ struct HotkeyRecorderStateTests {
         let commandDelete = Hotkey(keyCode: 51, modifiers: [.command], keyLabel: "⌫")
 
         #expect(state.send(.key(commandDelete), conflict: noConflicts) == .changed(commandDelete))
+    }
+
+    @Test func `the clear button clears without recording first`() {
+        var state = HotkeyRecorderState(hotkey: pause)
+
+        #expect(state.send(.clear, conflict: noConflicts) == .changed(nil))
+        #expect(state.hotkey == nil)
+        #expect(state.phase == .idle)
     }
 
     @Test func `losing focus cancels recording`() {

@@ -28,23 +28,25 @@ final class GallerySettings {
     var busyBackdrop = false
     var appearance = Appearance.system
 
-    /// Switches can be preset from the command line, such as `-busyBackdrop YES -appearance Dark`.
-    init(defaults: UserDefaults = .standard) {
+    /// The switches start where System Settings has them, and can be preset from
+    /// the command line, such as `-busyBackdrop YES -appearance Dark`.
+    init(defaults: UserDefaults = .standard, workspace: NSWorkspace = .shared) {
         slowMotion = defaults.bool(forKey: "slowMotion")
-        reduceMotion = defaults.bool(forKey: "reduceMotion")
-        reduceTransparency = defaults.bool(forKey: "reduceTransparency")
-        increaseContrast = defaults.bool(forKey: "increaseContrast")
+        reduceMotion = defaults.bool(forKey: "reduceMotion") || workspace.accessibilityDisplayShouldReduceMotion
+        reduceTransparency = defaults.bool(forKey: "reduceTransparency") || workspace.accessibilityDisplayShouldReduceTransparency
+        increaseContrast = defaults.bool(forKey: "increaseContrast") || workspace.accessibilityDisplayShouldIncreaseContrast
         busyBackdrop = defaults.bool(forKey: "busyBackdrop")
         appearance = defaults.string(forKey: "appearance").flatMap(Appearance.init) ?? .system
     }
 
-    /// Only the switches that are on override anything; the rest follow the system.
+    /// Every switch overrides, on or off, so a setting that is on in System
+    /// Settings can be turned off for the page too.
     var overrides: AccessibilityOverrides {
         AccessibilityOverrides(
-            reduceMotion: reduceMotion ? true : nil,
-            reduceTransparency: reduceTransparency ? true : nil,
-            increaseContrast: increaseContrast ? true : nil,
-            motionSpeed: slowMotion ? 0.1 : nil
+            reduceMotion: reduceMotion,
+            reduceTransparency: reduceTransparency,
+            increaseContrast: increaseContrast,
+            motionSpeed: slowMotion ? 0.1 : 1
         )
     }
 }

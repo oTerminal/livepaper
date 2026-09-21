@@ -1,5 +1,5 @@
 import Testing
-@testable import DesignSystem
+import DesignSystem
 
 /// Time is a plain offset from an arbitrary start, advanced by hand.
 private typealias Dwell = HoverDwell<String, ContinuousClock.Instant>

@@ -47,6 +47,8 @@ public nonisolated struct HotkeyRecorderState: Equatable, Sendable {
         case key(Hotkey)
         /// Recording ended from outside, such as by losing focus.
         case cancel
+        /// The clear button: what Delete does while recording, from any phase.
+        case clear
     }
 
     public enum Effect: Equatable, Sendable {
@@ -75,6 +77,10 @@ public nonisolated struct HotkeyRecorderState: Equatable, Sendable {
         case .cancel:
             phase = .idle
             return nil
+        case .clear:
+            phase = .idle
+            hotkey = nil
+            return .changed(nil)
         case .key(let key):
             guard isRecording else { return nil }
             return record(key, conflict: conflict)

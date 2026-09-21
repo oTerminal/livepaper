@@ -1,5 +1,5 @@
 import Testing
-@testable import DesignSystem
+import DesignSystem
 
 struct PressTests {
     @Test func `a pressed control scales to 0.96`() {

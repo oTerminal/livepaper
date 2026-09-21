@@ -1,6 +1,6 @@
 import SwiftUI
 import Testing
-@testable import DesignSystem
+import DesignSystem
 
 /// A 2:1 picture in a square frame: at zoom 1 it is 200 x 100 in a 100 x 100
 /// frame, with 50 pt to spare on each side and none above or below.

@@ -1,6 +1,6 @@
 import CoreGraphics
 import Testing
-@testable import DesignSystem
+import DesignSystem
 
 struct RadiusTests {
     /// Worked examples from make-interfaces-feel-better (surfaces.md).

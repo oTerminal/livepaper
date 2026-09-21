@@ -1,6 +1,6 @@
 import SwiftUI
 import Testing
-@testable import DesignSystem
+import DesignSystem
 
 struct FocalPointMathTests {
     private let picture = CGRect(x: 10, y: 20, width: 200, height: 100)

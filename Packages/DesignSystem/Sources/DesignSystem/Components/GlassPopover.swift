@@ -136,8 +136,10 @@ private struct GlassPopoverPresentation<Popover: View>: ViewModifier {
                 return nil
             }
             // The trigger toggles the popover itself; a click inside is the popover's.
+            // Frames are in the host window's space, so a click in another window is outside by definition.
             let location = Self.location(of: event)
-            if !triggerFrame.contains(location), !popoverFrame.contains(location) {
+            let isElsewhere = event.window != NSApp.keyWindow && event.window != nil
+            if isElsewhere || (!triggerFrame.contains(location) && !popoverFrame.contains(location)) {
                 isPresented = false
             }
             return event

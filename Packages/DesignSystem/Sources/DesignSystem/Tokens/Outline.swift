@@ -9,6 +9,11 @@ public nonisolated enum Outline {
         public let white: Double
         public let opacity: Double
 
+        public init(white: Double, opacity: Double) {
+            self.white = white
+            self.opacity = opacity
+        }
+
         public var color: Color {
             Color(white: white, opacity: opacity)
         }

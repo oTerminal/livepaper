@@ -88,10 +88,7 @@ public struct HotkeyRecorder: View {
 
     private var clearButton: some View {
         Button {
-            withoutAnimation {
-                state = HotkeyRecorderState()
-                hotkey = nil
-            }
+            send(.clear)
         } label: {
             Image(systemName: "xmark.circle.fill")
                 .foregroundStyle(.secondary)
@@ -163,6 +160,11 @@ public struct HotkeyRecorder: View {
                 Task { send(.cancel) }
                 return event
             }
+            // Tab still moves focus, which ends recording: the recorder never traps the keyboard.
+            if event.keyCode == 48, event.modifierFlags.isDisjoint(with: [.command, .control, .option]) {
+                send(.cancel)
+                return event
+            }
             send(.key(Hotkey(event)))
             return nil
         }
@@ -193,13 +195,15 @@ extension Hotkey {
         self.init(
             keyCode: event.keyCode,
             modifiers: modifiers,
-            keyLabel: Self.namedKeys[event.keyCode] ?? event.charactersIgnoringModifiers?.uppercased() ?? "?"
+            keyLabel: event.keyCode == 49
+                ? String(localized: "Space", bundle: .module)
+                : Self.namedKeys[event.keyCode] ?? event.charactersIgnoringModifiers?.uppercased() ?? "?"
         )
     }
 
     /// Keys whose characters are invisible or private-use, by virtual key code.
     private static let namedKeys: [UInt16: String] = [
-        36: "↩", 48: "⇥", 49: "Space", 51: "⌫", 53: "⎋", 76: "⌤", 117: "⌦",
+        36: "↩", 48: "⇥", 51: "⌫", 53: "⎋", 76: "⌤", 117: "⌦",
         123: "←", 124: "→", 125: "↓", 126: "↑", 115: "↖", 119: "↘", 116: "⇞", 121: "⇟",
         122: "F1", 120: "F2", 99: "F3", 118: "F4", 96: "F5", 97: "F6", 98: "F7", 100: "F8", 101: "F9", 109: "F10",
         103: "F11", 111: "F12", 105: "F13", 107: "F14", 113: "F15", 106: "F16", 64: "F17", 79: "F18", 80: "F19", 90: "F20",

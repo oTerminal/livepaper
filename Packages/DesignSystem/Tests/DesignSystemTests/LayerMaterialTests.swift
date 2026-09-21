@@ -1,5 +1,5 @@
 import Testing
-@testable import DesignSystem
+import DesignSystem
 
 struct LayerMaterialTests {
     @Test(arguments: [LayerMaterial.sidebar, .toolbar, .popover, .inspectorControl])
