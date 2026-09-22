@@ -118,4 +118,8 @@ struct HeartbeatJudgementTests {
 
         #expect(level == row.expected)
     }
+
+    @Test func `the extension sends a heartbeat more often than one lasts`() {
+        #expect(HeartbeatTiming.standard.interval < HeartbeatTiming.standard.lifetime)
+    }
 }
