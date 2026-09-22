@@ -65,8 +65,8 @@ public struct SidebarRow: View {
         .buttonStyle(PressButtonStyle(isStatic: true))
         .onHover { isHovered = $0 }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(title)
-        .accessibilityValue(badge ?? "")
+        // "Playlists, 3", not "3, Playlists": VoiceOver speaks a value before the label.
+        .accessibilityLabel(Text(verbatim: badge.map { "\(title), \($0)" } ?? title))
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
 

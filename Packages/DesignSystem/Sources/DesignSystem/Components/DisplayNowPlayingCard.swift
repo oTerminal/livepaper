@@ -41,8 +41,9 @@ public struct DisplayNowPlayingCard<Accessory: View>: View {
                 text
             }
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel(displayName)
-            .accessibilityValue(spokenValue)
+            // Display first, then the wallpaper and status, as one label: VoiceOver
+            // speaks a value before the label, which would put the display last.
+            .accessibilityLabel(Text(verbatim: "\(displayName), \(spokenValue)"))
 
             Spacer(minLength: 0)
             accessory

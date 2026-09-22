@@ -45,8 +45,9 @@ public struct DetailsList: View {
                         .textSelection(.enabled)
                         .help(row.help ?? "")
                         .accessibilityElement(children: .ignore)
-                        .accessibilityLabel(row.label)
-                        .accessibilityValue(row.value)
+                        // One label, "Resolution, 3840 × 2160": VoiceOver speaks a
+                        // value before the label, which would put the number first.
+                        .accessibilityLabel(Text(verbatim: "\(row.label), \(row.value)"))
                         .accessibilityHint(row.help ?? "")
                 }
             }

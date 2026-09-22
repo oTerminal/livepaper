@@ -77,7 +77,9 @@ public struct LoginItemRow: View {
             .toggleStyle(.switch)
             .disabled(state == .notFound)
             .accessibilityLabel(Text("Open at Login", bundle: .module))
-            .accessibilityValue(spokenValue)
+            // A native switch speaks its own on or off and ignores a value given to
+            // it, so the warning rides along as the hint.
+            .accessibilityHint(spokenHint)
 
             switch state {
             case .off, .on:
@@ -95,12 +97,11 @@ public struct LoginItemRow: View {
     }
 
     /// "On" alone would mislead while the login item is not yet in effect.
-    private var spokenValue: Text {
+    private var spokenHint: Text {
         switch state {
-        case .off: Text("Off", bundle: .module)
-        case .on: Text("On", bundle: .module)
-        case .needsApproval: Text("On, needs approval in System Settings", bundle: .module)
-        case .notFound: Text("Off, login item not found", bundle: .module)
+        case .off, .on: Text(verbatim: "")
+        case .needsApproval: Text(verbatim: approvalMessage)
+        case .notFound: Text(verbatim: notFoundMessage)
         }
     }
 

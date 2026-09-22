@@ -49,8 +49,8 @@ public struct ImportProgressRow: View {
                 }
             }
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel(title)
-            .accessibilityValue(spokenValue)
+            // File first, then its progress, as one label: VoiceOver speaks a value before the label.
+            .accessibilityLabel(Text(verbatim: spokenValue.isEmpty ? title : "\(title), \(spokenValue)"))
 
             trailing
         }

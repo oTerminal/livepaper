@@ -116,6 +116,8 @@ public struct PanZoomEditor: View {
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
                 .frame(width: Metrics.readoutWidth, alignment: .trailing)
+                // The slider already speaks this value.
+                .accessibilityHidden(true)
             Button {
                 // A click animates; Space or Return on the focused button does not,
                 // and under Reduce Motion the picture jumps rather than slides.

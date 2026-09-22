@@ -80,8 +80,8 @@ public struct DropZoneOverlay: View {
         .layerSurface(.popover, in: RoundedRectangle(cornerRadius: Radius.panel, style: .continuous))
         .padding(Spacing.section)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(title)
-        .accessibilityValue(message ?? "")
+        // Title first, then the message, as one label: VoiceOver speaks a value before the label.
+        .accessibilityLabel(Text(verbatim: message.map { "\(title). \($0)" } ?? title))
     }
 }
 
