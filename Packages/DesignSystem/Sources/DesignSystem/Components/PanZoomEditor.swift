@@ -118,9 +118,10 @@ public struct PanZoomEditor: View {
                 .frame(width: Metrics.readoutWidth, alignment: .trailing)
                 // The slider already speaks this value.
                 .accessibilityHidden(true)
-            Button {
-                // A click animates; Space or Return on the focused button does not,
-                // and under Reduce Motion the picture jumps rather than slides.
+            // The same compact button as StatusLine's Restart: a 40 pt target in a
+            // row of 40 pt controls. A click animates; Space or Return on the focused
+            // button does not, and under Reduce Motion the picture jumps rather than slides.
+            CompactTextButton(title: Text("Reset", bundle: .module)) {
                 if accessibility.reduceMotion {
                     withoutAnimation(reset)
                 } else {
@@ -128,8 +129,6 @@ public struct PanZoomEditor: View {
                         withAnimation(accessibility.animation(Motion.Spring.move), reset)
                     }
                 }
-            } label: {
-                Text("Reset", bundle: .module)
             }
             .disabled(zoom == 1 && pan == .zero)
         }

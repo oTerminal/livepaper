@@ -84,42 +84,10 @@ public struct StatusLine: View {
                         .accessibilityLabel(Text("Warning", bundle: .module))
                 }
                 .accessibilityElement(children: .combine)
-                RestartButton(action: onRestart)
+                CompactTextButton(title: Text("Restart", bundle: .module), action: onRestart)
             }
         }
     }
 }
 
 /// Looks like a small bordered button; its hit area is the full height of the line.
-private struct RestartButton: View {
-    @Accessibility private var accessibility
-    @State private var isHovered = false
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Text("Restart", bundle: .module)
-                .font(.callout.weight(.medium))
-                .foregroundStyle(.primary)
-                .padding(.horizontal, Spacing.small + Spacing.hairline)
-                .padding(.vertical, Spacing.hairline)
-                .background(Color.primary.opacity(isHovered ? 0.14 : 0.08), in: .capsule)
-                .contentShape(.focusEffect, .capsule)
-                .overlay {
-                    if accessibility.increaseContrast {
-                        Capsule().strokeBorder(.secondary, lineWidth: 1)
-                    }
-                }
-                .frame(minWidth: Spacing.minimumHitArea, minHeight: Spacing.minimumHitArea)
-                .contentShape(.rect)
-        }
-        .buttonStyle(.press)
-        // The one way out of a degraded state never truncates; the message gives way instead.
-        .fixedSize()
-        .onHover { isHovered = $0 }
-        .animation(
-            accessibility.fade(isHovered ? Motion.enter(Motion.Duration.hover) : Motion.exit(Motion.Duration.hover)),
-            value: isHovered
-        )
-    }
-}

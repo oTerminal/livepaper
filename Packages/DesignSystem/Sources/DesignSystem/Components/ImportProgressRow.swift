@@ -210,7 +210,9 @@ private struct TrailingButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button {
+            withoutAnimationIfKeyPress(action)
+        } label: {
             Image(systemName: kind.symbol)
                 .font(.title3)
                 .contentTransition(accessibility.symbolReplace)

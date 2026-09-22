@@ -86,7 +86,10 @@ private struct TransportButton<Symbol: View>: View {
     @ViewBuilder let symbol: Symbol
 
     var body: some View {
-        Button(action: action) {
+        Button {
+            // Space or Return on the focused button must not animate the swap.
+            withoutAnimationIfKeyPress(action)
+        } label: {
             symbol
                 .foregroundStyle(.primary)
                 .opacity(isEnabled ? 1 : Metrics.disabledOpacity)
