@@ -1,5 +1,6 @@
 included:
   - App
+  - WallpaperExtension
   - Gallery
   - CLI
   - Packages
