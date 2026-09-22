@@ -66,15 +66,15 @@ public actor LoopEngine {
     var startingRun: Int?
     var settleWaiters: [CheckedContinuation<Void, Never>] = []
 
-    var media: Media?
+    var media: LoopMedia?
     /// What the engine plays: set once its first frame is on the layer's queue.
     public internal(set) var video: Video?
     /// 0 to 1. At 0, the default, the audio track is not opened.
     public internal(set) var volume = 0.0
     var ledger = PassLedger(frameDuration: CMTime(value: 1, timescale: 30))
-    var videoPass: Pass?
-    var audioPass: Pass?
-    var nextPass: Pass?
+    var videoPass: ReaderPass?
+    var audioPass: ReaderPass?
+    var nextPass: ReaderPass?
     /// The audio reached the end of its pass before the video did, and waits for the video's seam.
     var audioWaitsForVideo = false
     var audioRenderer: AVSampleBufferAudioRenderer?
@@ -83,7 +83,7 @@ public actor LoopEngine {
     var restartsWithoutLoop = 0
 
     var metricsSubject: PlaybackMetrics.Subject?
-    var tally = Tally()
+    var tally = EngineTally()
 
     public init(feed: VideoLayerFeed, logger: Logger) {
         queue = DispatchSerialQueue(label: "app.livepaper.playback.engine", qos: .userInitiated)
@@ -270,7 +270,7 @@ public actor LoopEngine {
         totals.fold(ledger)
         let gaps = probe.gaps
         return PlaybackMetrics(
-            video: PlaybackLog.name(of: video?.url),
+            video: EngineLog.name(of: video?.url),
             loops: totals.loops,
             seamsWatched: gaps?.seamsWatched ?? 0,
             largestSeamStep: totals.largestSeamStep,

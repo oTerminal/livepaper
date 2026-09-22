@@ -20,8 +20,8 @@ public final class PreviewPlayer: NSView {
     public var volume = 0.0 {
         didSet {
             guard volume != oldValue else { return }
-            let (engine, volume) = (engine, volume)
-            Task { await engine.setVolume(volume) }
+            let volume = volume
+            command { await $0.setVolume(volume) }
         }
     }
 
@@ -34,6 +34,9 @@ public final class PreviewPlayer: NSView {
     private var isRunning = false
     /// Changes with every start and every release, so that a start that finishes late finds out.
     private var generation = 0
+    /// The last call sent to the engine: each waits for the one before, so that a quick hide and
+    /// show reach the engine in that order.
+    private var lastCommand: Task<Void, Never>?
 
     /// `logger` is the app's own: the extension's lines go under its own subsystem.
     public init(logger: Logger, presentation: Presentation = Presentation()) {
@@ -82,8 +85,7 @@ public final class PreviewPlayer: NSView {
     /// Switches the displayed-picture probe on or off; while it is on, the engine logs the
     /// metrics line for the preview every `LoopEngine.metricsInterval` loops.
     public func setMetricsProbe(_ on: Bool) {
-        let engine = engine
-        Task { await engine.setMetricsProbe(on, subject: .preview) }
+        command { await $0.setMetricsProbe(on, subject: .preview) }
     }
 
     override public func layout() {
@@ -128,8 +130,9 @@ public final class PreviewPlayer: NSView {
         let run = generation
         let fromNothing = !isRunning
         isRunning = true
+        let played = command { await $0.play(url) }
         Task {
-            let video = await engine.play(url)
+            let video = await played.value
             guard run == generation else { return }
             guard let video else {
                 setOpacity(0)
@@ -151,8 +154,18 @@ public final class PreviewPlayer: NSView {
         generation += 1
         isRunning = false
         setOpacity(0)
-        let engine = engine
-        Task { await engine.stop() }
+        command { await $0.stop() }
+    }
+
+    @discardableResult
+    private func command<Result: Sendable>(_ call: @escaping @Sendable (LoopEngine) async -> Result) -> Task<Result, Never> {
+        let (previous, engine) = (lastCommand, engine)
+        let task = Task {
+            await previous?.value
+            return await call(engine)
+        }
+        lastCommand = Task { _ = await task.value }
+        return task
     }
 
     private func setOpacity(_ opacity: Float) {

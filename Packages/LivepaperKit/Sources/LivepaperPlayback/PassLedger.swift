@@ -19,7 +19,7 @@ struct VendedBuffer: Equatable, Sendable {
 }
 
 /// Where one frame goes on the engine's timeline.
-struct Stamp: Equatable, Sendable {
+struct FrameStamp: Equatable, Sendable {
     var presentationTime: CMTime
     /// Invalid when the frame had none.
     var decodeTime: CMTime
@@ -67,7 +67,7 @@ struct PassLedger: Sendable {
 
     /// The stamp for `buffer`, or nil when it is a marker rather than a frame. A frame is a
     /// buffer with at least one sample and the data behind it.
-    mutating func stamp(_ buffer: VendedBuffer) -> Stamp? {
+    mutating func stamp(_ buffer: VendedBuffer) -> FrameStamp? {
         let output = buffer.outputPresentationTime
         guard buffer.sampleCount > 0, buffer.hasDataBuffer, output.isNumeric else {
             markersSkipped += 1
@@ -83,7 +83,7 @@ struct PassLedger: Sendable {
 
         let opensSeam = passTimes.isEmpty && loops > 0
         passTimes.append(presentation)
-        return Stamp(
+        return FrameStamp(
             presentationTime: presentation,
             decodeTime: decode,
             shift: shift,

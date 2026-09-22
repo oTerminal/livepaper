@@ -30,7 +30,7 @@ private func plainPass(count: Int64) -> [VendedBuffer] {
 
 extension PassLedger {
     /// Stamps every buffer of one pass and ends it.
-    fileprivate mutating func play(_ pass: [VendedBuffer]) -> [Stamp?] {
+    fileprivate mutating func play(_ pass: [VendedBuffer]) -> [FrameStamp?] {
         defer { finishPass() }
         return pass.map { stamp($0) }
     }

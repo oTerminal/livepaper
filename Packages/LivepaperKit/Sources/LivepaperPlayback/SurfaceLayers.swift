@@ -17,6 +17,7 @@ import QuartzCore
 ///
 /// A request that comes during a crossfade waits for it to end, and the last one wins. A video
 /// that cannot be played holds its poster, and a poster that cannot be read shows the neutral colour.
+/// Before a surface is let go, `showNothing()`: a renderer must not go while an engine still feeds it.
 ///
 /// Recovery, inside the process:
 /// - `.flush`: the engine in front flushes and starts again from a fresh reader.
@@ -52,7 +53,7 @@ public final class SurfaceLayers: SurfacePlayback {
     }
 
     let tree: SurfaceTree
-    var engines: Slots<LoopEngine>
+    var engines: VideoSlots<LoopEngine>
     let logger: Logger
     var geometry: SurfaceGeometry
     /// The layer the video on screen is on.
@@ -60,7 +61,7 @@ public final class SurfaceLayers: SurfacePlayback {
     /// A layer whose engine is starting, or whose video is fading in.
     var incoming: VideoSlot?
     /// What each layer plays, or was last asked to.
-    var showing = Slots<Showing?>(lower: nil, upper: nil)
+    var showing = VideoSlots<Showing?>(lower: nil, upper: nil)
     var poster: Poster?
     /// The latest request that came during a crossfade, for when it ends.
     var queued: (wallpaper: SurfaceWallpaper, crossfade: Bool)?
@@ -81,7 +82,7 @@ public final class SurfaceLayers: SurfacePlayback {
         self.geometry = geometry
         self.logger = logger
         tree = SurfaceTree(prepareVideoLayer: prepareVideoLayer)
-        engines = Slots(
+        engines = VideoSlots(
             lower: LoopEngine(feed: tree.feeds.lower, logger: logger),
             upper: LoopEngine(feed: tree.feeds.upper, logger: logger)
         )
@@ -119,7 +120,7 @@ public final class SurfaceLayers: SurfacePlayback {
         self.wallpaper = wallpaper
         let image = await loadPoster(wallpaper.poster)
         guard run == epoch else { return }
-        if image == nil { logger.error("\(PlaybackLog.posterUnreadable(self.id, wallpaper.poster), privacy: .public)") }
+        if image == nil { logger.error("\(EngineLog.posterUnreadable(self.id, wallpaper.poster), privacy: .public)") }
 
         poster = image.map {
             Poster(image: $0, size: Size(width: Double($0.width), height: Double($0.height)), presentation: wallpaper.presentation)
@@ -127,7 +128,7 @@ public final class SurfaceLayers: SurfacePlayback {
         state = .still
         front = nil
         incoming = nil
-        showing = Slots(lower: nil, upper: nil)
+        showing = VideoSlots(lower: nil, upper: nil)
         tree.transaction {
             tree.showBackground(behindWallpaper: image != nil)
             tree.showStill(image)
@@ -145,7 +146,7 @@ public final class SurfaceLayers: SurfacePlayback {
         poster = nil
         front = nil
         incoming = nil
-        showing = Slots(lower: nil, upper: nil)
+        showing = VideoSlots(lower: nil, upper: nil)
         tree.transaction {
             tree.showBackground(behindWallpaper: false)
             tree.showStill(nil)
@@ -245,10 +246,10 @@ public final class SurfaceLayers: SurfacePlayback {
     func layOut() {
         tree.layOut(
             geometry,
-            still: poster.map { Placement(presentation: $0.presentation, size: $0.size) },
-            video: Slots(
-                lower: showing.lower.map { Placement(presentation: $0.wallpaper.presentation, size: $0.size) },
-                upper: showing.upper.map { Placement(presentation: $0.wallpaper.presentation, size: $0.size) }
+            still: poster.map { PicturePlacement(presentation: $0.presentation, size: $0.size) },
+            video: VideoSlots(
+                lower: showing.lower.map { PicturePlacement(presentation: $0.wallpaper.presentation, size: $0.size) },
+                upper: showing.upper.map { PicturePlacement(presentation: $0.wallpaper.presentation, size: $0.size) }
             )
         )
     }

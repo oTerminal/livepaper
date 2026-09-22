@@ -10,7 +10,7 @@ import LivepaperCore
 import QuartzCore
 
 /// Where a picture goes: how it is fitted, and its size in pixels once known.
-struct Placement: Equatable {
+struct PicturePlacement: Equatable {
     var presentation: Presentation
     var size: Size?
 }
@@ -30,14 +30,14 @@ final class SurfaceTree {
 
     let root = CALayer()
     private let still = CALayer()
-    private let video: Slots<AVSampleBufferDisplayLayer>
-    let feeds: Slots<VideoLayerFeed>
+    private let video: VideoSlots<AVSampleBufferDisplayLayer>
+    let feeds: VideoSlots<VideoLayerFeed>
 
     init(prepareVideoLayer: @MainActor (AVSampleBufferDisplayLayer) -> Void) {
         let lower = AVSampleBufferDisplayLayer()
         let upper = AVSampleBufferDisplayLayer()
-        video = Slots(lower: lower, upper: upper)
-        feeds = Slots(lower: Self.feed(for: lower, prepareVideoLayer), upper: Self.feed(for: upper, prepareVideoLayer))
+        video = VideoSlots(lower: lower, upper: upper)
+        feeds = VideoSlots(lower: Self.feed(for: lower, prepareVideoLayer), upper: Self.feed(for: upper, prepareVideoLayer))
 
         transaction {
             root.masksToBounds = true
@@ -74,7 +74,7 @@ final class SurfaceTree {
     }
 
     /// Every layer by Core's `pictureRect`, so that the still and the video line up.
-    func layOut(_ geometry: SurfaceGeometry, still stillPlacement: Placement?, video placements: Slots<Placement?>) {
+    func layOut(_ geometry: SurfaceGeometry, still stillPlacement: PicturePlacement?, video placements: VideoSlots<PicturePlacement?>) {
         let scale = geometry.scale > 0 ? geometry.scale : 1
         root.frame = CGRect(x: 0, y: 0, width: geometry.size.width, height: geometry.size.height)
         root.contentsScale = scale
@@ -86,7 +86,7 @@ final class SurfaceTree {
         }
     }
 
-    private func frame(for placement: Placement?, on geometry: SurfaceGeometry) -> CGRect {
+    private func frame(for placement: PicturePlacement?, on geometry: SurfaceGeometry) -> CGRect {
         layerFrame(presentation: placement?.presentation ?? Presentation(), source: placement?.size, surface: geometry)
     }
 

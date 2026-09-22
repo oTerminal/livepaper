@@ -5,7 +5,7 @@ enum VideoSlot: Hashable, CaseIterable, Sendable {
 }
 
 /// One value per video layer.
-struct Slots<Value> {
+struct VideoSlots<Value> {
     var lower: Value
     var upper: Value
 
@@ -27,7 +27,7 @@ struct Slots<Value> {
     var all: [Value] { [lower, upper] }
 }
 
-extension Slots: Sendable where Value: Sendable {}
+extension VideoSlots: Sendable where Value: Sendable {}
 
 /// What the two video layers are doing when another video is asked for.
 struct CrossfadeSituation: Equatable, Sendable {

@@ -31,7 +31,7 @@ extension SurfaceLayers {
         tree.transaction { layOut() }
 
         if await !tree.waitUntilReady(slot) {
-            logger.notice("\(PlaybackLog.notReadyForDisplay(self.id, video.url), privacy: .public)")
+            logger.notice("\(EngineLog.notReadyForDisplay(self.id, video.url), privacy: .public)")
         }
         guard run == epoch else { return }
         tree.transaction {
@@ -82,7 +82,7 @@ extension SurfaceLayers {
     }
 
     private func cannotPlay(_ wallpaper: SurfaceWallpaper) async {
-        logger.error("\(PlaybackLog.cannotPlay(self.id, wallpaper.video), privacy: .public)")
+        logger.error("\(EngineLog.cannotPlay(self.id, wallpaper.video), privacy: .public)")
         await holdStill(poster: wallpaper)
     }
 
@@ -146,7 +146,7 @@ extension SurfaceLayers {
     /// The old engines are retired, not stopped: a stuck one cannot hold the recovery up.
     private func replaceEngines() {
         for engine in engines.all { engine.retire() }
-        engines = Slots(
+        engines = VideoSlots(
             lower: LoopEngine(feed: tree.feeds.lower, logger: logger),
             upper: LoopEngine(feed: tree.feeds.upper, logger: logger)
         )

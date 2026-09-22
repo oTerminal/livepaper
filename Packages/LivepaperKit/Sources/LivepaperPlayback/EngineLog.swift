@@ -2,7 +2,7 @@ import Foundation
 
 /// The wording of the engine's and the layer tree's own log lines, in one place. The metrics
 /// line, which other milestones read, is `PlaybackMetrics.logLine(for:)`.
-enum PlaybackLog {
+enum EngineLog {
     /// A library video as the log names it: its folder, which is the wallpaper's ID, and its file.
     static func name(of url: URL?) -> String {
         guard let url else { return "nothing" }

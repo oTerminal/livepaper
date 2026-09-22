@@ -2,17 +2,7 @@ import LivepaperCore
 import Testing
 @testable import LivepaperPlayback
 
-/// One poll of the picture on screen: the `IOSurface` ID behind it, nil when there was none,
-/// at a host time in seconds.
-struct Sighting: Sendable {
-    var surface: UInt32?
-    var at: Double
-
-    init(_ surface: UInt32?, _ at: Double) {
-        self.surface = surface
-        self.at = at
-    }
-}
+private typealias Sighting = DisplayedPictureCounterTests.Sighting
 
 /// A 30 fps wallpaper whose picture changes every frame from `start`: `count` sightings, one per frame.
 private func steady(from start: Double, count: Int, firstSurface: UInt32 = 1) -> [Sighting] {
@@ -20,6 +10,18 @@ private func steady(from start: Double, count: Int, firstSurface: UInt32 = 1) ->
 }
 
 struct DisplayedPictureCounterTests {
+    /// One poll of the picture on screen: the `IOSurface` ID behind it, nil when there was none,
+    /// at a host time in seconds.
+    struct Sighting: Sendable {
+        var surface: UInt32?
+        var at: Double
+
+        init(_ surface: UInt32?, _ at: Double) {
+            self.surface = surface
+            self.at = at
+        }
+    }
+
     static let rows: [Row<[Sighting], Int>] = [
         Row("the same picture polled again does not count", [Sighting(1, 10.1), Sighting(1, 10.2), Sighting(1, 10.6)], 0),
         Row("each change of picture counts", [Sighting(1, 10.1), Sighting(2, 10.2), Sighting(3, 10.3)], 2),

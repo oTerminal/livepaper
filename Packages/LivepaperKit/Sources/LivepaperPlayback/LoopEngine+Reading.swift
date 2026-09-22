@@ -8,7 +8,7 @@ import LivepaperCore
 import Synchronization
 
 /// The file an engine plays, as far as it has been loaded.
-struct Media {
+struct LoopMedia {
     let asset: AVURLAsset
     let videoTrack: AVAssetTrack
     /// Loaded only once the volume is up: at 0 the audio track is not opened.
@@ -17,9 +17,9 @@ struct Media {
     let video: LoopEngine.Video
     let frameDuration: CMTime
 
-    static func load(_ url: URL) async throws -> Media {
+    static func load(_ url: URL) async throws -> LoopMedia {
         let asset = AVURLAsset(url: url)
-        guard let track = try await asset.loadTracks(withMediaType: .video).first else { throw PlaybackError.noVideoTrack }
+        guard let track = try await asset.loadTracks(withMediaType: .video).first else { throw EngineError.noVideoTrack }
         let (naturalSize, minFrameDuration, nominalFrameRate) = try await track.load(.naturalSize, .minFrameDuration, .nominalFrameRate)
         // M4 makes every optimised copy's frames even, so the shortest frame is the frame.
         let frameDuration = if minFrameDuration.isNumeric, minFrameDuration > .zero {
@@ -29,7 +29,7 @@ struct Media {
         } else {
             CMTime(value: 1, timescale: 30)
         }
-        return Media(
+        return LoopMedia(
             asset: asset,
             videoTrack: track,
             video: LoopEngine.Video(
@@ -42,26 +42,26 @@ struct Media {
     }
 }
 
-enum PlaybackError: Error {
+enum EngineError: Error {
     case noVideoTrack
     case cannotRead(String)
 }
 
 /// One pass through the file: a reader of its own, on the video track and, while the volume is
 /// up, the audio track too, so that the two stay on the same pass.
-final class Pass {
+final class ReaderPass {
     let reader: AVAssetReader
     let video: AVAssetReaderTrackOutput
     let audio: AVAssetReaderTrackOutput?
     /// Added to this pass's output times. Set when the video enters the pass.
     var offset = CMTime.zero
 
-    init(reading media: Media, withAudio: Bool) throws {
+    init(reading media: LoopMedia, withAudio: Bool) throws {
         reader = try AVAssetReader(asset: media.asset)
         // No output settings: the compressed samples go straight to the layer, which decodes in hardware.
         video = AVAssetReaderTrackOutput(track: media.videoTrack, outputSettings: nil)
         video.alwaysCopiesSampleData = false
-        guard reader.canAdd(video) else { throw PlaybackError.cannotRead("the video track cannot be read") }
+        guard reader.canAdd(video) else { throw EngineError.cannotRead("the video track cannot be read") }
         reader.add(video)
 
         if withAudio, let track = media.audioTrack {
@@ -78,7 +78,7 @@ final class Pass {
         }
 
         guard reader.startReading() else {
-            throw PlaybackError.cannotRead(reader.error.map { "\($0)" } ?? "the reader did not start")
+            throw EngineError.cannotRead(reader.error.map { "\($0)" } ?? "the reader did not start")
         }
     }
 
@@ -152,7 +152,7 @@ final class ResumeOnce: Sendable {
 }
 
 /// The engine's own numbers for the metrics line, carried across the restarts of one video.
-struct Tally {
+struct EngineTally {
     var loops = 0
     var markersSkipped = 0
     var largestSeamStep: Double?

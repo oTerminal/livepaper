@@ -30,6 +30,11 @@ final class PictureProbe: Sendable {
         self.feed = feed
     }
 
+    // A resumed timer lives until it is cancelled.
+    deinit {
+        state.withLock { $0.timer?.cancel() }
+    }
+
     /// The new pictures shown over `window`, polled for that window and no longer.
     func count(over window: Duration, frameDuration: Double) async -> PictureCount {
         await withCheckedContinuation { continuation in

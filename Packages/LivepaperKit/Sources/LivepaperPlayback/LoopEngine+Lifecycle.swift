@@ -29,15 +29,15 @@ extension LoopEngine {
         if media?.video.url != url {
             media = nil
             video = nil
-            tally = Tally()
+            tally = EngineTally()
             ledger = PassLedger(frameDuration: ledger.frameDuration)
             do {
-                let loaded = try await Media.load(url)
+                let loaded = try await LoopMedia.load(url)
                 guard run == generation else { return }
                 media = loaded
             } catch {
                 guard run == generation else { return }
-                cannotPlay(PlaybackLog.cannotRead(url, error))
+                cannotPlay(EngineLog.cannotRead(url, error))
                 return
             }
             if metricsSubject != nil { probe.measureGaps(frameDuration: media?.video.frameDuration) }
@@ -51,29 +51,29 @@ extension LoopEngine {
     }
 
     /// The part of a start that does not wait: nothing can come between the flush and the first frame.
-    private func begin(_ media: Media, _ run: Int) {
+    private func begin(_ media: LoopMedia, _ run: Int) {
         // Whatever an earlier engine or an earlier start left on the layer is stamped on another timeline.
         renderer.flush()
         audioRenderer?.flush()
-        synchroniser.setRate(0, time: .zero)
         tally.fold(ledger)
         ledger = PassLedger(frameDuration: media.frameDuration)
 
-        let pass: Pass
+        let pass: ReaderPass
         do {
-            pass = try Pass(reading: media, withAudio: wantsAudio)
+            pass = try ReaderPass(reading: media, withAudio: wantsAudio)
         } catch {
-            cannotPlay(PlaybackLog.cannotRead(media.video.url, error))
+            cannotPlay(EngineLog.cannotRead(media.video.url, error))
             return
         }
-        guard enqueueFirstFrame(from: pass) else {
+        guard let first = enqueueFirstFrame(from: pass) else {
             pass.cancel()
-            cannotPlay(PlaybackLog.passWithoutFrames(media.video.url))
+            cannotPlay(EngineLog.passWithoutFrames(media.video.url))
             return
         }
         videoPass = pass
         video = media.video
-        synchroniser.rate = isPaused ? 0 : 1
+        // Time and rate in one call: the synchroniser updates its timebase asynchronously.
+        synchroniser.setRate(isPaused ? 0 : 1, time: first)
         probe.interruptGaps()
         feedVideo(run)
         if pass.audio != nil { moveAudio(to: pass, run) } else { dropAudio() }
