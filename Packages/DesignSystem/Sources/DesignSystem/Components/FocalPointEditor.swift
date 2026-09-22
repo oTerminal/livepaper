@@ -11,6 +11,8 @@ public struct FocalPointEditor: View {
     @Accessibility private var accessibility
     @Binding private var focalPoint: UnitPoint
     @State private var isDragging = false
+    /// The release spring, so the guides can move with the handle while they fade.
+    @State private var throwAnimation: Animation?
 
     private let image: Image
     private let imageSize: CGSize
@@ -66,16 +68,18 @@ public struct FocalPointEditor: View {
 
     /// Cross-hairs through the focal point, shown while it is being moved.
     private func guides(at position: CGPoint, in picture: CGRect) -> some View {
-        Canvas { context, size in
-            var lines = Path()
-            lines.move(to: CGPoint(x: position.x - picture.minX, y: 0))
-            lines.addLine(to: CGPoint(x: position.x - picture.minX, y: size.height))
-            lines.move(to: CGPoint(x: 0, y: position.y - picture.minY))
-            lines.addLine(to: CGPoint(x: size.width, y: position.y - picture.minY))
-            // Dark beneath light, as the handle has its shadow, so the lines hold over any picture.
-            context.stroke(lines, with: .color(.black.opacity(0.25)), lineWidth: 3)
-            context.stroke(lines, with: .color(.white.opacity(0.7)), lineWidth: 1)
+        // Two positioned strokes, not a Canvas: a position animates, so on a flick the
+        // guides follow the handle's spring as they fade instead of jumping to its landing.
+        ZStack {
+            GuideStroke(axis: .vertical)
+                .frame(width: Metrics.guideWidth, height: picture.height)
+                .position(x: position.x - picture.minX, y: picture.height / 2)
+            GuideStroke(axis: .horizontal)
+                .frame(width: picture.width, height: Metrics.guideWidth)
+                .position(x: picture.width / 2, y: position.y - picture.minY)
         }
+        .animation(throwAnimation, value: position)
+        .frame(width: picture.width, height: picture.height)
         .opacity(isDragging ? 1 : 0)
         // There at once on pointer down; fades once the handle is let go.
         .animation(isDragging ? nil : accessibility.fade(Motion.exit(Motion.Duration.hover)), value: isDragging)
@@ -87,6 +91,7 @@ public struct FocalPointEditor: View {
             .onChanged { value in
                 withoutAnimation {
                     isDragging = true
+                    throwAnimation = nil
                     focalPoint = FocalPointMath.focalPoint(at: value.location, in: picture)
                 }
             }
@@ -104,6 +109,7 @@ public struct FocalPointEditor: View {
                 // rather than stopping dead and setting off again.
                 let distance = hypot(landing.x - value.location.x, landing.y - value.location.y)
                 let spring = Motion.Spring.momentum(initialVelocity: distance > 0 ? speed / distance : 0)
+                throwAnimation = accessibility.animation(spring)
                 withAnimation(accessibility.animation(spring)) {
                     focalPoint = FocalPointMath.focalPoint(at: landing, in: picture)
                 }
@@ -121,7 +127,21 @@ public struct FocalPointEditor: View {
         withoutAnimation { focalPoint = FocalPointMath.nudged(focalPoint, dx: step.dx, dy: step.dy) }
     }
 
-    private nonisolated enum Metrics {
+    /// Dark beneath light, as the handle has its shadow, so the line holds over any picture.
+private struct GuideStroke: View {
+    let axis: Axis
+
+    var body: some View {
+        ZStack {
+            Rectangle().fill(.black.opacity(0.25))
+            Rectangle().fill(.white.opacity(0.7))
+                .padding(axis == .vertical ? .horizontal : .vertical, 1)
+        }
+    }
+}
+
+private nonisolated enum Metrics {
+    static let guideWidth: CGFloat = 3
         /// Points per second below which a release counts as placed, not thrown.
         static let flickVelocity: CGFloat = 300
         static let throwFraction: CGFloat = 0.25
