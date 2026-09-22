@@ -15,7 +15,9 @@ Every `.animation(_:value:)` sits on the one effect it drives, never on a contai
 
 VoiceOver on macOS speaks an element's value before its label ("3, Playlists, button"; "42%, Optimising, Harbour at Dusk.mov"), heard on 2026-09-22 with VoiceOver driven by script over every Gallery page. That order is right for a control whose value changes under the user (a slider, the focal point, the hotkey field, a menu button) and wrong for a row that is information, so rows fold their words into one label in reading order and set no value: `SidebarRow` ("Playlists, 3"), `DetailsList` ("Resolution, 3840 × 2160"), `DisplayNowPlayingCard` ("Built-in Display, Harbour at Dusk, Paused: on battery"), `ImportProgressRow` ("Harbour at Dusk.mov, 42%, Optimising") and the `DropZoneOverlay` plate ("Drop to Import. Videos and Live Photos…"). A native switch reads label first, so `LoginItemRow` and `PauseRuleToggle` need nothing.
 
-Reviewed on 2026-09-21 with `review-animations` and `make-interfaces-feel-better` (full mode); the findings are folded into the entries below. Looked at again on 2026-09-22: every page walked with VoiceOver (scripted, transcripts kept out of the repo), tabbed through with keyboard navigation on, and the motion recorded at 0.1x over the busy backdrop; what changed as a result is in the entries.
+Reviewed on 2026-09-21 with `review-animations` and `make-interfaces-feel-better` (full mode); the findings are folded into the entries below. Looked at again on 2026-09-22: every page walked with VoiceOver (scripted, transcripts kept out of the repo), tabbed through with keyboard navigation on, and the motion recorded at 0.1x over the busy backdrop; what changed as a result is in the entries. Both skills were then re-run over all 22 components (2026-09-22): review-animations approved 21 and blocked OnboardingCard (the step crossfade sat on the card, so a height change animated; fixed below); make-interfaces-feel-better approved 9, blocked RecentsStrip (the strip did not clip; fixed below) and asked for changes on the rest, all applied or recorded under the component. A focused button pressed with Space was checked at 0.1x: the change lands in one frame, so `withoutAnimationIfKeyPress` reading `.keyDown` is right.
+
+Where a component's own action can arrive from a focused button (Space or Return), the component wraps it in `withoutAnimationIfKeyPress` itself: TransportCluster, RecentsStrip, ImportProgressRow, StatusLine's Restart and PanZoomEditor's Reset, as OnboardingCard and VolumeSlider already did. `CompactTextButton` is the shared small text button (Restart, Reset): a compact capsule with the full 40 pt target, that rule built in.
 
 ## Tokens
 
@@ -67,12 +69,14 @@ Reviewed on 2026-09-21 with `review-animations` and `make-interfaces-feel-better
 - VoiceOver reads a favourite as "Favourite, Paper Lanterns, button" and the selected tile with the selected trait.
 - Reduce Motion disables hover autoplay entirely (`livePreviewScope` switches the coordinator off).
 - No hover scale: a grid of tiles is swept constantly, and movement on every pass would be noise.
+- The title colour and the selection ring carry `.animation(nil, value: isSelected)`, so a caller's `withAnimation` (a selection change that also scrolls) cannot fade them; the same promise SidebarRow makes.
 - Press is 0.96 like every other control. The focus ring follows the poster, not the title: a 16:10 rounded rectangle at the top of the label, set on the label itself, because a focus shape set on the picture inside the label is not the button's and the ring fell around poster and title together.
 
 ### FocalPointEditor
 - The value is a `UnitPoint`, 0 to 1 on each axis; the maths (`FocalPointMath`, tested) converts to and from the letterboxed picture and clamps to it.
 - The handle follows the pointer inside `withoutAnimation`. On release, above 300 pt/s the handle carries on a quarter of the way to SwiftUI's projected end with `Spring.momentum(initialVelocity:)`, starting at the pointer's speed; below it, nothing animates. A quarter, because a full throw sends a precise control flying. Under Reduce Motion there is no throw: the handle stays where it was let go.
 - Cross-hairs are there at once on pointer down and fade out on release (`Motion.exit(Duration.hover)`). They are white over a wider dark stroke, as the handle has its shadow, so they hold over any picture. The handle is 24 pt drawn, 40 pt hit area.
+- The cross-hairs are two positioned strokes, not a `Canvas`: a `Canvas` does not interpolate, so on a flick they jumped to the landing point while the handle was still springing there. Now they carry the release spring too and travel with the handle as they fade; during the drag itself they move without animation.
 - Arrow keys nudge by 0.01 without animation. VoiceOver: adjustable left/right in steps of 0.05, with "Move up" and "Move down" actions.
 
 ### PanZoomEditor
@@ -82,6 +86,7 @@ Reviewed on 2026-09-21 with `review-animations` and `make-interfaces-feel-better
 - Picking the picture up mid-throw continues from where it is on screen: an `Animatable` modifier reports the in-flight pan and overscroll, and `unrubberband` turns the overscroll back into a drag. Repeated flicks are how a zoomed picture is crossed, so this path is the normal one.
 - Reduce Motion: no throw, a plain stop at the edges with nothing to spring back, and Reset jumps.
 - Reset by click animates with `Spring.move` (0.4 s: the token for an element changing position; a spring's duration is where it settles, and most of the travel is over well inside 300 ms). By Space or Return it does not animate. Arrow keys pan by 0.02 and + / - zoom by 0.1, without animation.
+- Reset is a `CompactTextButton`, the same control as StatusLine's Restart: it was a default push button, the one control in a row of 40 pt targets without one.
 - The zoom slider pulls pan back as it zooms out, so what VoiceOver reads is what is on screen.
 
 ### GlassPopover
@@ -93,7 +98,7 @@ Reviewed on 2026-09-21 with `review-animations` and `make-interfaces-feel-better
 - Judged on 2026-09-22 from 0.1x recordings over the busy backdrop, both ways built and filmed (the materialise build was `glassEffectTransition(.materialize)` inside a `GlassEffectContainer` for all three). Decision: scale plus opacity stays. Materialise brings the panel in as a blur that sharpens, so the words are a smear at the moment the user reads them; it grows from the centre, not the trigger; its duration is the system's, so `Duration.popover`, the 0.7x exit and the Gallery's 0.1x do not reach it; and in that build the exit was a hard cut. It suits a glass control that appears beside other glass in one container (a toolbar button, a split button's second half), which is what the mapping row now says. The materialise build was not kept.
 
 ### Toast and UndoToast
-- One glass capsule, 40 pt tall, above the bottom edge. The undo button is tinted text, not a second glass surface. Dismiss is a full 40 pt square at the end cap, its glyph concentric with the cap; its focus ring is the cap's circle, since a square ring on a capsule's end looked bolted on (seen in the keyboard pass). A leading symbol sits 2 pt closer to the edge than text would.
+- One glass capsule, 40 pt tall, above the bottom edge. The undo button is tinted text, not a second glass surface. Dismiss is a full 40 pt square at the end cap, its glyph concentric with the cap; its focus ring is the cap's circle and Undo's a capsule, since square rings inside a capsule looked bolted on (seen in the keyboard pass). A leading symbol sits 2 pt closer to the edge than text would.
 - Rises 12 pt from `Motion.enterScale`, anchored at the bottom, with opacity, over `Duration.panel`; never its full height. Leaves at 0.7x. The animation is scoped to the toast's own container: a host that changes in the same transaction (a grid reflowing after a delete) never inherits it.
 - A second toast replaces the first in place (`ToastPresenter`, tested): the capsule keeps its identity and the text crossfades, so rapid actions cannot stack. State-driven transitions only. Accepted: a new toast inside the 0.18 s exit of the last one briefly overlaps it.
 - Lifetime 5 s, held while the pointer or VoiceOver focus is on it, so it never goes from under the user. Command-Z undoes without animation, and only an undo toast takes it: a plain toast leaves the app's own Undo alone. New messages are announced to VoiceOver.
@@ -105,6 +110,7 @@ Reviewed on 2026-09-21 with `review-animations` and `make-interfaces-feel-better
 - No animation anywhere: every change is a key press.
 - While recording, a local event monitor takes key presses so Command-W and the like are recorded, not obeyed. A click elsewhere or the window losing key status cancels.
 - The caption line is always present, so rows below never jump when the hint or the conflict appears. A conflict is a red symbol plus words, and is announced.
+- The clear button's 40 pt slot is always laid out too, faded out and disabled when there is nothing to clear: inserting it moved the field by 44 pt on the very click that started recording, and rows in a trailing-aligned form did not line up.
 
 ### SidebarRow
 - Not glass; it sits on the sidebar's glass. Selected is an accent fill at 18% (32% under Increase Contrast) in `Radius.control`; hover is `.quinary`, faded over `Duration.hover` in and 0.7x out.
@@ -118,6 +124,7 @@ Reviewed on 2026-09-21 with `review-animations` and `make-interfaces-feel-better
 ### FitModePicker
 - One glass capsule (`inspectorControl`); the selection pill is a plain `primary` fill at 14% (30% under Increase Contrast), so no glass on glass. Capsule in capsule with a 4 pt inset is concentric by construction.
 - The pill moves by `offset` only, with `Spring.ui`, scoped to the pill. A first selection appears in place: the pill has nowhere to slide from. Arrow keys go through `withoutAnimation`, clamp at the ends, and the control is one tab stop like a native segmented control.
+- The labels' colour changes over the same `Spring.ui`, so the words and the pill arrive together; it used to snap on the click while the pill was still on its way.
 - Reduce Motion: the sliding pill is replaced by per-segment pills that crossfade.
 - Segments are equal width (a private `Layout`), 32 pt drawn in a 40 pt hit area. Selected text is `primary`, the rest `secondary`, so colour marks selection as well as the pill.
 - Generic over its value: "fit mode" is a term of `CONTEXT.md`, so the package takes options, not the app's enum.
@@ -144,7 +151,7 @@ Reviewed on 2026-09-21 with `review-animations` and `make-interfaces-feel-better
 - Lives inside a glass popover, so it is a `quaternary` fill at 60%, not glass. `Radius.card` as the `containerShape`, with a `ConcentricRectangle` thumbnail 8 pt in: 16 - 8 = 8 pt, concentric.
 - Thumbnail 64 x 40 (16:10): 40 pt high so the card is one row tall beside a `TransportCluster`.
 - Not playing: the poster drops to 30% saturation and 70% opacity with `Spring.ui`; the status line is the static cue, so colour is never the only signal.
-- The status line is always laid out, so the card keeps its height when a status comes and goes: pressing Pause must not move the button under the pointer.
+- The status line is always laid out, so the card keeps its height when a status comes and goes: pressing Pause must not move the button under the pointer. Its opacity fades over the same `Spring.ui` as the poster muting beside it.
 - All three text lines truncate; the accessory keeps its size.
 
 ### TransportCluster
@@ -160,12 +167,14 @@ Reviewed on 2026-09-21 with `review-animations` and `make-interfaces-feel-better
 
 ### RecentsStrip
 - Thumbnails 72 x 45, `Radius.control`, outlined, `.press`. Title is the tooltip and the VoiceOver label.
+- The scroll view clips. It had `scrollClipDisabled` so the focus ring and the 8 pt rise were not cut off, and with the clip off a strip with more items than fit drew every one of them across the page (seen in the light-mode captures: fourteen posters to the window's edge, and a scroller saying otherwise). The room the ring and the rise need is now content margins inside the clip, taken back outside with negative padding, so the layout is unchanged.
+- A removed item leaves with an explicit opacity exit at 0.7x; entering is the thumbnail's own affair (`.identity` insertion), so a later insertion no longer fades twice.
 - The first items the strip is given stagger in, even if they load after the strip appears: opacity, 8 pt rise and `Motion.enterScale`, over `Duration.panel`, delayed by `Stagger` (40 ms, capped at 8). Items inserted later enter alone while their neighbours make room with `Spring.move`; the strip never replays. Reduce Motion: opacity only, together.
 - `entrance: .none` is for a strip revealed by a key press or shown often (the menu-bar popover): an `onAppear` entrance starts its own transaction, so a caller's `withoutAnimation` could never have reached it.
 - The stack is not lazy on purpose: a lazy stack would replay entrances while scrolling.
 
 ### DropZoneOverlay
-- Scrim (black 30%, 50% under Increase Contrast) and a dashed accent border fade only; the central glass plate enters from `Motion.enterScale` with opacity over `Duration.popover` and leaves at 0.7x. Centre anchor, because it has no trigger to grow from.
+- Scrim (black 30%, 50% under Increase Contrast) and a dashed accent border fade only; the central glass plate enters from `Motion.enterScale` with opacity over `Duration.popover` and leaves at 0.7x. Centre anchor, because it has no trigger to grow from. The plate carries the popover's shadow: one floating layer, one elevation.
 - The border is state, hence a border, in accent so it reads over light windows too.
 - The symbol is semibold, to carry the weight of the title beneath it.
 - Never takes hits: the drop must reach the view underneath. Becoming targeted is announced, since a drag moves no focus.
@@ -187,6 +196,7 @@ Reviewed on 2026-09-21 with `review-animations` and `make-interfaces-feel-better
 - Opaque card, `Radius.panel`, two-layer shadow for elevation (no border, except under Increase Contrast). The illustration is 8 pt in and clipped with `ConcentricRectangle`: 20 - 8 = 12 pt.
 - The one use of the 0.10 s group stagger: illustration, text, then buttons enter with opacity, an 8 pt rise and a 4 pt blur over `Duration.sheet`. Once per appearance, never on hover or a key press. Reduce Motion: opacity only, together.
 - Moving between steps keeps the card's identity. By click, the picture, the words and the dots crossfade over `Duration.menu` and the height, if it changes, snaps; by Return nothing animates. The card tells the two apart itself (`withoutAnimationIfKeyPress`), because both arrive through the same closure and no caller could.
+- The crossfade is three scoped animations, one each on the picture, the words and the dots, and none on the card: on the card it animated the height too when a step's text wrapped differently. The Gallery had hidden this by wrapping its click handlers in `withoutAnimation`; it no longer does.
 - In dark mode a pure-white ring at 8% keeps the card's edge, where black shadows vanish.
 - Page dots are one VoiceOver element, "Step 2 of 4".
 
