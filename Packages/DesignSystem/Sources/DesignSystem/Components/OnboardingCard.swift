@@ -61,6 +61,7 @@ public struct OnboardingCard<Illustration: View>: View {
                     .foregroundStyle(.secondary)
             }
             .contentTransition(.opacity)
+            .animation(stepAnimation, value: stepIndex)
             .fixedSize(horizontal: false, vertical: true)
             .padding(.horizontal, Spacing.small)
             .entering(group: 1, hasEntered: hasEntered)
@@ -92,9 +93,6 @@ public struct OnboardingCard<Illustration: View>: View {
                 shape.strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
             }
         }
-        // A step change by click crossfades the picture, the words and the dots;
-        // the card's height, if it changes, snaps. By key press nothing animates.
-        .animation(accessibility.fade(Motion.enter(Motion.Duration.menu)), value: stepIndex)
         .containerShape(shape)
         .shadow(color: .black.opacity(0.06), radius: Metrics.contactShadowRadius, y: Metrics.contactShadowOffset)
         .shadow(color: .black.opacity(0.14), radius: Metrics.ambientShadowRadius, y: Metrics.ambientShadowOffset)
@@ -107,6 +105,13 @@ public struct OnboardingCard<Illustration: View>: View {
         scheme == .dark ? Color(nsColor: .windowBackgroundColor).mix(with: .white, by: 0.06) : Color(nsColor: .controlBackgroundColor)
     }
 
+    /// A step change by click crossfades the picture, the words and the dots, each
+    /// with its own scoped animation and nothing on the card itself, so the card's
+    /// height, if it changes, snaps. By key press nothing animates.
+    private var stepAnimation: Animation {
+        accessibility.fade(Motion.enter(Motion.Duration.menu))
+    }
+
     private var picture: some View {
         Color.clear
             .aspectRatio(Metrics.illustrationAspectRatio, contentMode: .fit)
@@ -115,6 +120,7 @@ public struct OnboardingCard<Illustration: View>: View {
                     .id(stepIndex)
                     .transition(.opacity)
             }
+            .animation(stepAnimation, value: stepIndex)
             .clipShape(ConcentricRectangle())
             .imageOutline(ConcentricRectangle())
             .accessibilityHidden(true)
@@ -130,6 +136,7 @@ public struct OnboardingCard<Illustration: View>: View {
                     .frame(width: Metrics.dot, height: Metrics.dot)
             }
         }
+        .animation(stepAnimation, value: stepIndex)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("Step \(stepIndex + 1) of \(stepCount)", bundle: .module))
     }

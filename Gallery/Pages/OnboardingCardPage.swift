@@ -40,8 +40,8 @@ struct OnboardingCardPage: View {
         StateSection(
             title: "Stepping through",
             note: """
-            The card keeps its identity, so moving between steps re-enters nothing. Return presses Continue, and that \
-            change runs in withoutAnimation.
+            The card keeps its identity, so moving between steps re-enters nothing. A click crossfades the picture, \
+            words and dots and the height snaps; Return presses Continue with no animation.
             """
         ) {
             OnboardingCard(
@@ -50,9 +50,9 @@ struct OnboardingCardPage: View {
                 stepIndex: step,
                 stepCount: steps.count,
                 primaryTitle: step == steps.count - 1 ? "Done" : "Continue",
-                onPrimary: { withoutAnimation { step = (step + 1) % steps.count } },
+                onPrimary: { step = (step + 1) % steps.count },
                 secondaryTitle: step == 0 ? nil : "Back",
-                onSecondary: { withoutAnimation { step = max(step - 1, 0) } },
+                onSecondary: { step = max(step - 1, 0) },
                 illustration: { SamplePicture(seed: 10 + step) }
             )
         }
