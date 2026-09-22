@@ -187,6 +187,8 @@ public final class ExtensionHostClient: RenderHost {
             case .postRecover(let level):
                 logger.notice("\(HostLog.silence(level), privacy: .public)")
                 notifier.post(HostNotification.recover, state: UInt64(level.rawValue))
+            case .recoverSkipped(let level):
+                logger.notice("\(HostLog.skipped(level), privacy: .public)")
             case .restartAgent(let reason):
                 restartStore.lastRestart = reducer.lastAgentRestart
                 logger.notice("\(HostLog.restarting(reason), privacy: .public)")

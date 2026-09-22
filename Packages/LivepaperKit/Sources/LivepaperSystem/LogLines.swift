@@ -17,6 +17,10 @@ nonisolated public enum HostLog {
         "host: no heartbeat, asking the extension to \(String(describing: level))"
     }
 
+    public static func skipped(_ level: RecoveryLevel) -> String {
+        "host: no heartbeat since activation, skipping \(String(describing: level)): no extension to receive it"
+    }
+
     public static func recover(_ level: RecoveryLevel) -> String {
         "host: asking the extension to \(String(describing: level))"
     }
