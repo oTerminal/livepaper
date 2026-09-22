@@ -72,6 +72,9 @@ public struct LibraryLocation: Equatable, Sendable {
     /// What the extension is to show, replaced atomically by the app.
     public var renderState: URL { root.appending(path: "render-state.json", directoryHint: .notDirectory) }
 
+    /// One folder per wallpaper, named by its identifier.
+    public var wallpapers: URL { root.appending(path: "wallpapers", directoryHint: .isDirectory) }
+
     /// Where an import is built, on the same volume, so that committing it is a rename.
     public var staging: URL { root.appending(path: ".staging", directoryHint: .isDirectory) }
 

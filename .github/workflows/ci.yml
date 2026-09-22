@@ -10,9 +10,38 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  ffmpeg:
+    # The import helper (decision record 0006), built from pinned source by
+    # Helpers/ffmpeg/build.sh. The artefact is what the LGPL asks for next to the
+    # binary: the exact source archive, the build script and the licence texts.
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      # build.sh holds the version, the sha256 and the flags, so its hash names the
+      # build. On a hit the script finds out/ current, checks it again and stops.
+      - name: Restore the last build
+        uses: actions/cache@v4
+        with:
+          path: |
+            Helpers/ffmpeg/out
+            Helpers/ffmpeg/src
+          key: ffmpeg-helper-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Helpers/ffmpeg/build.sh') }}
+      - name: Build
+        run: make ffmpeg
+      - name: Build info
+        run: cat Helpers/ffmpeg/out/BUILD-INFO.txt
+      - name: Publish
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg-helper-arm64
+          path: Helpers/ffmpeg/out/
+          if-no-files-found: error
+
   check:
     # macos-26 (arm64) ships Xcode 26.x. The code targets that Swift floor, so
     # Swift features newer than the image's default Xcode stay out until it moves.
+    needs: ffmpeg
     runs-on: macos-26
     timeout-minutes: 30
     steps:
@@ -23,7 +52,19 @@ jobs:
         run: xcodebuild -version && swift --version
       - name: Lint
         run: make lint
+      - name: Fetch the ffmpeg helper
+        uses: actions/download-artifact@v4
+        with:
+          name: ffmpeg-helper-arm64
+          path: Helpers/ffmpeg/out
+      # Artefacts do not keep file modes.
+      - name: Make the helper executable
+        run: chmod +x Helpers/ffmpeg/out/ffmpeg && Helpers/ffmpeg/out/ffmpeg -hide_banner -version
+      # With the variable set, the import tests fail instead of skipping when the
+      # helper is missing: this is where CI runs it on the fixtures.
       - name: Test
+        env:
+          LIVEPAPER_REQUIRE_FFMPEG: "1"
         run: make test
       - name: Build
         run: make build

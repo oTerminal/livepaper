@@ -95,7 +95,7 @@ protocol LibraryStore: Sendable { func load() throws -> Library; func save(_: Li
 ```
 
 - `PlaybackSupervisor` is the same code in either host: one `LoopEngine` per display, decoded once and fanned out to that display's surfaces (one per Space, plus lock screen, plus the Settings preview). Two video layers are created up front per surface, because a layer added later to a hosted context does not composite; crossfades and switches happen in place.
-- Import stages: discover → fingerprint (SHA-256 dedupe before any conversion) → probe → plan (pure, table-tested: remux / AVFoundation transcode / ffmpeg then normalise) → convert → normalise (bound loop to the video track, reset edit lists, tone-map HDR) → artefacts (poster, tint still, hover proxy) → loop-seam validator → atomic commit from `.staging/`.
+- Import stages: discover → fingerprint (SHA-256 dedupe before any conversion) → probe → plan (pure, table-tested: remux / AVFoundation transcode / ffmpeg then normalise) → convert → normalise (bound loop to the video track, reset edit lists, tone-map HDR) → loop-seam validator → artefacts (poster, hover proxy; a tint still only with the window host) → atomic commit from `.staging/`.
 - App → extension: `render-state.json` (schema version, generation, per-display item + presentation + volume + user-paused, pause rules, app-sensed conditions with a 30 s expiry) plus a Darwin notification. Extension → app: a heartbeat packed into notification state, and a "spiral" signal asking the app to restart WallpaperAgent (at most once per 10 minutes). Occlusion is sensed in the app because the sandbox blocks window listing in the extension.
 
 ### Design system
