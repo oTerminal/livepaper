@@ -40,7 +40,9 @@ public struct Toast: View {
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .frame(width: Spacing.minimumHitArea, height: Spacing.minimumHitArea)
-                    .contentShape(.rect)
+                    // The ring is the end cap's circle, not a square on a capsule.
+                    .contentShape(.interaction, .rect)
+                    .contentShape(.focusEffect, .circle)
             }
             .buttonStyle(.press)
             .accessibilityLabel(Text("Dismiss", bundle: .module))

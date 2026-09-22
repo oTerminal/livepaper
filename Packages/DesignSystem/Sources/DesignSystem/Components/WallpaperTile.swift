@@ -49,6 +49,9 @@ public struct WallpaperTile<ID: Hashable, LivePreview: View>: View {
                     .padding(.horizontal, Spacing.tight)
             }
             .contentShape(.rect)
+            // The ring follows the poster, not the title. Set here, on the label
+            // itself: a shape on the picture inside it is not the button's.
+            .contentShape(.focusEffect, PosterFocusShape())
         }
         .buttonStyle(.press)
         .onHover { hovering in
@@ -99,7 +102,6 @@ public struct WallpaperTile<ID: Hashable, LivePreview: View>: View {
             }
             .clipShape(shape)
             .imageOutline(shape)
-            .contentShape(.focusEffect, shape)
             .background { elevation(shape) }
             // Selection is state, so it is a border; elevation is a shadow.
             .overlay {
@@ -123,6 +125,15 @@ public struct WallpaperTile<ID: Hashable, LivePreview: View>: View {
                     value: isHovered
                 )
         }
+    }
+}
+
+/// The poster's rounded rectangle at the top of the tile, for the focus ring:
+/// the poster is as wide as the tile and 16:10.
+private struct PosterFocusShape: Shape {
+    nonisolated func path(in rect: CGRect) -> Path {
+        let poster = CGRect(x: rect.minX, y: rect.minY, width: rect.width, height: rect.width * 10 / 16)
+        return RoundedRectangle(cornerRadius: Radius.tile, style: .continuous).path(in: poster)
     }
 }
 

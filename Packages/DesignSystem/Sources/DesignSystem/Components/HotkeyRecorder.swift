@@ -33,7 +33,6 @@ public struct HotkeyRecorder: View {
         _state = State(initialValue: HotkeyRecorderState(hotkey: hotkey.wrappedValue, phase: phase))
     }
 
-
     public var body: some View {
         VStack(alignment: .leading, spacing: Spacing.tight) {
             HStack(spacing: Spacing.tight) {
@@ -105,7 +104,8 @@ public struct HotkeyRecorder: View {
             Image(systemName: "xmark.circle.fill")
                 .foregroundStyle(.secondary)
                 .frame(width: Spacing.minimumHitArea, height: Spacing.minimumHitArea)
-                .contentShape(.rect)
+                .contentShape(.interaction, .rect)
+                .contentShape(.focusEffect, .circle)
         }
         .buttonStyle(.press)
         .accessibilityLabel(Text("Clear shortcut", bundle: .module))

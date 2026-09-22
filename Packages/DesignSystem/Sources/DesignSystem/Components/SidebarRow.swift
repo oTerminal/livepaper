@@ -136,8 +136,16 @@ public struct SidebarRowGroup<ID: Hashable>: View {
                 .focusable(false)
             }
         }
-        .focusable()
-        .onMoveCommand(perform: move)
+        .background {
+            // The tab stop. A focusable view's ring is the union of the focus shapes
+            // of everything inside it, which for a stack of rows is a ring around
+            // every row. Beside the rows instead of around them, it has one shape.
+            Color.clear
+                .focusable()
+                .contentShape(.focusEffect, RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+                .onMoveCommand(perform: move)
+                .accessibilityHidden(true)
+        }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(label)
     }

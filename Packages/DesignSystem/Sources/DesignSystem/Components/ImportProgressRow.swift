@@ -217,7 +217,9 @@ private struct TrailingButton: View {
                 .foregroundStyle(style)
                 .opacity(kind == .none ? 0 : 1)
                 .frame(minWidth: Spacing.minimumHitArea, minHeight: Spacing.minimumHitArea)
-                .contentShape(.rect)
+                // A round glyph in a square slot: the ring is round, the target square.
+                .contentShape(.interaction, .rect)
+                .contentShape(.focusEffect, .circle)
         }
         .buttonStyle(.press)
         .disabled(!kind.isButton)
