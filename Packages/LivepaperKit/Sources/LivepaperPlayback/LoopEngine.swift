@@ -6,8 +6,6 @@
 import AVFoundation
 import LivepaperCore
 import os
-import QuartzCore
-import Synchronization
 
 /// One engine on one video layer: the gapless loop of `Spikes/results/S2.md`.
 ///
@@ -18,7 +16,8 @@ import Synchronization
 /// cooperative pool. Nothing leaves the actor by callback: an owner asks and awaits the answer.
 ///
 /// Engines come and go on a layer (`VideoLayerFeed`); each flushes what an earlier one left
-/// before it enqueues anything.
+/// before it enqueues anything. Every call an engine makes on the layer's renderer or clock
+/// goes through its `RetirementGate` (`onLayer`), which `retire()` closes for good.
 public actor LoopEngine {
     public struct Video: Equatable, Sendable {
         public let url: URL
@@ -34,9 +33,6 @@ public actor LoopEngine {
     static let rateRampSteps = 10
     /// Loops between two metrics lines while the probe is on (spec, "Developer menu").
     public static let metricsInterval = 20
-    /// Restarts in a row with no loop completed between them before the engine stops trying
-    /// and leaves the next step to the watchdog.
-    static let restartLimit = 3
     /// A flush that has not reported back by then is taken as done.
     static let flushTimeout = DispatchTimeInterval.seconds(1)
 
@@ -45,10 +41,11 @@ public actor LoopEngine {
         queue.asUnownedSerialExecutor()
     }
 
-    let feed: VideoLayerFeed
+    let gate: RetirementGate<LayerAccess>
     let logger: Logger
     let probe: PictureProbe
-    private let retired = Atomic(false)
+    /// Made at the first start, and let go at retirement.
+    var rendererObservation: RendererObservation?
 
     enum Lifecycle {
         case stopped
@@ -77,24 +74,30 @@ public actor LoopEngine {
     var nextPass: ReaderPass?
     /// The audio reached the end of its pass before the video did, and waits for the video's seam.
     var audioWaitsForVideo = false
-    var audioRenderer: AVSampleBufferAudioRenderer?
     var audioBroken = false
     var rampTask: Task<Void, Never>?
-    var restartsWithoutLoop = 0
+    var troubles = TroubleResponse()
 
     var metricsSubject: PlaybackMetrics.Subject?
     var tally = EngineTally()
 
     public init(feed: VideoLayerFeed, logger: Logger) {
         queue = DispatchSerialQueue(label: "app.livepaper.playback.engine", qos: .userInitiated)
-        self.feed = feed
+        gate = RetirementGate(LayerAccess(feed))
         self.logger = logger
-        probe = PictureProbe(feed: feed)
+        probe = PictureProbe(gate: gate)
     }
 
-    var renderer: AVSampleBufferVideoRenderer { feed.renderer }
-    var synchroniser: AVSampleBufferRenderSynchronizer { feed.synchroniser }
-    nonisolated var isRetired: Bool { retired.load(ordering: .sequentiallyConsistent) }
+    nonisolated var isRetired: Bool { gate.isClosed }
+
+    /// The one way to the layer's renderer and clock: `body` runs unless the engine has been
+    /// retired, and then nil. A read that blocked the queue may have outlasted a retirement, so
+    /// after one the engine goes through here again rather than trusting an earlier check.
+    /// `body` must not come back through here: the gate's lock is not recursive.
+    @discardableResult
+    func onLayer<Value>(_ body: (inout LayerAccess) -> Value) -> Value? {
+        gate.pass(body)
+    }
 
     /// Seconds a frame lasts, once a video plays.
     public var frameDuration: Double? { video?.frameDuration }
@@ -216,11 +219,13 @@ public actor LoopEngine {
         }
     }
 
-    /// Gives the layer up at once, even while a read blocks the engine's queue: the engine
-    /// never touches the layer's renderer or clock again, and releases its own readers when it
-    /// can. For a rebuild, where another engine takes the layer over.
+    /// Gives the layer up at once, even while a read blocks the engine's queue: once this
+    /// returns the engine never touches the layer's renderer or clock again, and it releases
+    /// its own readers when it can. For a rebuild, where another engine takes the layer over,
+    /// and for an owner that goes away.
     public nonisolated func retire() {
-        retired.store(true, ordering: .sequentiallyConsistent)
+        // Its audio renderer comes off the layer's clock as the gate closes: the last call there.
+        gate.close { $0.letAudioGo() }
         Task { await self.windDown() }
     }
 
@@ -232,7 +237,7 @@ public actor LoopEngine {
         let level = newValue.isFinite ? min(max(newValue, 0), 1) : 0
         let wasAudible = volume > 0
         volume = level
-        audioRenderer?.volume = Float(level)
+        onLayer { $0.audio?.volume = Float(level) }
         guard (level > 0) != wasAudible, lifecycle == .running, media != nil else { return }
         nextPass?.cancel()
         nextPass = nil
@@ -251,7 +256,7 @@ public actor LoopEngine {
 
     /// The picture on screen, drawn as `layout` says, at its surface's pixel size, in BGRA.
     public func snapshot(_ layout: SnapshotLayout) -> IOSurface? {
-        guard !isRetired, let picture = renderer.displayedPixelBuffer(),
+        guard let picture = onLayer({ $0.renderer.displayedPixelBuffer() }) ?? nil,
               let image = SnapshotCanvas.image(of: picture) else { return nil }
         return SnapshotCanvas.render(image, layout)
     }

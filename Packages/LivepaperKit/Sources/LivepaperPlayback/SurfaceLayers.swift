@@ -29,7 +29,8 @@ import QuartzCore
 /// - `.rebuildSurface`: new engines on the same two layers. The old ones are retired at once,
 ///   even if one is stuck, and never touch the layers again; each new one flushes its layer
 ///   before it enqueues. The video in front starts again on its layer, keeping its last picture
-///   until the new first frame.
+///   until the new first frame. The other layer keeps what its old engine left until a video
+///   next starts on it, which clears it first (`CrossfadePlan.clears`).
 /// - `.rebuildPipeline`: everything on the surface built again from the wallpaper: new engines,
 ///   the poster read again and held while the video starts, the layers laid out afresh.
 public final class SurfaceLayers: SurfacePlayback {
@@ -55,6 +56,12 @@ public final class SurfaceLayers: SurfacePlayback {
         var image: CGImage
         var size: Size
         var presentation: Presentation
+
+        init(_ image: CGImage, presentation: Presentation) {
+            self.image = image
+            size = Size(width: Double(image.width), height: Double(image.height))
+            self.presentation = presentation
+        }
     }
 
     let tree: SurfaceTree
@@ -127,9 +134,7 @@ public final class SurfaceLayers: SurfacePlayback {
         guard run == epoch else { return }
         if image == nil { logger.error("\(EngineLog.posterUnreadable(self.id, wallpaper.poster), privacy: .public)") }
 
-        poster = image.map {
-            Poster(image: $0, size: Size(width: Double($0.width), height: Double($0.height)), presentation: wallpaper.presentation)
-        }
+        poster = image.map { Poster($0, presentation: wallpaper.presentation) }
         state = .still
         front = nil
         incoming = nil
@@ -205,18 +210,15 @@ public final class SurfaceLayers: SurfacePlayback {
 
     // MARK: Outside the protocol
 
-    /// What is on screen, for WallpaperAgent's snapshot (S6): the video's picture or the poster,
-    /// cropped as the layers show it, at the surface's pixel size, in BGRA. Nil while showing nothing.
+    /// What is on screen, for WallpaperAgent's snapshot (S6): the video's picture, or the poster
+    /// while the video has no picture on its layer yet, cropped as the layers show it, at the
+    /// surface's pixel size, in BGRA. Nil only with no wallpaper.
     public func snapshotPicture() async -> IOSurface? {
         let pixels = geometry.pixelSize
-        if state != .still, state != .nothing, let slot = front, let current = showing[slot], let size = current.size {
-            let picture = pictureRect(for: current.wallpaper.presentation, source: size, surface: pixels)
-            return await engines[slot].snapshot(SnapshotLayout(surface: pixels, picture: picture))
+        for source in snapshotSources(state: state, hasWallpaper: wallpaper != nil, front: front) {
+            if let picture = await snapshot(from: source, pixels) { return picture }
         }
-        // Holding the still, or starting a video over it.
-        guard state != .nothing, let poster else { return nil }
-        let picture = pictureRect(for: poster.presentation, source: poster.size, surface: pixels)
-        return await renderPoster(poster.image, SnapshotLayout(surface: pixels, picture: picture))
+        return nil
     }
 
     /// Switches the engines' displayed-picture probe on or off. While it is on, each logs the
@@ -257,6 +259,28 @@ public final class SurfaceLayers: SurfacePlayback {
                 upper: showing.upper.map { PicturePlacement(presentation: $0.wallpaper.presentation, size: $0.size) }
             )
         )
+    }
+
+    private func snapshot(from source: SnapshotSource, _ pixels: Size) async -> IOSurface? {
+        switch source {
+        case .video(let slot):
+            guard let current = showing[slot], let size = current.size else { return nil }
+            let picture = pictureRect(for: current.wallpaper.presentation, source: size, surface: pixels)
+            return await engines[slot].snapshot(SnapshotLayout(surface: pixels, picture: picture))
+        case .poster:
+            // The still that is held, or else the wallpaper's poster read for the purpose.
+            guard let poster = await snapshotPoster() else { return nil }
+            let picture = pictureRect(for: poster.presentation, source: poster.size, surface: pixels)
+            return await renderPoster(poster.image, SnapshotLayout(surface: pixels, picture: picture))
+        case .neutralColour:
+            return await renderColour(Self.neutralColour, surface: pixels)
+        }
+    }
+
+    private func snapshotPoster() async -> Poster? {
+        if let poster { return poster }
+        guard let wallpaper, let image = await loadPoster(wallpaper.poster) else { return nil }
+        return Poster(image, presentation: wallpaper.presentation)
     }
 
     /// The poster under a video that is now opaque over it is let go.
