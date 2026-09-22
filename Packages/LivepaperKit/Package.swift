@@ -20,14 +20,27 @@ let package = Package(
         .library(name: "LivepaperPlayback", targets: ["LivepaperPlayback"]),
         .library(name: "LivepaperSystem", targets: ["LivepaperSystem"]),
         .library(name: "LivepaperTestSupport", targets: ["LivepaperTestSupport"]),
+        // Linked by the wallpaper extension and nothing else: all private API is here.
+        .library(name: "WallpaperAgentBridge", targets: ["WallpaperAgentBridge"]),
     ],
     targets: [
         .target(name: "LivepaperCore", swiftSettings: approachableConcurrency),
         .target(name: "LivepaperImport", dependencies: ["LivepaperCore"], swiftSettings: approachableConcurrency),
         .target(name: "LivepaperPlayback", dependencies: ["LivepaperCore"], swiftSettings: approachableConcurrency),
         .target(name: "LivepaperSystem", dependencies: ["LivepaperCore"], swiftSettings: mainActorByDefault),
+        // The Objective-C declarations of the private wallpaper-extension API, since a package has no bridging header.
+        .target(name: "WallpaperAgentBridgeObjC"),
+        .target(
+            name: "WallpaperAgentBridge",
+            dependencies: ["WallpaperAgentBridgeObjC", "LivepaperCore"],
+            swiftSettings: approachableConcurrency
+        ),
         // Fakes and deterministic inputs, for this package's tests and for screens built on fakes (M6).
-        .target(name: "LivepaperTestSupport", dependencies: ["LivepaperCore"], swiftSettings: approachableConcurrency),
+        .target(
+            name: "LivepaperTestSupport",
+            dependencies: ["LivepaperCore", "LivepaperSystem"],
+            swiftSettings: approachableConcurrency
+        ),
         .testTarget(
             name: "LivepaperCoreTests",
             dependencies: ["LivepaperCore", "LivepaperTestSupport"],
@@ -38,6 +51,21 @@ let package = Package(
             name: "LivepaperImportTests",
             dependencies: ["LivepaperImport", "LivepaperCore"],
             resources: [.copy("Fixtures")],
+            swiftSettings: approachableConcurrency
+        ),
+        .testTarget(
+            name: "LivepaperPlaybackTests",
+            dependencies: ["LivepaperPlayback", "LivepaperCore", "LivepaperTestSupport"],
+            swiftSettings: approachableConcurrency
+        ),
+        .testTarget(
+            name: "LivepaperSystemTests",
+            dependencies: ["LivepaperSystem", "LivepaperCore", "LivepaperTestSupport"],
+            swiftSettings: approachableConcurrency
+        ),
+        .testTarget(
+            name: "WallpaperAgentBridgeTests",
+            dependencies: ["WallpaperAgentBridge", "LivepaperCore"],
             swiftSettings: approachableConcurrency
         ),
     ]

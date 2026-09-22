@@ -20,6 +20,9 @@ public struct Heartbeat: Equatable, Sendable {
         public static let spiralDetected = Flags(rawValue: 1 << 2)
         /// The private API the extension needs was not found at launch.
         public static let selfCheckFailed = Flags(rawValue: 1 << 3)
+        /// The watchdog climbed its ladder to the top, and the app should restart
+        /// WallpaperAgent: the sandbox keeps the extension from doing it.
+        public static let restartAgentRequested = Flags(rawValue: 1 << 4)
     }
 
     /// The low 32 bits of the generation of the render state being shown.

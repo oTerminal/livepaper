@@ -1,0 +1,110 @@
+import Foundation
+import LivepaperCore
+
+/// Identifies one surface: the identifier WallpaperAgent gives it at acquire.
+public struct SurfaceID: Hashable, Sendable, CustomStringConvertible {
+    public let uuid: UUID
+
+    public init(uuid: UUID) {
+        self.uuid = uuid
+    }
+
+    public var description: String { uuid.uuidString }
+}
+
+/// The size of a surface as the agent gives it: points, and the scale that
+/// turns them into pixels.
+public struct SurfaceGeometry: Equatable, Sendable {
+    public var size: Size
+    public var scale: Double
+
+    public init(size: Size, scale: Double) {
+        self.size = size
+        self.scale = scale
+    }
+
+    public var pixelSize: Size {
+        Size(width: size.width * scale, height: size.height * scale)
+    }
+}
+
+/// What a surface is asked to show: one wallpaper, its files already resolved
+/// inside the library.
+public struct SurfaceWallpaper: Equatable, Sendable {
+    public var wallpaper: WallpaperID
+    public var video: URL
+    public var poster: URL
+    public var presentation: Presentation
+    /// 0 to 1. At 0 the audio track is not opened.
+    public var volume: Double
+
+    public init(wallpaper: WallpaperID, video: URL, poster: URL, presentation: Presentation, volume: Double) {
+        self.wallpaper = wallpaper
+        self.video = video
+        self.poster = poster
+        self.presentation = presentation
+        self.volume = volume
+    }
+}
+
+/// What a surface is doing, as the playback mapping reads it.
+public enum SurfacePlaybackState: Equatable, Sendable {
+    /// The neutral colour: nothing to show.
+    case nothing
+    /// The poster, with no decoder.
+    case still
+    case playing
+    /// Not advancing; the readers and the decoder are kept, so resuming is instant.
+    case paused
+    /// Not advancing; the readers and the decoder are released, and the last
+    /// picture is kept where the renderer allows.
+    case suspended
+}
+
+/// New pictures a surface showed over a window, and how many the wallpaper's
+/// frame rate should have shown: what `judgeProgress` takes.
+public struct PictureCount: Equatable, Sendable {
+    public var displayed: Int
+    public var expected: Int
+
+    public init(displayed: Int, expected: Int) {
+        self.displayed = displayed
+        self.expected = expected
+    }
+}
+
+/// One surface's layer tree and the engines on it, as `PlaybackSupervisor`
+/// drives it. `SurfaceLayers` is the real one; the supervisor's tests use a fake.
+///
+/// Not `Sendable`: it lives on the actor of whoever owns it, which in the
+/// extension is the main actor, and its async methods run there.
+public protocol SurfacePlayback: AnyObject {
+    var state: SurfacePlaybackState { get }
+    /// The wallpaper being played or held, if any.
+    var wallpaper: SurfaceWallpaper? { get }
+
+    /// Plays `wallpaper`. The same video with another presentation or volume
+    /// is changed in place; another video is switched to, crossfading when asked.
+    func show(_ wallpaper: SurfaceWallpaper, crossfade: Bool) async
+    /// Holds the wallpaper's poster as a still, laid out as its video would be,
+    /// and releases the decoder.
+    func holdStill(poster wallpaper: SurfaceWallpaper) async
+    /// Shows the neutral colour and releases everything.
+    func showNothing() async
+
+    /// Stops advancing, keeping the readers, with a rate ramp.
+    func pause() async
+    /// Advances again after `pause()` or `suspend()`.
+    func resume() async
+    /// Stops advancing and releases the readers and the decoder.
+    func suspend() async
+
+    /// Tries a recovery inside the process: `.flush`, `.rebuildSurface` or
+    /// `.rebuildPipeline`. `.restartAgent` is the app's, not the surface's.
+    func recover(_ level: RecoveryLevel) async
+    /// Counts the new pictures shown over `window`. `nil` when nothing plays.
+    func displayedPictures(over window: Duration) async -> PictureCount?
+
+    /// Lays the tree out again for a new size, without animation.
+    func layout(surface: SurfaceGeometry)
+}

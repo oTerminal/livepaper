@@ -9,6 +9,7 @@ struct HeartbeatTests {
         Row("holding a still", .holdingStill, 0x0000_0002_0000_0007),
         Row("a reconnect spiral, asking for an agent restart", .spiralDetected, 0x0000_0004_0000_0007),
         Row("the launch self-check failed", .selfCheckFailed, 0x0000_0008_0000_0007),
+        Row("the watchdog reached the top of its ladder, asking for an agent restart", .restartAgentRequested, 0x0000_0010_0000_0007),
         Row("several at once", [.desktopSurfaceAcquired, .holdingStill, .selfCheckFailed], 0x0000_000B_0000_0007),
         Row("a flag from a newer extension survives", Heartbeat.Flags(rawValue: 0x8000_0000), 0x8000_0000_0000_0007),
     ]
@@ -22,7 +23,7 @@ struct HeartbeatTests {
     }
 
     @Test func `every flag has its own bit`() {
-        let all: [Heartbeat.Flags] = [.desktopSurfaceAcquired, .holdingStill, .spiralDetected, .selfCheckFailed]
+        let all: [Heartbeat.Flags] = [.desktopSurfaceAcquired, .holdingStill, .spiralDetected, .selfCheckFailed, .restartAgentRequested]
 
         #expect(Set(all.map(\.rawValue)).count == all.count)
         #expect(all.allSatisfy { $0.rawValue.nonzeroBitCount == 1 })
