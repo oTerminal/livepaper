@@ -64,12 +64,7 @@ public final class SystemDisplaySensor: DisplaySensor {
 
     private func reconfigured() {
         settling?.cancel()
-        settling = Task { [weak self] in
-            try? await Task.sleep(for: Self.settle)
-            guard !Task.isCancelled, let self else { return }
-            let displays = ConnectedDisplays.current()
-            if displays != broadcast.latest { broadcast.send(displays) }
-        }
+        settling = broadcast.sendSettled(after: [Self.settle]) { ConnectedDisplays.current() }
     }
 }
 

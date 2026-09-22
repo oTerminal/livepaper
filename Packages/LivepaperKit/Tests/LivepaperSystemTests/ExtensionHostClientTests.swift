@@ -14,12 +14,15 @@ struct ExtensionHostClientTests {
     let notifier = RecordingNotifier()
     let agent = FakeAgentRestarter()
     let sleep = FakeSleepSensor()
+    let restarts = MemoryAgentRestartStore()
     let client: ExtensionHostClient
 
     init() throws {
         home = try TemporaryFolder()
         location = LibraryLocation(home: home.url)
-        client = ExtensionHostClient(location: location, notifier: notifier, agent: agent, clock: clock, sleep: sleep)
+        client = ExtensionHostClient(
+            location: location, notifier: notifier, agent: agent, restartStore: restarts, clock: clock, sleep: sleep
+        )
     }
 
     static func state(generation: UInt64 = 5) throws -> RenderState {
@@ -84,17 +87,31 @@ struct ExtensionHostClientTests {
         #expect(await later.next() == .live)
     }
 
-    @Test func `silence climbs the ladder in the extension, then restarts the agent once`() async throws {
+    @Test func `silence from launch restarts the agent, posting nothing to an extension that is not there`() async throws {
         try await client.activate()
+
+        clock.advance(toSecond: 3600)
+
+        #expect(notifier.posts(of: HostNotification.recover).isEmpty)
+        var asked = agent.asked.makeAsyncIterator()
+        #expect(await asked.next() == 1)
+        #expect(client.lastAgentRestart.map(Moment.millisecond(of:)) == 30_001)
+        #expect(client.currentStatus == .recovering(.restartAgent))
+        #expect(clock.scheduled.isEmpty)
+    }
+
+    @Test func `silence after a heartbeat climbs the ladder in the extension, then restarts the agent once`() async throws {
+        try await client.activate()
+        clock.advance(toSecond: 3)
+        notifier.deliver(Heartbeat(generation: 5, flags: .desktopSurfaceAcquired))
 
         clock.advance(toSecond: 3600)
 
         #expect(notifier.posts(of: HostNotification.recover).map(\.state) == [0, 1, 2])
         var asked = agent.asked.makeAsyncIterator()
         #expect(await asked.next() == 1)
-        #expect(client.lastAgentRestart.map(Moment.millisecond(of:)) == 50_001)
+        #expect(client.lastAgentRestart.map(Moment.millisecond(of:)) == 48_001)
         #expect(client.currentStatus == .recovering(.restartAgent))
-        #expect(clock.scheduled.isEmpty)
     }
 
     @Test func `a heartbeat keeps one check waiting, at the moment it expires`() async throws {
@@ -156,6 +173,27 @@ struct ExtensionHostClientTests {
 
         #expect(agent.restarts == 1)
         #expect(notifier.posts(of: HostNotification.recover).isEmpty)
+    }
+
+    @Test func `a restart is recorded for the next launch`() async throws {
+        try await client.activate()
+        clock.advance(toSecond: 10)
+
+        await client.recover(.restartAgent)
+
+        #expect(restarts.lastRestart.map(Moment.millisecond(of:)) == 10_000)
+    }
+
+    @Test func `a restart recorded by the last launch keeps the ten-minute gap`() async throws {
+        restarts.lastRestart = Moment.after(-60)
+        try await client.activate()
+
+        await client.recover(.restartAgent)
+        clock.advance(toSecond: 540)
+        await client.recover(.restartAgent)
+
+        #expect(agent.restarts == 1)
+        #expect(client.lastAgentRestart.map(Moment.millisecond(of:)) == 540_000)
     }
 
     // MARK: The render state

@@ -45,10 +45,13 @@ public func judgeProgress(before: Int, after: Int, expected: Int, attempt: Int) 
     return .recover(RecoveryLevel(step: attempt))
 }
 
+/// The least time between two restarts of WallpaperAgent, whoever asks for them.
+public let agentRestartGap: Duration = .seconds(600)
+
 /// Whether WallpaperAgent may be restarted now. Both the watchdog's and the
 /// heartbeat's `.restartAgent` go through here, so the agent is never restarted
 /// twice within `minimumGap`.
-public func allowAgentRestart(last: Date?, now: Date, minimumGap: Duration = .seconds(600)) -> Bool {
+public func allowAgentRestart(last: Date?, now: Date, minimumGap: Duration = agentRestartGap) -> Bool {
     guard let last else { return true }
     return now.elapsed(since: last) >= minimumGap
 }

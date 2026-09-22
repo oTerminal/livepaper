@@ -74,6 +74,7 @@ struct AgentRestartLimitTests {
     }
 
     @Test func `the default gap is 10 minutes`() {
+        #expect(agentRestartGap == .seconds(600))
         #expect(!allowAgentRestart(last: Moment.launch, now: Moment.after(599)))
         #expect(allowAgentRestart(last: Moment.launch, now: Moment.after(600)))
     }

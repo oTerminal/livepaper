@@ -61,3 +61,22 @@ public final class Broadcast<Value: Sendable> {
         if readers.isEmpty { onLastReaderGone() }
     }
 }
+
+extension Broadcast where Value: Equatable {
+    /// Reads the value again once the system has settled: after each of
+    /// `waits`, counted from now, and sends it when it changed. A sensor calls
+    /// this on each event and cancels the task the last event started, so a
+    /// burst of events is read once, after the last of them.
+    func sendSettled(after waits: [Duration], _ read: @escaping () -> Value) -> Task<Void, Never> {
+        Task { [weak self] in
+            var waited = Duration.zero
+            for wait in waits {
+                do { try await Task.sleep(for: wait - waited) } catch { return }
+                waited = wait
+                guard let self else { return }
+                let value = read()
+                if value != latest { send(value) }
+            }
+        }
+    }
+}

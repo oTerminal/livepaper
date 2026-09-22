@@ -5,14 +5,12 @@ import LivepaperCore
 ///
 /// A connection that ends without the agent calling anything is the signature of
 /// an agent reconnecting in a loop (`Spikes/results/S7.md`). Four of those in a
-/// row signal, at most once per 10 minutes on the clock, and the app restarts
+/// row signal, at most once per `agentRestartGap` on the clock, and the app restarts
 /// the agent: the sandbox keeps the extension from doing it. A connection that
 /// was served resets the count.
 public struct SpiralDetector: Equatable, Sendable {
     /// Empty connections in a row that signal.
     public static let emptyConnectionsThatSignal = 4
-    /// The least time between two signals, the same as between two agent restarts.
-    public static let minimumGap: Duration = .seconds(600)
 
     public private(set) var emptyInARow = 0
     public private(set) var lastSignal: Date?
@@ -31,20 +29,20 @@ public struct SpiralDetector: Equatable, Sendable {
         }
         emptyInARow += 1
         guard emptyInARow >= Self.emptyConnectionsThatSignal,
-              allowAgentRestart(last: lastSignal, now: now, minimumGap: Self.minimumGap) else { return false }
+              allowAgentRestart(last: lastSignal, now: now) else { return false }
         lastSignal = now
         unanswered = true
         return true
     }
 
     /// Whether the heartbeat should carry `spiralDetected`: from a signal until
-    /// a connection is served or `minimumGap` passes. The app acts on the flag
+    /// a connection is served or `agentRestartGap` passes. The app acts on the flag
     /// through `allowAgentRestart`, so holding it up cannot restart the agent
     /// twice; taking it down after the gap stops a flag that nobody acted on
     /// (no app running) from standing for good, and a spiral that goes on
     /// signals again then.
     public func isSignalling(at now: Date) -> Bool {
         guard unanswered, let lastSignal else { return false }
-        return now.timeIntervalSince(lastSignal) < Self.minimumGap / .seconds(1)
+        return now.timeIntervalSince(lastSignal) < agentRestartGap / .seconds(1)
     }
 }

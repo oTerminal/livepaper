@@ -15,7 +15,7 @@ nonisolated public enum AgentRestartReason: Hashable, Sendable {
 
 /// Why a restart that was asked for is not made now.
 nonisolated public enum AgentRestartRefusal: Equatable, Sendable {
-    /// The last restart was less than `HostStatusReducer.agentRestartGap` ago.
+    /// The last restart was less than `agentRestartGap` ago.
     case tooSoon(allowedFrom: Date)
     /// The last restart has not been followed by a heartbeat. When Livepaper is
     /// not selected the agent never launches the extension, so restarting it
@@ -25,7 +25,9 @@ nonisolated public enum AgentRestartRefusal: Equatable, Sendable {
 
 /// What the host's status is reduced over.
 nonisolated public enum HostEvent: Equatable, Sendable {
-    case activated(at: Date)
+    /// `lastAgentRestart` is the last restart that an earlier launch recorded,
+    /// so that relaunching the app does not open the gap early.
+    case activated(at: Date, lastAgentRestart: Date? = nil)
     case heartbeat(Heartbeat, at: Date)
     /// The clock, at the reducer's `nextCheck`.
     case tick(at: Date)
@@ -38,7 +40,7 @@ nonisolated public enum HostEvent: Equatable, Sendable {
     /// When the event happened; the two that carry no time change nothing that depends on it.
     public var time: Date? {
         switch self {
-        case .activated(let at), .heartbeat(_, let at), .tick(let at), .systemDidWake(let at), .restartRequested(let at): at
+        case .activated(let at, _), .heartbeat(_, let at), .tick(let at), .systemDidWake(let at), .restartRequested(let at): at
         case .systemWillSleep, .deactivated: nil
         }
     }
@@ -48,6 +50,9 @@ nonisolated public enum HostEvent: Equatable, Sendable {
 nonisolated public enum HostAction: Equatable, Sendable {
     /// Post `HostNotification.recover` with this level: the extension tries it inside its process.
     case postRecover(RecoveryLevel)
+    /// A level the extension would try inside its process, not posted: no
+    /// heartbeat has come since activation, so no extension is there to receive it.
+    case recoverSkipped(RecoveryLevel)
     case restartAgent(AgentRestartReason)
     /// Said once per reason until something changes, so that the log shows it without repeating it.
     case restartRefused(AgentRestartReason, AgentRestartRefusal)
@@ -62,11 +67,19 @@ nonisolated public enum HostAction: Equatable, Sendable {
 /// restart is not made while the last restart has had no heartbeat since:
 /// when Livepaper is not selected, silence is all the app ever gets.
 ///
+/// Silence before the first heartbeat since activation is the install hazard
+/// (record 0001): the extension was killed and the agent has not started it
+/// again. The levels below `.restartAgent` are notifications that the
+/// extension handles in its own process, so with no extension nobody receives
+/// them. Until a heartbeat has come, they are skipped and said so, and the
+/// agent is restarted one step after the grace period, where the ladder
+/// would have reached `.rebuildSurface`. Once one has come, silence climbs
+/// the whole ladder.
+///
 /// A wake starts a new grace period, because the extension's heartbeat from
 /// before the sleep is old by then and says nothing about whether it is alive.
+/// It does not count as a heartbeat.
 nonisolated public struct HostStatusReducer: Equatable, Sendable {
-    /// The least time between two restarts of the agent.
-    public static let agentRestartGap: Duration = .seconds(600)
     /// How far past a change of `judgeHeartbeat`'s answer the next check lands,
     /// so that it lands on the far side of it.
     static let resolution: Duration = .milliseconds(1)
@@ -102,7 +115,7 @@ nonisolated public struct HostStatusReducer: Equatable, Sendable {
     public mutating func reduce(_ event: HostEvent) -> [HostAction] {
         var actions: [HostAction] = []
         switch event {
-        case .activated(let at): activate(at: at)
+        case .activated(let at, let recorded): activate(at: at, lastAgentRestart: recorded)
         case .heartbeat(let heartbeat, let at): actions = receive(heartbeat, at: at)
         case .tick(let at): actions = climb(at: at)
         case .systemWillSleep: if case .awake = phase { phase = .asleep }
@@ -115,10 +128,15 @@ nonisolated public struct HostStatusReducer: Equatable, Sendable {
         return actions
     }
 
-    private mutating func activate(at now: Date) {
+    /// A restart recorded later than now was recorded before the clock moved
+    /// back; it counts as made now, so that the gap still runs, and no longer.
+    private mutating func activate(at now: Date, lastAgentRestart recorded: Date?) {
         phase = .awake(graceFrom: now)
         activatedAt = now
         climbed = nil
+        if let recorded {
+            lastAgentRestart = max(lastAgentRestart ?? .distantPast, min(recorded, now))
+        }
     }
 
     private mutating func wake(at now: Date) {
@@ -150,11 +168,18 @@ nonisolated public struct HostStatusReducer: Equatable, Sendable {
     }
 
     private mutating func climb(at now: Date) -> [HostAction] {
-        guard let level = judge(at: now) else { return [] }
+        guard let level = levelReached(at: now) else { return [] }
         var actions: [HostAction] = []
         if climbed.map({ level > $0 }) ?? true {
+            if heardSinceActivation {
+                if level < .restartAgent { actions.append(.postRecover(level)) }
+            } else {
+                let skipped = RecoveryLevel.allCases.filter { passed in
+                    passed < .restartAgent && passed <= level && climbed.map { passed > $0 } ?? true
+                }
+                actions += skipped.map(HostAction.recoverSkipped)
+            }
             climbed = level
-            if level < .restartAgent { actions.append(.postRecover(level)) }
         }
         if level == .restartAgent { actions += requestRestart(.silence, at: now) }
         return actions
@@ -164,8 +189,8 @@ nonisolated public struct HostStatusReducer: Equatable, Sendable {
         if reason != .user, restartUnanswered {
             return refuse(reason, .awaitingHeartbeat)
         }
-        if let last = lastAgentRestart, !allowAgentRestart(last: last, now: now, minimumGap: Self.agentRestartGap) {
-            return refuse(reason, .tooSoon(allowedFrom: last + Self.agentRestartGap))
+        if let last = lastAgentRestart, !allowAgentRestart(last: last, now: now) {
+            return refuse(reason, .tooSoon(allowedFrom: last + agentRestartGap))
         }
         lastAgentRestart = now
         restartUnanswered = true
@@ -184,6 +209,18 @@ nonisolated public struct HostStatusReducer: Equatable, Sendable {
         return judgeHeartbeat(last: lastHeartbeatAt, now: now, launchedAt: graceFrom, timing: timing)
     }
 
+    /// `judgeHeartbeat`'s level, except that before the first heartbeat since
+    /// activation every level past the first is `.restartAgent`.
+    private func levelReached(at now: Date) -> RecoveryLevel? {
+        guard let level = judge(at: now) else { return nil }
+        return heardSinceActivation || level == .flush ? level : .restartAgent
+    }
+
+    private var heardSinceActivation: Bool {
+        guard let heard = lastHeartbeatAt, let activatedAt else { return false }
+        return heard >= activatedAt
+    }
+
     private func derivedStatus(at now: Date?) -> RenderHostStatus {
         switch phase {
         case .stopped:
@@ -192,10 +229,8 @@ nonisolated public struct HostStatusReducer: Equatable, Sendable {
             return status
         case .awake:
             if restartUnanswered { return .recovering(.restartAgent) }
-            if let now, let level = judge(at: now) { return .recovering(level) }
-            guard let heartbeat = lastHeartbeat, let at = lastHeartbeatAt, let activatedAt, at >= activatedAt else {
-                return .connecting
-            }
+            if let now, let level = levelReached(at: now) { return .recovering(level) }
+            guard heardSinceActivation, let heartbeat = lastHeartbeat else { return .connecting }
             return Self.status(for: heartbeat.flags)
         }
     }
@@ -205,15 +240,15 @@ nonisolated public struct HostStatusReducer: Equatable, Sendable {
         return flags.contains(.desktopSurfaceAcquired) ? .live : .notSelected
     }
 
-    /// Where `judgeHeartbeat` next changes its answer. It counts its steps from
+    /// Where `levelReached` next changes its answer. `judgeHeartbeat` counts its steps from
     /// the moment the last heartbeat expires, or from the end of the grace
     /// period when there has been none since it began, and says nothing before
     /// the grace period ends.
     private func nextCheck(after now: Date) -> Date? {
         guard case .awake(let graceFrom) = phase else { return nil }
-        if judge(at: now) == .restartAgent {
+        if levelReached(at: now) == .restartAgent {
             guard !restartUnanswered, let last = lastAgentRestart else { return nil }
-            let gapOpens = last + Self.agentRestartGap
+            let gapOpens = last + agentRestartGap
             return gapOpens > now ? gapOpens + Self.resolution : nil
         }
         let graceEnds = graceFrom + timing.grace

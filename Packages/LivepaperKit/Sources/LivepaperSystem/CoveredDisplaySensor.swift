@@ -63,23 +63,14 @@ public final class SystemCoveredDisplaySensor: CoveredDisplaySensor {
 
     private func somethingMoved() {
         settling?.cancel()
-        settling = Task { [weak self] in
-            var waited = Duration.zero
-            for settle in Self.settles {
-                try? await Task.sleep(for: settle - waited)
-                waited = settle
-                guard !Task.isCancelled, let self else { return }
-                let covered = Self.coveredNow()
-                if covered != broadcast.latest { broadcast.send(covered) }
-            }
-        }
+        settling = broadcast.sendSettled(after: Self.settles) { Self.coveredNow() }
     }
 
     private static func coveredNow() -> Set<DisplayIdentity> {
         coveredDisplays(
             windows: WindowList.onScreen(),
             displays: ConnectedDisplays.current(),
-            ignoringOwner: ProcessInfo.processInfo.processIdentifier
+            ignoringOwners: WindowList.ownersThatCoverNothing()
         )
     }
 }
@@ -87,6 +78,16 @@ public final class SystemCoveredDisplaySensor: CoveredDisplaySensor {
 /// The on-screen windows, by bounds, layer and owner. Window names would need
 /// Screen Recording, so they are never asked for.
 enum WindowList {
+    static let dockBundleIdentifier = "com.apple.dock"
+
+    /// The app itself, and the Dock, whose display-sized window sits above the
+    /// normal level on every display. The Dock is found by its bundle
+    /// identifier on each read, since it gets a new process when it restarts.
+    static func ownersThatCoverNothing() -> Set<Int32> {
+        let dock = NSRunningApplication.runningApplications(withBundleIdentifier: dockBundleIdentifier).map(\.processIdentifier)
+        return Set(dock).union([ProcessInfo.processInfo.processIdentifier])
+    }
+
     static func onScreen() -> [WindowListEntry] {
         let options: CGWindowListOption = [.optionOnScreenOnly, .excludeDesktopElements]
         guard let windows = CGWindowListCopyWindowInfo(options, kCGNullWindowID) as? [[String: Any]] else { return [] }

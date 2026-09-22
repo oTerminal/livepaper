@@ -9,12 +9,14 @@ private struct Script {
     /// An action, with any time in it in milliseconds since launch.
     enum Did: Equatable {
         case post(RecoveryLevel)
+        case skip(RecoveryLevel)
         case restart(AgentRestartReason)
         case refuse(AgentRestartReason, untilMillisecond: Int?)
 
         init(_ action: HostAction) {
             switch action {
             case .postRecover(let level): self = .post(level)
+            case .recoverSkipped(let level): self = .skip(level)
             case .restartAgent(let reason): self = .restart(reason)
             case .restartRefused(let reason, .tooSoon(let allowedFrom)):
                 self = .refuse(reason, untilMillisecond: Moment.millisecond(of: allowedFrom))
@@ -39,8 +41,8 @@ private struct Script {
     var reducer = HostStatusReducer(timing: .standard)
     var steps: [Step] = []
 
-    init(activatedAt seconds: Double = 0) {
-        send(.activated(at: Moment.after(seconds)))
+    init(activatedAt seconds: Double = 0, lastAgentRestartAt restartSecond: Double? = nil) {
+        send(.activated(at: Moment.after(seconds), lastAgentRestart: restartSecond.map(Moment.after)))
     }
 
     mutating func send(_ event: HostEvent, at date: Date? = nil) {
@@ -113,38 +115,64 @@ struct HostStatusReducerTests {
         #expect(script.steps.isEmpty)
     }
 
-    @Test func `silence after launch climbs the ladder a step at a time, then restarts the agent once`() {
+    @Test func `silence from launch skips the levels nobody can receive and restarts the agent a step after the grace period`() {
         var script = Script()
 
         script.runClock(until: 3600)
 
         #expect(script.steps == [
-            .init(20_001, .post(.flush)),
-            .init(30_001, .post(.rebuildSurface)),
-            .init(40_001, .post(.rebuildPipeline)),
-            .init(50_001, .restart(.silence)),
+            .init(20_001, .skip(.flush)),
+            .init(30_001, .skip(.rebuildSurface)),
+            .init(30_001, .skip(.rebuildPipeline)),
+            .init(30_001, .restart(.silence)),
         ])
         #expect(script.reducer.status == .recovering(.restartAgent))
     }
 
-    @Test func `silence reports the level it has reached`() {
+    @Test func `silence from launch reports the first level until the restart is due`() {
         var script = Script()
 
-        script.runClock(until: 35)
+        script.runClock(until: 25)
+
+        #expect(script.reducer.status == .recovering(.flush))
+        #expect(script.reducer.nextCheck.map(Moment.millisecond(of:)) == 30_001)
+    }
+
+    @Test func `a wake before the first heartbeat still skips the levels nobody can receive`() {
+        var script = Script()
+        script.send(.systemWillSleep)
+        script.send(.systemDidWake(at: Moment.after(1000)))
+
+        script.runClock(until: 1100)
+
+        #expect(script.steps == [
+            .init(1_020_001, .skip(.flush)),
+            .init(1_030_001, .skip(.rebuildSurface)),
+            .init(1_030_001, .skip(.rebuildPipeline)),
+            .init(1_030_001, .restart(.silence)),
+        ])
+    }
+
+    @Test func `silence reports the level it has reached`() {
+        var script = Script()
+        script.heartbeats(from: 3, through: 23)
+
+        script.runClock(until: 50)
 
         #expect(script.reducer.status == .recovering(.rebuildSurface))
     }
 
-    @Test func `silence after heartbeats starts the ladder when the last one expires`() {
+    @Test func `silence after heartbeats climbs the whole ladder from when the last one expires`() {
         var script = Script()
         script.heartbeats(from: 3, through: 23)
 
-        script.runClock(until: 60)
+        script.runClock(until: 70)
 
         #expect(script.steps == [
             .init(38_001, .post(.flush)),
             .init(48_001, .post(.rebuildSurface)),
             .init(58_001, .post(.rebuildPipeline)),
+            .init(68_001, .restart(.silence)),
         ])
     }
 
@@ -156,7 +184,7 @@ struct HostStatusReducerTests {
 
         #expect(script.reducer.status == .live)
         #expect(!script.reducer.restartUnanswered)
-        #expect(script.reducer.lastAgentRestart.map(Moment.millisecond(of:)) == 50_001)
+        #expect(script.reducer.lastAgentRestart.map(Moment.millisecond(of:)) == 30_001)
     }
 
     @Test func `when Livepaper is not selected the agent is restarted once, not every ten minutes`() {
@@ -164,7 +192,7 @@ struct HostStatusReducerTests {
 
         script.runClock(until: 86_400)
 
-        #expect(script.restarts.map(\.millisecond) == [50_001])
+        #expect(script.restarts.map(\.millisecond) == [30_001])
         #expect(script.reducer.restartUnanswered)
         #expect(script.reducer.nextCheck == nil)
         #expect(script.reducer.status == .recovering(.restartAgent))
@@ -176,7 +204,7 @@ struct HostStatusReducerTests {
 
         script.send(.restartRequested(at: Moment.after(700)))
 
-        #expect(script.restarts.map(\.millisecond) == [50_001, 700_000])
+        #expect(script.restarts.map(\.millisecond) == [30_001, 700_000])
     }
 
     @Test func `a heartbeat after an unanswered restart lets silence restart the agent again`() {
@@ -187,7 +215,7 @@ struct HostStatusReducerTests {
         script.runClock(until: 2000)
 
         // The heartbeat at 900 s expires at 915 s; the ladder reaches the agent 30 s later.
-        #expect(script.restarts.map(\.millisecond) == [50_001, 945_001])
+        #expect(script.restarts.map(\.millisecond) == [30_001, 945_001])
     }
 
     @Test func `a second silence within ten minutes waits for the gap, then restarts`() {
@@ -197,12 +225,42 @@ struct HostStatusReducerTests {
 
         script.runClock(until: 700)
 
-        // Silence from 67 s reaches the agent at 97 s, which is too soon after 50 s;
-        // the gap opens at 650 s.
+        // Silence from 67 s reaches the agent at 97 s, which is too soon after 30 s;
+        // the gap opens at 630 s.
         #expect(script.steps.suffix(2) == [
-            .init(97_001, .refuse(.silence, untilMillisecond: 650_001)),
-            .init(650_002, .restart(.silence)),
+            .init(97_001, .refuse(.silence, untilMillisecond: 630_001)),
+            .init(630_002, .restart(.silence)),
         ])
+    }
+
+    @Test func `a restart made before this launch keeps the ten-minute gap`() {
+        var script = Script(lastAgentRestartAt: -100)
+
+        script.runClock(until: 3600)
+
+        #expect(script.steps.suffix(2) == [
+            .init(30_001, .refuse(.silence, untilMillisecond: 500_000)),
+            .init(500_001, .restart(.silence)),
+        ])
+    }
+
+    @Test func `a restart recorded later than the launch counts as made at the launch`() {
+        // The clock moved back since: the gap runs from the launch, and no longer.
+        var script = Script(lastAgentRestartAt: 86_400)
+
+        script.send(.restartRequested(at: Moment.after(10)))
+
+        #expect(script.steps == [.init(10_000, .refuse(.user, untilMillisecond: 600_000))])
+    }
+
+    @Test func `activating again keeps a restart made since the record was read`() {
+        var script = Script(lastAgentRestartAt: -1000)
+        script.runClock(until: 51)
+        script.send(.deactivated)
+
+        script.send(.activated(at: Moment.after(100), lastAgentRestart: Moment.after(-1000)))
+
+        #expect(script.reducer.lastAgentRestart.map(Moment.millisecond(of:)) == 30_001)
     }
 
     static let flagRows: [Row<Heartbeat.Flags, AgentRestartReason>] = [
