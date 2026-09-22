@@ -73,6 +73,8 @@ public struct DisplayNowPlayingCard<Accessory: View>: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .opacity(status == nil ? 0 : 1)
+                // In step with the poster muting beside it.
+                .animation(accessibility.fade(Motion.Spring.ui), value: status == nil)
         }
         .lineLimit(1)
     }

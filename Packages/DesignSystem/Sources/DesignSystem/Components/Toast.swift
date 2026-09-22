@@ -31,7 +31,8 @@ public struct Toast: View {
                         .foregroundStyle(.tint)
                         .padding(.horizontal, Spacing.small)
                         .frame(minHeight: Spacing.minimumHitArea)
-                        .contentShape(.rect)
+                        .contentShape(.interaction, .rect)
+                        .contentShape(.focusEffect, .capsule)
                 }
                 .buttonStyle(.press)
             }

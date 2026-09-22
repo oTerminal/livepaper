@@ -48,6 +48,8 @@ public struct WallpaperTile<ID: Hashable, LivePreview: View>: View {
                     .foregroundStyle(isSelected ? .primary : .secondary)
                     .padding(.horizontal, Spacing.tight)
             }
+            // Selection never animates, even inside a caller's withAnimation.
+            .animation(nil, value: isSelected)
             .contentShape(.rect)
             // The ring follows the poster, not the title. Set here, on the label
             // itself: a shape on the picture inside it is not the button's.
@@ -109,6 +111,7 @@ public struct WallpaperTile<ID: Hashable, LivePreview: View>: View {
                     .strokeBorder(Color.accentColor, lineWidth: SelectionRing.width)
                     .padding(-SelectionRing.outset)
                     .opacity(isSelected ? 1 : 0)
+                    .animation(nil, value: isSelected)
             }
     }
 

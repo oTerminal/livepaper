@@ -76,6 +76,8 @@ public struct FitModePicker<Value: Hashable>: View {
             }
             .font(.callout)
             .foregroundStyle(isSelected ? .primary : .secondary)
+            // The colour changes over the pill's travel, not the instant of the click.
+            .animation(accessibility.animation(Motion.Spring.ui), value: isSelected)
             .padding(.horizontal, Spacing.medium)
             .frame(maxWidth: .infinity, minHeight: Spacing.minimumHitArea - 2 * Metrics.inset)
             .background {

@@ -37,9 +37,13 @@ public struct HotkeyRecorder: View {
         VStack(alignment: .leading, spacing: Spacing.tight) {
             HStack(spacing: Spacing.tight) {
                 field
-                if state.hotkey != nil, !state.isRecording {
-                    clearButton
-                }
+                // The slot is always laid out, so the field never moves on the click
+                // that starts recording, and rows in a trailing-aligned form line up.
+                let showsClear = state.hotkey != nil && !state.isRecording
+                clearButton
+                    .opacity(showsClear ? 1 : 0)
+                    .disabled(!showsClear)
+                    .accessibilityHidden(!showsClear)
             }
             caption
         }

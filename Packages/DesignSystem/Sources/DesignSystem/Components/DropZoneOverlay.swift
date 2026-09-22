@@ -78,6 +78,8 @@ public struct DropZoneOverlay: View {
         .padding(.vertical, Spacing.extraLarge)
         .frame(maxWidth: Metrics.plateMaxWidth)
         .layerSurface(.popover, in: RoundedRectangle(cornerRadius: Radius.panel, style: .continuous))
+        // The same elevation as the popover: one floating layer, one shadow.
+        .shadow(color: .black.opacity(0.18), radius: 24, y: 10)
         .padding(Spacing.section)
         .accessibilityElement(children: .ignore)
         // Title first, then the message, as one label: VoiceOver speaks a value before the label.
