@@ -24,6 +24,8 @@ public struct VolumeSlider: View {
             }
             .labelsHidden()
             .opacity(isMuted ? Metrics.mutedOpacity : 1)
+            // The mute button's withAnimation is for the symbol; the dimming snaps.
+            .animation(nil, value: isMuted)
             // The dimming is visual only, so say it.
             .accessibilityValue(isMuted ? Text("Muted, \(percent)", bundle: .module) : Text(percent))
             readout
@@ -60,6 +62,7 @@ public struct VolumeSlider: View {
             .font(.callout)
             .monospacedDigit()
             .foregroundStyle(isEnabled && !isMuted ? .secondary : .tertiary)
+            .animation(nil, value: isMuted)
             // The slider already carries the value.
             .accessibilityHidden(true)
     }
