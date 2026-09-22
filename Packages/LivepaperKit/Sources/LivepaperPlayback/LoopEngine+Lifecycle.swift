@@ -53,8 +53,8 @@ extension LoopEngine {
     /// The part of a start that does not wait: nothing can come between the flush and the first frame.
     private func begin(_ media: LoopMedia, _ run: Int) {
         // Whatever an earlier engine or an earlier start left on the layer is stamped on another timeline.
-        renderer.flush()
-        audioRenderer?.flush()
+        guard onLayer({ $0.flushQueued() }) != nil else { return }
+        observeRenderer()
         tally.fold(ledger)
         ledger = PassLedger(frameDuration: media.frameDuration)
 
@@ -67,14 +67,17 @@ extension LoopEngine {
         }
         guard let first = enqueueFirstFrame(from: pass) else {
             pass.cancel()
-            cannotPlay(EngineLog.passWithoutFrames(media.video.url))
+            // Retired while the first frame was read: there is nothing to report.
+            if !isRetired { cannotPlay(EngineLog.passWithoutFrames(media.video.url)) }
             return
         }
         videoPass = pass
         video = media.video
         // Time and rate in one call: the synchroniser updates its timebase asynchronously.
-        synchroniser.setRate(isPaused ? 0 : 1, time: first)
+        let rate: Float = isPaused ? 0 : 1
+        onLayer { $0.synchroniser.setRate(rate, time: first) }
         probe.interruptGaps()
+        troubles.feeding()
         feedVideo(run)
         if pass.audio != nil { moveAudio(to: pass, run) } else { dropAudio() }
         openNextPassLater(run)
@@ -126,9 +129,11 @@ extension LoopEngine {
     func haltFeeding() {
         rampTask?.cancel()
         rampTask = nil
-        renderer.stopRequestingMediaData()
-        synchroniser.rate = 0
-        audioRenderer?.stopRequestingMediaData()
+        onLayer { access in
+            access.renderer.stopRequestingMediaData()
+            access.synchroniser.rate = 0
+            access.audio?.stopRequestingMediaData()
+        }
         releaseReaders()
     }
 
@@ -140,7 +145,8 @@ extension LoopEngine {
         audioWaitsForVideo = false
     }
 
-    /// A retired engine's own cleanup: its readers and its audio, never the layer's renderer or clock.
+    /// A retired engine's own cleanup: its readers, its probe and what it listened to. The
+    /// layer's renderer and clock are behind a closed gate, and its audio came off with the close.
     func windDown() {
         generation += 1
         startingRun = nil
@@ -149,7 +155,7 @@ extension LoopEngine {
         rampTask?.cancel()
         rampTask = nil
         releaseReaders()
-        dropAudio()
+        rendererObservation = nil
         probe.measureGaps(frameDuration: nil)
         metricsSubject = nil
         media = nil
@@ -160,7 +166,10 @@ extension LoopEngine {
     func flushRenderer(removingImage: Bool) async {
         await withCheckedContinuation { continuation in
             let once = ResumeOnce(continuation)
-            renderer.flush(removingDisplayedImage: removingImage) { once.resume() }
+            guard onLayer({ $0.renderer.flush(removingDisplayedImage: removingImage) { once.resume() } }) != nil else {
+                once.resume()
+                return
+            }
             queue.asyncAfter(deadline: .now() + Self.flushTimeout) { once.resume() }
         }
     }
@@ -169,7 +178,8 @@ extension LoopEngine {
 
     func ramp(to target: Float) {
         rampTask?.cancel()
-        let from = synchroniser.rate
+        rampTask = nil
+        guard let from = onLayer({ $0.synchroniser.rate }) else { return }
         rampTask = Task { await self.runRamp(from: from, to: target) }
     }
 
@@ -178,9 +188,9 @@ extension LoopEngine {
             try? await Task.sleep(for: Self.rateRamp / Self.rateRampSteps)
             guard !Task.isCancelled else { return }
             let rate = from + (target - from) * Float(step) / Float(Self.rateRampSteps)
-            synchroniser.rate = rate
-            // The sound follows the picture down and up, so that the ramp does not click.
-            audioRenderer?.volume = Float(volume) * rate
+            let volume = volume
+            // Retired mid-ramp: the clock is another engine's now.
+            guard onLayer({ $0.step(rate: rate, volume: volume) }) != nil else { return }
         }
     }
 }

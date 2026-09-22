@@ -3,13 +3,17 @@
 // the seam defect. `displayedPixelBuffer()` hands back a new CVPixelBuffer every time, so a
 // picture is told apart by the IOSurface behind it, which stays the same while it is up.
 
+/// A picture on screen, as the ID of the `IOSurface` behind it: the same for as long as that
+/// picture is up.
+typealias PictureID = UInt32
+
 /// Counts the new pictures a surface showed over one window, for the watchdog.
 struct DisplayedPictureCounter: Equatable, Sendable {
     /// Host time, in seconds.
     let start: Double
     let end: Double
     let frameDuration: Double
-    private var last: UInt32?
+    private var last: PictureID?
     private var changes = 0
 
     init(from start: Double, window: Duration, frameDuration: Double) {
@@ -18,12 +22,12 @@ struct DisplayedPictureCounter: Equatable, Sendable {
         self.frameDuration = frameDuration
     }
 
-    /// One poll: the ID of the `IOSurface` behind the picture on screen at `time`, nil when
-    /// there was none. The first picture seen was already up, so it is not a new one.
-    mutating func observe(_ surface: UInt32?, at time: Double) {
-        guard time >= start, time < end, let surface else { return }
-        if let last, surface != last { changes += 1 }
-        last = surface
+    /// One poll: the picture on screen at `time`, nil when there was none. The first picture
+    /// seen was already up, so it is not a new one.
+    mutating func observe(_ picture: PictureID?, at time: Double) {
+        guard time >= start, time < end, let picture else { return }
+        if let last, picture != last { changes += 1 }
+        last = picture
     }
 
     func isOver(at time: Double) -> Bool {
@@ -61,7 +65,7 @@ struct PresentedGaps: Equatable, Sendable {
 
     private var seams: [Seam] = []
     private var seamsWatchedBefore = 0
-    private var lastSurface: UInt32?
+    private var lastPicture: PictureID?
     private var lastChange: Double?
     private var measuringFrom = -Double.infinity
 
@@ -79,10 +83,10 @@ struct PresentedGaps: Equatable, Sendable {
         seams.append(Seam(due: time))
     }
 
-    mutating func observe(_ surface: UInt32?, at time: Double) {
-        guard let surface, surface != lastSurface else { return }
+    mutating func observe(_ picture: PictureID?, at time: Double) {
+        guard let picture, picture != lastPicture else { return }
         defer {
-            lastSurface = surface
+            lastPicture = picture
             lastChange = time
         }
         guard let since = lastChange, since >= measuringFrom, frameDuration > 0 else { return }
@@ -111,7 +115,7 @@ struct PresentedGaps: Equatable, Sendable {
 
     /// The clock stopped or the timeline started again: no interval spans it.
     mutating func interrupt(at time: Double) {
-        lastSurface = nil
+        lastPicture = nil
         lastChange = nil
         measuringFrom = time + Self.settling
     }

@@ -5,19 +5,19 @@ import Testing
 private typealias Sighting = DisplayedPictureCounterTests.Sighting
 
 /// A 30 fps wallpaper whose picture changes every frame from `start`: `count` sightings, one per frame.
-private func steady(from start: Double, count: Int, firstSurface: UInt32 = 1) -> [Sighting] {
-    (0 ..< count).map { Sighting(firstSurface + UInt32($0), start + Double($0) / 30) }
+private func steady(from start: Double, count: Int, firstPicture: PictureID = 1) -> [Sighting] {
+    (0 ..< count).map { Sighting(firstPicture + PictureID($0), start + Double($0) / 30) }
 }
 
 struct DisplayedPictureCounterTests {
-    /// One poll of the picture on screen: the `IOSurface` ID behind it, nil when there was none,
+    /// One poll of the picture on screen: the ID of the `IOSurface` behind it, nil when there was none,
     /// at a host time in seconds.
     struct Sighting: Sendable {
-        var surface: UInt32?
+        var picture: PictureID?
         var at: Double
 
-        init(_ surface: UInt32?, _ at: Double) {
-            self.surface = surface
+        init(_ picture: PictureID?, _ at: Double) {
+            self.picture = picture
             self.at = at
         }
     }
@@ -47,7 +47,7 @@ struct DisplayedPictureCounterTests {
     func `counts the pictures that changed in the window`(row: Row<[Sighting], Int>) {
         var counter = DisplayedPictureCounter(from: 10, window: .seconds(2), frameDuration: 1.0 / 30)
 
-        for sighting in row.input { counter.observe(sighting.surface, at: sighting.at) }
+        for sighting in row.input { counter.observe(sighting.picture, at: sighting.at) }
 
         #expect(counter.count.displayed == row.expected)
     }
@@ -83,7 +83,7 @@ struct DisplayedPictureCounterTests {
     @Test(arguments: verdicts)
     func `the count is what the watchdog judges`(row: Row<[Sighting], WatchdogVerdict>) {
         var counter = DisplayedPictureCounter(from: 10, window: .seconds(2), frameDuration: 1.0 / 30)
-        for sighting in row.input { counter.observe(sighting.surface, at: sighting.at) }
+        for sighting in row.input { counter.observe(sighting.picture, at: sighting.at) }
 
         let count = counter.count
         let verdict = judgeProgress(before: 0, after: count.displayed, expected: count.expected, attempt: 0)
@@ -98,7 +98,7 @@ struct PresentedGapsTests {
     @Test func `a picture a frame is no gap`() {
         var gaps = PresentedGaps(frameDuration: Self.frame)
 
-        for sighting in steady(from: 10, count: 90) { gaps.observe(sighting.surface, at: sighting.at) }
+        for sighting in steady(from: 10, count: 90) { gaps.observe(sighting.picture, at: sighting.at) }
 
         #expect(gaps.intervals == 89)
         #expect(gaps.overLimitAtSeams == 0)
@@ -111,7 +111,7 @@ struct PresentedGapsTests {
         var sightings = steady(from: 10, count: 30)
         sightings.remove(at: 15)
 
-        for sighting in sightings { gaps.observe(sighting.surface, at: sighting.at) }
+        for sighting in sightings { gaps.observe(sighting.picture, at: sighting.at) }
 
         #expect(gaps.overLimitElsewhere == 1)
         #expect(gaps.overLimitAtSeams == 0)
@@ -124,7 +124,7 @@ struct PresentedGapsTests {
         sightings.remove(at: 15)
         gaps.seam(dueAt: 10 + 15.0 / 30)
 
-        for sighting in sightings { gaps.observe(sighting.surface, at: sighting.at) }
+        for sighting in sightings { gaps.observe(sighting.picture, at: sighting.at) }
 
         #expect(gaps.overLimitAtSeams == 1)
         #expect(gaps.overLimitElsewhere == 0)
@@ -136,7 +136,7 @@ struct PresentedGapsTests {
         var gaps = PresentedGaps(frameDuration: Self.frame)
         gaps.seam(dueAt: 10 + 15.0 / 30)
 
-        for sighting in steady(from: 10, count: 30) { gaps.observe(sighting.surface, at: sighting.at) }
+        for sighting in steady(from: 10, count: 30) { gaps.observe(sighting.picture, at: sighting.at) }
 
         #expect(gaps.seamsWatched == 1)
         #expect(gaps.overLimitAtSeams == 0)
@@ -147,17 +147,17 @@ struct PresentedGapsTests {
         var gaps = PresentedGaps(frameDuration: Self.frame)
         gaps.seam(dueAt: 5)
 
-        for sighting in steady(from: 10, count: 30) { gaps.observe(sighting.surface, at: sighting.at) }
+        for sighting in steady(from: 10, count: 30) { gaps.observe(sighting.picture, at: sighting.at) }
 
         #expect(gaps.seamsWatched == 0)
     }
 
     @Test func `a pause is not a gap`() {
         var gaps = PresentedGaps(frameDuration: Self.frame)
-        for sighting in steady(from: 10, count: 10) { gaps.observe(sighting.surface, at: sighting.at) }
+        for sighting in steady(from: 10, count: 10) { gaps.observe(sighting.picture, at: sighting.at) }
 
         gaps.interrupt(at: 10.4)
-        for sighting in steady(from: 20, count: 30, firstSurface: 100) { gaps.observe(sighting.surface, at: sighting.at) }
+        for sighting in steady(from: 20, count: 30, firstPicture: 100) { gaps.observe(sighting.picture, at: sighting.at) }
 
         #expect(gaps.overLimitElsewhere == 0)
         #expect(abs((gaps.largest ?? 0) - 1) < 0.001)
@@ -168,8 +168,8 @@ struct PresentedGapsTests {
         gaps.interrupt(at: 10)
 
         // A decoder warming up: a picture held for three frames just after the start.
-        let sightings = [Sighting(1, 10.0), Sighting(2, 10.1), Sighting(3, 10.2)] + steady(from: 11, count: 30, firstSurface: 10)
-        for sighting in sightings { gaps.observe(sighting.surface, at: sighting.at) }
+        let sightings = [Sighting(1, 10.0), Sighting(2, 10.1), Sighting(3, 10.2)] + steady(from: 11, count: 30, firstPicture: 10)
+        for sighting in sightings { gaps.observe(sighting.picture, at: sighting.at) }
 
         #expect(gaps.overLimitElsewhere == 0)
         #expect(gaps.intervals == 29)

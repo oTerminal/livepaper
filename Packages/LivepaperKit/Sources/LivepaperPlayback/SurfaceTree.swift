@@ -135,14 +135,29 @@ final class SurfaceTree {
     }
 }
 
-/// Decoded here, off the owner's actor, and at once rather than when first drawn.
-@concurrent
-func loadPoster(_ url: URL) async -> CGImage? {
-    guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
-    return CGImageSourceCreateImageAtIndex(source, 0, [kCGImageSourceShouldCacheImmediately: true] as CFDictionary)
+private let posterQueue = DispatchSerialQueue(label: "app.livepaper.playback.poster", qos: .userInitiated)
+
+/// Runs the layer trees' own blocking work (reading and decoding a poster, drawing a snapshot)
+/// on a queue of its own: never on the owner's actor, and never on Swift's cooperative pool,
+/// which has a thread per core and none to spare for a file read (M4-import.md, "As built").
+func onPosterQueue<Value: Sendable>(_ work: @escaping @Sendable () -> Value) async -> Value {
+    await withCheckedContinuation { continuation in
+        posterQueue.async { continuation.resume(returning: work()) }
+    }
 }
 
-@concurrent
+/// Decoded at once rather than when first drawn.
+func loadPoster(_ url: URL) async -> CGImage? {
+    await onPosterQueue {
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
+        return CGImageSourceCreateImageAtIndex(source, 0, [kCGImageSourceShouldCacheImmediately: true] as CFDictionary)
+    }
+}
+
 func renderPoster(_ image: CGImage, _ layout: SnapshotLayout) async -> IOSurface? {
-    SnapshotCanvas.render(image, layout)
+    await onPosterQueue { SnapshotCanvas.render(image, layout) }
+}
+
+func renderColour(_ colour: CGColor, surface: Size) async -> IOSurface? {
+    await onPosterQueue { SnapshotCanvas.fill(colour, surface: surface) }
 }

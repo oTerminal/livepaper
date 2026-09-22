@@ -62,10 +62,10 @@ public final class PreviewPlayer: NSView {
         nil
     }
 
-    // The renderer belongs to the layer, which goes with the view: the engine lets go of it first.
+    // The renderer belongs to the layer, which goes with the view: the engine lets go of it
+    // before the view is gone, and releases its readers on its own queue.
     deinit {
-        let engine = engine
-        Task { await engine.stop() }
+        engine.retire()
     }
 
     /// Plays `url` from its first frame, in place of whatever played; at once if the view can be

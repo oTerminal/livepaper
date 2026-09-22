@@ -49,7 +49,9 @@ struct OpacityChange: Equatable, Sendable {
 
 /// How a surface moves to another video (`Spikes/results/S5.md`). The lower layer is opaque
 /// once it has played and only the upper layer's opacity is ever animated, so in either
-/// direction something opaque with a picture is always there.
+/// direction something opaque with a picture is always there. A fresh start waits for its
+/// layer to be ready for display, so the layer is cleared of any earlier picture first: its
+/// readiness is then the new video's first picture.
 struct CrossfadePlan: Equatable, Sendable {
     enum Start: Equatable, Sendable {
         /// The engine on this layer starts the new video on a fresh timeline.
@@ -63,14 +65,14 @@ struct CrossfadePlan: Equatable, Sendable {
     }
 
     var start: Start
+    /// The layer whose picture is taken off before its engine starts.
+    var clears: VideoSlot?
     /// Set at once, before the engine starts.
     var before: [OpacityChange] = []
     /// Set at once when the starting layer reports it is ready for display.
     var whenReady: [OpacityChange] = []
     /// The one animated change, started when the starting layer is ready for display.
     var fade: OpacityChange?
-    /// The layer the video is on once the plan has run.
-    var front: VideoSlot?
     /// The layer whose engine stops once the fade is over.
     var stops: VideoSlot?
 }
@@ -79,34 +81,34 @@ func planCrossfade(_ situation: CrossfadeSituation, crossfade: Bool) -> Crossfad
     guard let front = situation.front else {
         // An acquire and a new render state can arrive together: a first engine that is still
         // starting is redirected rather than joined by a second one.
-        if let starting = situation.incoming { return CrossfadePlan(start: .redirect(starting), front: starting) }
+        if let starting = situation.incoming { return CrossfadePlan(start: .redirect(starting)) }
         return CrossfadePlan(
             start: .fresh(.lower),
+            clears: .lower,
             before: [OpacityChange(.upper, 0)],
-            whenReady: [OpacityChange(.lower, 1)],
-            front: .lower
+            whenReady: [OpacityChange(.lower, 1)]
         )
     }
-    if situation.incoming != nil { return CrossfadePlan(start: .afterCrossfade, front: front) }
-    guard crossfade else { return CrossfadePlan(start: .inPlace(front), front: front) }
+    if situation.incoming != nil { return CrossfadePlan(start: .afterCrossfade) }
+    guard crossfade else { return CrossfadePlan(start: .inPlace(front)) }
 
     switch front {
     case .lower:
         // The new video fades in on top of the old one, which stays opaque underneath.
         return CrossfadePlan(
             start: .fresh(.upper),
+            clears: .upper,
             before: [OpacityChange(.upper, 0)],
             fade: OpacityChange(.upper, 1),
-            front: .upper,
             stops: .lower
         )
     case .upper:
         // The new video starts underneath, already opaque, and the old one fades out above it.
         return CrossfadePlan(
             start: .fresh(.lower),
+            clears: .lower,
             before: [OpacityChange(.lower, 1)],
             fade: OpacityChange(.upper, 0),
-            front: .lower,
             stops: .upper
         )
     }

@@ -17,16 +17,7 @@ extension SurfaceLayers {
         showing[slot] = Showing(wallpaper: wallpaper, size: showing[slot]?.size)
         tree.transaction { tree.apply(plan.before) }
 
-        let engine = engines[slot]
-        await engine.setVolume(wallpaper.volume)
-        let video = await engine.play(wallpaper.video)
-        guard run == epoch else { return }
-        guard let video else {
-            // A redirect may have sent the engine to another video, and that is what failed.
-            incoming = nil
-            await cannotPlay(showing[slot]?.wallpaper ?? wallpaper)
-            return
-        }
+        guard let video = await startEngine(on: slot, wallpaper, clearing: plan.clears, run) else { return }
         showing[slot]?.size = video.size
         tree.transaction { layOut() }
 
@@ -57,6 +48,36 @@ extension SurfaceLayers {
             queued = nil
             await show(next.wallpaper, crossfade: next.crossfade)
         }
+    }
+
+    /// Starts the engine on `slot` on a layer cleared first when the plan says so. Nil when the
+    /// surface has moved on, or when the video cannot be played and the poster is held instead.
+    private func startEngine(
+        on slot: VideoSlot,
+        _ wallpaper: SurfaceWallpaper,
+        clearing clears: VideoSlot?,
+        _ run: Int
+    ) async -> LoopEngine.Video? {
+        if let clears {
+            // A layer can still hold an earlier picture (a rebuild retires engines without
+            // touching their layers), and then it would report ready at once: an engine that
+            // stops takes the picture off its layer.
+            await engines[clears].stop()
+            guard run == epoch else { return nil }
+        }
+        // A redirect that came meanwhile has the last word.
+        let wanted = showing[slot]?.wallpaper ?? wallpaper
+        let engine = engines[slot]
+        await engine.setVolume(wanted.volume)
+        let video = await engine.play(wanted.video)
+        guard run == epoch else { return nil }
+        guard let video else {
+            // A redirect may have sent the engine to another video, and that is what failed.
+            incoming = nil
+            await cannotPlay(showing[slot]?.wallpaper ?? wallpaper)
+            return nil
+        }
+        return video
     }
 
     /// Switches the engine on `slot` in place: the front one when no fade is asked, or the first

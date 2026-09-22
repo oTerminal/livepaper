@@ -8,10 +8,12 @@ import AVFoundation
 /// layer's life, so an engine that takes a layer over never has to wait for another to let go
 /// of it.
 ///
-/// `@unchecked Sendable` because AVFoundation does not mark the renderer Sendable. It holds
-/// because the renderer is the layer's way to be fed from a background queue
-/// (`sampleBufferRenderer`'s documentation): one engine's queue feeds it at a time, and the
-/// probe's queue only asks it for the picture on screen, as the spike's probe did for all of S2.
+/// `@unchecked Sendable` because AVFoundation does not mark the renderer or the synchroniser
+/// Sendable, though both are made to be fed and clocked from a queue other than the layer's.
+/// It holds because, once made here, nothing calls them except through an engine's
+/// `RetirementGate`, one call at a time (the engine's feeding, its probe and its snapshot
+/// alike), and a layer has one engine whose gate is open: an owner retires an engine, which
+/// closes its gate and waits for a call under way, before it hands the layer to another.
 public struct VideoLayerFeed: @unchecked Sendable {
     let renderer: AVSampleBufferVideoRenderer
     let synchroniser: AVSampleBufferRenderSynchronizer
@@ -24,5 +26,37 @@ public struct VideoLayerFeed: @unchecked Sendable {
         // the clock starts when the engine says, not when the synchroniser thinks it has enough.
         synchroniser.delaysRateChangeUntilHasSufficientMediaData = false
         synchroniser.addRenderer(renderer)
+    }
+}
+
+/// What one engine may touch on its layer, and only through its `RetirementGate`: the layer's
+/// renderer and clock, and the engine's own audio renderer while that is on the clock.
+struct LayerAccess {
+    let renderer: AVSampleBufferVideoRenderer
+    let synchroniser: AVSampleBufferRenderSynchronizer
+    /// Made the first time the volume is up, and on the layer's synchroniser until let go.
+    private(set) var audio: AVSampleBufferAudioRenderer?
+
+    init(_ feed: VideoLayerFeed) {
+        renderer = feed.renderer
+        synchroniser = feed.synchroniser
+    }
+
+    /// The engine's audio renderer, made and put on the layer's clock the first time.
+    mutating func audioRenderer() -> AVSampleBufferAudioRenderer {
+        if let audio { return audio }
+        let made = AVSampleBufferAudioRenderer()
+        synchroniser.addRenderer(made)
+        audio = made
+        return made
+    }
+
+    /// Stops the audio and takes its renderer off the layer's clock.
+    mutating func letAudioGo() {
+        guard let audio else { return }
+        audio.stopRequestingMediaData()
+        audio.flush()
+        synchroniser.removeRenderer(audio, at: .invalid, completionHandler: nil)
+        self.audio = nil
     }
 }

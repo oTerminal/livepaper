@@ -11,7 +11,8 @@ final class PictureProbe: Sendable {
     /// At 30 fps the gap limit is 50 ms and at 60 fps 25 ms: the spike polled every 4 ms.
     static let interval = DispatchTimeInterval.milliseconds(4)
 
-    private let feed: VideoLayerFeed
+    /// Its engine's gate: once the engine is retired the probe sees no picture.
+    private let gate: RetirementGate<LayerAccess>
     private let queue = DispatchSerialQueue(label: "app.livepaper.playback.probe", qos: .userInteractive)
     private let state = Mutex(State())
 
@@ -26,8 +27,8 @@ final class PictureProbe: Sendable {
         let continuation: CheckedContinuation<PictureCount, Never>
     }
 
-    init(feed: VideoLayerFeed) {
-        self.feed = feed
+    init(gate: RetirementGate<LayerAccess>) {
+        self.gate = gate
     }
 
     // A resumed timer lives until it is cancelled.
@@ -79,14 +80,14 @@ final class PictureProbe: Sendable {
     }
 
     private func poll() {
-        let surface = displayedSurface()
+        let picture = displayedPicture()
         let now = CACurrentMediaTime()
         let finished = state.withLock { state in
-            state.gaps?.observe(surface, at: now)
+            state.gaps?.observe(picture, at: now)
             var finished: [(CheckedContinuation<PictureCount, Never>, PictureCount)] = []
             var open: [Window] = []
             for var window in state.windows {
-                window.counter.observe(surface, at: now)
+                window.counter.observe(picture, at: now)
                 if window.counter.isOver(at: now) {
                     finished.append((window.continuation, window.counter.count))
                 } else {
@@ -107,9 +108,9 @@ final class PictureProbe: Sendable {
 
     /// The call hands back a new `CVPixelBuffer` every time, so the buffer says nothing; the
     /// `IOSurface` behind it stays the same while that picture is up.
-    private func displayedSurface() -> UInt32? {
-        guard let buffer = feed.renderer.displayedPixelBuffer(),
-              let surface = CVPixelBufferGetIOSurface(buffer)?.takeUnretainedValue() else { return nil }
-        return IOSurfaceGetID(surface)
+    private func displayedPicture() -> PictureID? {
+        guard let buffer = gate.pass({ $0.renderer.displayedPixelBuffer() }) ?? nil,
+              let backing = CVPixelBufferGetIOSurface(buffer)?.takeUnretainedValue() else { return nil }
+        return IOSurfaceGetID(backing)
     }
 }

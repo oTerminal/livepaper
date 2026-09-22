@@ -5,6 +5,50 @@
 import AVFoundation
 import QuartzCore
 
+/// Trouble on the layer, which the engine answers by starting again from a fresh reader.
+enum EngineTrouble {
+    case rendererFailed((any Error)?)
+    case rendererAskedForFlush
+    case readerFailed((any Error)?)
+    case audioFailed((any Error)?)
+    case passWithoutFrames
+}
+
+extension LayerAccess {
+    /// What the video renderer's state says is wrong, if anything.
+    var rendererTrouble: EngineTrouble? {
+        if renderer.status == .failed { return .rendererFailed(renderer.error) }
+        if renderer.requiresFlushToResumeDecoding { return .rendererAskedForFlush }
+        return nil
+    }
+
+    var audioTrouble: EngineTrouble? {
+        guard let audio, audio.status == .failed else { return nil }
+        return .audioFailed(audio.error)
+    }
+
+    /// A start's first frame, pushed to the render server at once: the layer lives in a remote context.
+    func enqueueFirst(_ frame: CMSampleBuffer) {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        renderer.enqueue(frame)
+        CATransaction.commit()
+        CATransaction.flush()
+    }
+
+    /// Drops what is queued on the video and the audio renderers, keeping the picture on screen.
+    func flushQueued() {
+        renderer.flush()
+        audio?.flush()
+    }
+
+    /// One step of a rate ramp; the sound follows the picture down and up, so that it does not click.
+    func step(rate: Float, volume: Double) {
+        synchroniser.rate = rate
+        audio?.volume = Float(volume) * rate
+    }
+}
+
 extension LoopEngine {
     var wantsAudio: Bool {
         volume > 0 && !audioBroken && media?.audioTrack != nil
@@ -20,61 +64,50 @@ extension LoopEngine {
 
     /// The first frame goes in with the clock stopped and is shown as soon as it is decoded, so
     /// that it cannot be judged late; its presentation time comes back, nil when the pass had
-    /// no frame. The first buffer a reader vends is a marker: skip to a frame.
+    /// no frame or the engine was retired meanwhile. The first buffer a reader vends is a
+    /// marker: skip to a frame.
     func enqueueFirstFrame(from pass: ReaderPass) -> CMTime? {
         while let buffer = pass.video.copyNextSampleBuffer() {
             guard let frame = stamped(buffer) else { continue }
             frame.displayImmediately()
-            CATransaction.begin()
-            CATransaction.setDisableActions(true)
-            renderer.enqueue(frame)
-            CATransaction.commit()
-            CATransaction.flush()
+            guard onLayer({ $0.enqueueFirst(frame) }) != nil else { return nil }
             return frame.presentationTimeStamp
         }
         return nil
     }
 
     func feedVideo(_ run: Int) {
-        renderer.requestMediaDataWhenReady(on: queue) { [weak self] in
-            self?.assumeIsolated { $0.pumpVideo(run) }
+        onLayer { access in
+            access.renderer.requestMediaDataWhenReady(on: queue) { [weak self] in
+                self?.assumeIsolated { $0.pumpVideo(run) }
+            }
         }
     }
 
     private func pumpVideo(_ run: Int) {
-        // A retired engine's layer may be another engine's by now, and a call for an earlier
-        // start may have been queued before that start was stopped: either way, whatever is
-        // registered now is someone else's, and stopping it here would stall them.
-        guard !isRetired, run == generation else { return }
-        if renderer.status == .failed {
-            tally.failures += 1
-            logger.error("\(EngineLog.rendererFailed(self.video?.url, self.renderer.error), privacy: .public)")
-            troubled(run)
+        // A call for an earlier start may have been queued before that start was stopped: what
+        // is registered now is the current start's, and stopping it here would stall it.
+        guard run == generation, let found = onLayer({ $0.rendererTrouble }) else { return }
+        if let trouble = found {
+            troubled(run, trouble)
             return
         }
-        if renderer.requiresFlushToResumeDecoding {
-            // The decoder needs a sync frame after a flush, and the reader is somewhere in the
-            // middle of a GOP: start the file again rather than feed it P-frames.
-            tally.flushes += 1
-            logger.notice("\(EngineLog.rendererAskedForFlush(self.video?.url), privacy: .public)")
-            troubled(run)
-            return
-        }
-        while renderer.isReadyForMoreMediaData {
-            guard !isRetired, let pass = videoPass else { return }
+        while onLayer({ $0.renderer.isReadyForMoreMediaData }) == true {
+            guard let pass = videoPass else { return }
+            // Blocks until the reader has the next buffer; the engine may be retired meanwhile,
+            // and then the gate turns away everything after the read.
             guard let buffer = pass.video.copyNextSampleBuffer() else {
-                renderer.stopRequestingMediaData()
+                onLayer { $0.renderer.stopRequestingMediaData() }
                 if pass.reader.status == .failed {
                     // Nil also means the reader broke, which is not the end of a pass.
-                    tally.failures += 1
-                    logger.error("\(EngineLog.readerFailed(self.video?.url, pass.reader.error), privacy: .public)")
-                    troubled(run)
+                    troubled(run, .readerFailed(pass.reader.error))
                 } else {
                     later { $0.videoPassEnded(run) }
                 }
                 return
             }
-            if let frame = stamped(buffer) { renderer.enqueue(frame) }
+            guard let frame = stamped(buffer) else { continue }
+            guard onLayer({ $0.renderer.enqueue(frame) }) != nil else { return }
         }
     }
 
@@ -88,26 +121,74 @@ extension LoopEngine {
     }
 
     private func noteSeam(at time: CMTime) {
-        let lead = (time - synchroniser.currentTime()).seconds
+        guard case let (now, rate)? = onLayer({ ($0.synchroniser.currentTime(), Double($0.synchroniser.rate)) }) else { return }
+        let lead = (time - now).seconds
         tally.smallestSeamLead = min(tally.smallestSeamLead ?? lead, lead)
-        let rate = Double(synchroniser.rate)
         if metricsSubject != nil, rate > 0 {
             probe.seam(dueAt: CACurrentMediaTime() + lead / rate)
         }
     }
 
-    /// A renderer that failed or asks for a flush, or a reader that broke: start again from a
-    /// fresh reader, since the one in hand is mid-GOP. A file that keeps failing is left for the watchdog.
-    private func troubled(_ run: Int) {
-        renderer.stopRequestingMediaData()
-        guard run == generation else { return }
-        restartsWithoutLoop += 1
-        guard restartsWithoutLoop <= Self.restartLimit else {
-            logger.error("\(EngineLog.gaveUp(self.video?.url, restarts: Self.restartLimit), privacy: .public)")
-            haltFeeding()
-            return
+    /// The renderer's own word, heard by notification: a renderer that failed or needs a flush
+    /// stops asking for data, so the pull callback may never see it.
+    func rendererSignalled(_ signal: RendererSignal) {
+        guard !isRetired, lifecycle == .running, videoPass != nil else { return }
+        let trouble: EngineTrouble? = switch signal {
+        case .failedToDecode(let error): .rendererFailed(error)
+        case .requiresFlushChanged: onLayer { $0.renderer.requiresFlushToResumeDecoding } == true ? .rendererAskedForFlush : nil
         }
-        Task { await self.restart() }
+        guard let trouble else { return }
+        troubled(generation, trouble)
+    }
+
+    func observeRenderer() {
+        guard rendererObservation == nil else { return }
+        rendererObservation = onLayer { access in
+            RendererObservation(access.renderer) { [weak self] signal in
+                self?.later { $0.rendererSignalled(signal) }
+            }
+        }
+    }
+
+    /// Trouble on the layer: start again from a fresh reader, since the one in hand is mid-GOP,
+    /// once however many ways it is reported. A file that keeps failing is left for the watchdog.
+    private func troubled(_ run: Int, _ trouble: EngineTrouble) {
+        guard run == generation, !isRetired else { return }
+        onLayer { $0.renderer.stopRequestingMediaData() }
+        switch troubles.trouble() {
+        case .ignore:
+            return
+        case .restart:
+            record(trouble)
+            Task { await self.restart() }
+        case .giveUp:
+            record(trouble)
+            logger.error("\(EngineLog.gaveUp(self.video?.url, restarts: TroubleResponse.limit), privacy: .public)")
+            haltFeeding()
+        }
+    }
+
+    private func record(_ trouble: EngineTrouble) {
+        let url = video?.url
+        switch trouble {
+        case .rendererFailed(let error):
+            tally.failures += 1
+            logger.error("\(EngineLog.rendererFailed(url, error), privacy: .public)")
+        case .rendererAskedForFlush:
+            // The decoder needs a sync frame after a flush, and the reader is somewhere in the
+            // middle of a GOP: start the file again rather than feed it P-frames.
+            tally.flushes += 1
+            logger.notice("\(EngineLog.rendererAskedForFlush(url), privacy: .public)")
+        case .readerFailed(let error):
+            tally.failures += 1
+            logger.error("\(EngineLog.readerFailed(url, error), privacy: .public)")
+        case .audioFailed(let error):
+            tally.failures += 1
+            logger.error("\(EngineLog.audioFailed(url, error), privacy: .public)")
+        case .passWithoutFrames:
+            tally.failures += 1
+            logger.error("\(EngineLog.passWithoutFrames(url), privacy: .public)")
+        }
     }
 
     private func videoPassEnded(_ run: Int) {
@@ -116,12 +197,10 @@ extension LoopEngine {
         ledger.finishPass()
         guard ledger.loops > loopsBefore else {
             // A pass with no frames would loop for ever and show nothing.
-            tally.failures += 1
-            logger.error("\(EngineLog.passWithoutFrames(media.video.url), privacy: .public)")
-            troubled(run)
+            troubled(run, .passWithoutFrames)
             return
         }
-        restartsWithoutLoop = 0
+        troubles.loopCompleted()
         loopCompleted()
 
         let next: ReaderPass
@@ -132,9 +211,7 @@ extension LoopEngine {
             do {
                 next = try ReaderPass(reading: media, withAudio: wantsAudio)
             } catch {
-                tally.failures += 1
-                logger.error("\(EngineLog.readerFailed(media.video.url, error), privacy: .public)")
-                troubled(run)
+                troubled(run, .readerFailed(error))
                 return
             }
         }
@@ -196,45 +273,39 @@ extension LoopEngine {
             return
         }
         audioPass = pass
-        let audio: AVSampleBufferAudioRenderer
-        if let existing = audioRenderer {
-            audio = existing
-        } else {
-            audio = AVSampleBufferAudioRenderer()
-            synchroniser.addRenderer(audio)
-            audioRenderer = audio
-        }
-        audio.volume = Float(volume) * (isPaused ? 0 : 1)
-        audio.requestMediaDataWhenReady(on: queue) { [weak self] in
-            self?.assumeIsolated { $0.pumpAudio(run) }
+        let level = Float(volume) * (isPaused ? 0 : 1)
+        onLayer { access in
+            let audio = access.audioRenderer()
+            audio.volume = level
+            audio.requestMediaDataWhenReady(on: queue) { [weak self] in
+                self?.assumeIsolated { $0.pumpAudio(run) }
+            }
         }
     }
 
     private func pumpAudio(_ run: Int) {
         // As for the video: a call for an earlier start leaves the current registration alone.
-        guard run == generation, !isRetired, let audio = audioRenderer else { return }
-        if audio.status == .failed {
+        guard run == generation, let found = onLayer({ $0.audioTrouble }) else { return }
+        if let trouble = found {
             // An audio output left unread can hold the video up, so the video starts again without it.
-            tally.failures += 1
-            logger.error("\(EngineLog.audioFailed(self.video?.url, audio.error), privacy: .public)")
             audioBroken = true
             dropAudio()
-            troubled(run)
+            troubled(run, trouble)
             return
         }
-        while audio.isReadyForMoreMediaData {
+        while onLayer({ $0.audio?.isReadyForMoreMediaData }) == true {
             guard let pass = audioPass, let output = pass.audio else {
-                audio.stopRequestingMediaData()
+                onLayer { $0.audio?.stopRequestingMediaData() }
                 return
             }
             guard let buffer = output.copyNextSampleBuffer() else {
-                audio.stopRequestingMediaData()
+                onLayer { $0.audio?.stopRequestingMediaData() }
                 later { $0.audioPassEnded(run) }
                 return
             }
             guard buffer.numSamples > 0, buffer.dataBuffer != nil,
                   let sample = buffer.shifted(by: pass.offset + buffer.editShift) else { continue }
-            audio.enqueue(sample)
+            guard onLayer({ $0.audio?.enqueue(sample) }) != nil else { return }
         }
     }
 
@@ -252,11 +323,7 @@ extension LoopEngine {
     func dropAudio() {
         audioPass = nil
         audioWaitsForVideo = false
-        guard let audio = audioRenderer else { return }
-        audio.stopRequestingMediaData()
-        audio.flush()
-        synchroniser.removeRenderer(audio, at: .invalid, completionHandler: nil)
-        audioRenderer = nil
+        onLayer { $0.letAudioGo() }
     }
 
     // MARK: Metrics
@@ -265,11 +332,13 @@ extension LoopEngine {
         guard let subject = metricsSubject, (tally.loops + ledger.loops) % Self.metricsInterval == 0 else { return }
         let metrics = metrics()
         let logger = logger
-        renderer.loadVideoPerformanceMetrics { performance in
-            var metrics = metrics
-            metrics.droppedFrames = performance?.numberOfDroppedFrames
-            metrics.totalFrames = performance?.totalNumberOfFrames
-            logger.notice("\(metrics.logLine(for: subject), privacy: .public)")
+        onLayer { access in
+            access.renderer.loadVideoPerformanceMetrics { performance in
+                var metrics = metrics
+                metrics.droppedFrames = performance?.numberOfDroppedFrames
+                metrics.totalFrames = performance?.totalNumberOfFrames
+                logger.notice("\(metrics.logLine(for: subject), privacy: .public)")
+            }
         }
     }
 }
