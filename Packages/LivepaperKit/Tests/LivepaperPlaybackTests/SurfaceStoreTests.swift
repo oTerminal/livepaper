@@ -174,7 +174,7 @@ struct SurfaceStoreTests {
         #expect(Self.told(row.input).store.hasLiveDesktopSurface == row.expected)
     }
 
-    @Test func `remembers the preview flag and the presentation mode`() {
+    @Test func `remembers the preview flag and the mode`() {
         var store = Self.told(.of((0, .acquire(1, display: 1)), (0, .acquire(2, display: 1, preview: true)))).store
 
         let updated = store.update(.numbered(1), mode: .locked)

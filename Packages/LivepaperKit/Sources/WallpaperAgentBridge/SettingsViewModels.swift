@@ -16,11 +16,11 @@ public struct SettingsEntry: Sendable {
     public var provider: String
     /// The tile's picture: a PNG that WallpaperAgent can read, such as a
     /// resource in the extension's bundle. The extension writes no file.
-    public var thumbnail: URL
+    public var tile: URL
 
-    public init(provider: String, thumbnail: URL) {
+    public init(provider: String, tile: URL) {
         self.provider = provider
-        self.thumbnail = thumbnail
+        self.tile = tile
     }
 
     static let name = "Livepaper"
@@ -35,10 +35,10 @@ public struct SettingsEntry: Sendable {
             descriptor: ChoiceIDDescriptor(provider: provider, identifier: choice, files: [], configuration: Data(choice.utf8))
         )
         let item = SettingsItem(
-            id: choiceID, localizedName: Self.name, thumbnail: .image(url: thumbnail),
+            id: choiceID, localizedName: Self.name, thumbnail: .image(url: tile),
             choice: ChoiceDescriptor(
                 id: choiceID, provider: provider, identifier: choice, name: Self.name,
-                localizedDescription: Self.summary, thumbnail: .image(url: thumbnail), isDownloaded: true, options: []
+                localizedDescription: Self.summary, thumbnail: .image(url: tile), isDownloaded: true, options: []
             ),
             contentBadge: .video, showInTopLevel: true, sortOrder: 0, disposability: .none, contextMenu: nil
         )

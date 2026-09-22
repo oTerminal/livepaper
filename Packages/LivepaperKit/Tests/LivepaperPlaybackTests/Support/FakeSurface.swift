@@ -22,6 +22,24 @@ final class Journal<Entry> {
     }
 }
 
+/// Holds whatever waits on it until the test opens it.
+final class Gate {
+    private var isOpen = false
+    private var waiters: [CheckedContinuation<Void, Never>] = []
+
+    func wait() async {
+        guard !isOpen else { return }
+        await withCheckedContinuation { waiters.append($0) }
+    }
+
+    func open() {
+        isOpen = true
+        let waiting = waiters
+        waiters = []
+        for waiter in waiting { waiter.resume() }
+    }
+}
+
 /// A surface that draws nothing: its state is what its calls leave, every call
 /// is recorded, and its displayed-picture counts are whatever the test says.
 final class FakeSurface: SurfacePlayback {
@@ -37,6 +55,8 @@ final class FakeSurface: SurfacePlayback {
     let calls = Journal<Call>()
     /// What the next counts give, in order. After them, every picture while it plays.
     var counts: [PictureCount?] = []
+    /// When set, each count is held until it opens, as a real one is for its window.
+    var countGate: Gate?
 
     var playbackCalls: [SurfaceCall] {
         calls.entries.compactMap { call in
@@ -99,6 +119,7 @@ final class FakeSurface: SurfacePlayback {
 
     func displayedPictures(over window: Duration) async -> PictureCount? {
         calls.append(.countPictures)
+        await countGate?.wait()
         if !counts.isEmpty { return counts.removeFirst() }
         return state == .playing ? PictureCount(displayed: 60, expected: 60) : nil
     }

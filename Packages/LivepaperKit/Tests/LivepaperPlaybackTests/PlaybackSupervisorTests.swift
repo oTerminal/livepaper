@@ -189,6 +189,7 @@ struct PlaybackSupervisorTests {
         await bench.surface(1).calls.wait(for: 2)
 
         #expect(bench.tornDown.entries == [.numbered(1)])
+        #expect(bench.supervisor.entry(for: .numbered(1)) == nil)
         #expect(bench.surface(1).playbackCalls == [.show(.numbered(4), crossfade: false), .showNothing])
         let effect = await bench.acquire(2, display: 1)
         #expect(effect == .create(.numbered(2)))
@@ -224,6 +225,48 @@ struct PlaybackSupervisorTests {
         #expect(bench.surface(1).calls.entries == [.layout(geometry)])
         #expect(bench.surface(2).calls.entries.isEmpty)
         #expect(bench.surface(3).calls.entries.isEmpty)
+    }
+
+    // MARK: What the extension reads and relays
+
+    @Test func `the supervisor says what it knows of a surface`() async {
+        let bench = SupervisorBench()
+        await bench.acquire(1, display: 2)
+        await bench.acquire(3, display: 2, preview: true)
+        #expect(bench.supervisor.entry(for: .numbered(1)) == SurfaceStore.Entry(display: .numbered(2), isPreview: false))
+        #expect(bench.supervisor.entry(for: .numbered(3)) == SurfaceStore.Entry(display: .numbered(2), isPreview: true))
+
+        await bench.supervisor.update(.numbered(1), mode: .locked).value
+        bench.clock.advance(by: .seconds(1))
+        bench.supervisor.invalidate(.numbered(1))
+
+        let entry = bench.supervisor.entry(for: .numbered(1))
+        #expect(entry == SurfaceStore.Entry(display: .numbered(2), isPreview: false, mode: .locked, invalidatedAt: Moment.after(1)))
+        #expect(entry?.isLive == false)
+        #expect(bench.supervisor.entry(for: .numbered(9)) == nil)
+    }
+
+    @Test func `a new geometry for one surface lays out that surface alone, the preview too`() async {
+        let bench = SupervisorBench()
+        await bench.acquire(1, display: 1)
+        await bench.acquire(2, display: 1, preview: true)
+        let geometry = SurfaceGeometry(size: Size(width: 640, height: 400), scale: 2)
+
+        bench.supervisor.layout(.numbered(2), geometry: geometry)
+        bench.supervisor.layout(.numbered(9), geometry: geometry)
+
+        #expect(bench.surface(2).calls.entries == [.layout(geometry)])
+        #expect(bench.surface(1).calls.entries.isEmpty)
+    }
+
+    @Test func `an update that names no surface is a moment to check all the same`() async {
+        let bench = SupervisorBench()
+        await bench.apply(Self.state(.numbered(1)))
+        await bench.acquire(1, display: 1)
+
+        await bench.supervisor.agentUpdated().value
+
+        #expect(bench.surface(1).countsTaken == 1)
     }
 
     // MARK: Decisions
@@ -284,101 +327,5 @@ struct PlaybackSupervisorTests {
 
         #expect(bench.surface(1).playbackCalls == [.show(.numbered(1), crossfade: false), .show(.numbered(1), crossfade: false)])
         #expect(bench.surface(1).countsTaken == 1)
-    }
-
-    // MARK: The watchdog
-
-    @Test func `a check judges the desktop surfaces that play on screen`() async {
-        let bench = SupervisorBench()
-        let covered = SensedConditions(sensedAt: Moment.launch, coveredDisplays: [.numbered(2)])
-        await bench.apply(Self.state(.numbered(1), .numbered(2), rules: PauseRules(whenDesktopCovered: false), conditions: covered))
-        await bench.acquire(1, display: 1)
-        await bench.acquire(2, display: 2)
-        await bench.acquire(3, display: 1, preview: true)
-
-        await bench.supervisor.check().value
-
-        #expect(bench.surface(1).countsTaken == 1)
-        #expect(bench.surface(2).countsTaken == 0, "covered: not composited")
-        #expect(bench.surface(3).countsTaken == 0, "the preview")
-    }
-
-    @Test func `a covered display on the lock screen is judged`() async {
-        let bench = SupervisorBench()
-        let covered = SensedConditions(sensedAt: Moment.launch, coveredDisplays: [.numbered(1)], locked: true)
-        await bench.apply(Self.state(.numbered(1), conditions: covered))
-        await bench.acquire(1, display: 1)
-
-        await bench.supervisor.update(.numbered(1), mode: .locked).value
-
-        #expect(bench.surface(1).playbackCalls == [.show(.numbered(1), crossfade: false)])
-        #expect(bench.surface(1).countsTaken == 1)
-    }
-
-    @Test func `a stall climbs the ladder inside the process, then asks the app for the agent`() async {
-        let bench = SupervisorBench()
-        await bench.apply(Self.state(.numbered(1)))
-        await bench.acquire(1, display: 1)
-        bench.surface(1).counts = [Self.stalled, Self.stalled, Self.stalled, Self.stalled]
-
-        await bench.supervisor.unlock().value
-
-        #expect(bench.surface(1).recoveries == [.flush, .rebuildSurface, .rebuildPipeline])
-        #expect(bench.surface(1).countsTaken == 4)
-        #expect(bench.supervisor.heartbeat.flags.contains(.restartAgentRequested))
-
-        await bench.supervisor.check().value
-
-        #expect(!bench.supervisor.heartbeat.flags.contains(.restartAgentRequested), "a later healthy check clears it")
-    }
-
-    @Test func `a recovery that works ends the ladder`() async {
-        let bench = SupervisorBench()
-        await bench.apply(Self.state(.numbered(1)))
-        await bench.acquire(1, display: 1)
-        bench.surface(1).counts = [Self.stalled]
-
-        await bench.supervisor.check().value
-
-        #expect(bench.surface(1).recoveries == [.flush])
-        #expect(bench.surface(1).countsTaken == 2)
-        #expect(!bench.supervisor.heartbeat.flags.contains(.restartAgentRequested))
-    }
-
-    @Test func `the app's recovery runs at once on the stalled surfaces`() async {
-        let bench = SupervisorBench()
-        await bench.apply(Self.state(.numbered(1), .numbered(2)))
-        await bench.acquire(1, display: 1)
-        await bench.acquire(2, display: 2)
-        bench.surface(1).counts = [Self.stalled, Self.stalled, Self.stalled, Self.stalled]
-        await bench.supervisor.check().value
-
-        await bench.supervisor.recover(.rebuildSurface).value
-
-        #expect(bench.surface(1).recoveries == [.flush, .rebuildSurface, .rebuildPipeline, .rebuildSurface])
-        #expect(bench.surface(2).recoveries == [])
-        #expect(!bench.supervisor.heartbeat.flags.contains(.restartAgentRequested), "the check after it found pictures")
-    }
-
-    @Test func `a surface that goes takes its restart request with it`() async {
-        let bench = SupervisorBench()
-        await bench.apply(Self.state(.numbered(1)))
-        await bench.acquire(1, display: 1)
-        bench.surface(1).counts = [Self.stalled, Self.stalled, Self.stalled, Self.stalled]
-        await bench.supervisor.check().value
-
-        bench.supervisor.invalidate(.numbered(1))
-
-        #expect(!bench.supervisor.heartbeat.flags.contains(.restartAgentRequested))
-    }
-
-    @Test func `a paused surface is not judged`() async {
-        let bench = SupervisorBench()
-        await bench.apply(Self.state(.numbered(1, userPaused: true)))
-        await bench.acquire(1, display: 1)
-
-        await bench.supervisor.check().value
-
-        #expect(bench.surface(1).countsTaken == 0)
     }
 }

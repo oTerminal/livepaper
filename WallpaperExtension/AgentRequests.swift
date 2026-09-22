@@ -69,7 +69,7 @@ final class AgentRequests: SurfaceRequestHandler {
         let context: RemoteContext
         if let known = hosted[surface] {
             context = known.context
-            known.reacquired(at: placement, isPreview: request.isPreview)
+            known.reacquired(at: placement)
         } else if let made = RemoteContext(display: request.destination.display) {
             context = made
             ExtensionLog.notice(.contextMade(surface, context: made.id, display: placement.display, isPreview: request.isPreview))
@@ -94,10 +94,10 @@ final class AgentRequests: SurfaceRequestHandler {
                 display: placement.display,
                 isPreview: request.isPreview,
                 geometry: placement.geometry,
-                makeSurface: { hosted.host(surface, in: context, at: placement, isPreview: request.isPreview) }
+                makeSurface: { hosted.host(surface, in: context, at: placement) }
             )
             answer.send(hosted[surface]?.context.id)
-            self.follow(request.presentationMode, of: surface)
+            self.follow(request.mode, of: surface)
             self.beacon?.postIfChanged()
         }
     }
@@ -108,8 +108,8 @@ final class AgentRequests: SurfaceRequestHandler {
     private func updateSurface(_ request: UpdateRequest) {
         guard let uuid = request.surface else {
             // The agent's identifier could not be read. Something changed all
-            // the same, so the watchdog checks, as after any update.
-            supervisor.check()
+            // the same, and the supervisor takes it as it takes any update.
+            supervisor.agentUpdated()
             return
         }
         let surface = SurfaceID(uuid: uuid)
@@ -119,24 +119,21 @@ final class AgentRequests: SurfaceRequestHandler {
             if geometry != hosted.geometry {
                 ExtensionLog.notice(.surfaceResized(surface, from: hosted.geometry, to: geometry))
                 hosted.geometry = geometry
-                hosted.layers.layout(surface: geometry)
+                supervisor.layout(surface, geometry: geometry)
             }
         }
-        let mode = SurfacePresentationMode(request.presentationMode) ?? hosted[surface]?.mode ?? .desktop
-        hosted[surface]?.mode = mode
+        let mode = SurfaceMode(request.mode) ?? supervisor.entry(for: surface)?.mode ?? .desktop
         supervisor.update(surface, mode: mode)
     }
 
     /// An acquire that says the surface is not on the desktop, as when a
     /// display comes back while the Mac is locked, is followed as an update would be.
-    private func follow(_ agentMode: PresentationMode?, of surface: SurfaceID) {
-        guard let mode = SurfacePresentationMode(agentMode), let hosted = hosted[surface], mode != hosted.mode else { return }
-        hosted.mode = mode
+    private func follow(_ agentMode: AgentSurfaceMode?, of surface: SurfaceID) {
+        guard let mode = SurfaceMode(agentMode), let entry = supervisor.entry(for: surface), mode != entry.mode else { return }
         supervisor.update(surface, mode: mode)
     }
 
     private func invalidateSurface(_ surface: SurfaceID) {
-        hosted[surface]?.isLive = false
         supervisor.invalidate(surface)
         beacon?.postIfChanged()
     }
@@ -144,7 +141,7 @@ final class AgentRequests: SurfaceRequestHandler {
     /// The picture on screen, cropped as the layers show it, or `nil` for the
     /// neutral colour: with no surface to take it from, or after `replyLimit`.
     private func snapshotSurface(_ surface: UUID?, reply: @escaping @Sendable (IOSurface?) -> Void) {
-        guard let source = hosted.snapshotSource(for: surface.map(SurfaceID.init)) else {
+        guard let source = hosted.snapshotSource(for: surface.map(SurfaceID.init), asking: supervisor) else {
             reply(nil)
             return
         }
@@ -162,14 +159,14 @@ final class AgentRequests: SurfaceRequestHandler {
     }
 }
 
-extension SurfacePresentationMode {
+extension SurfaceMode {
     /// The supervisor's mode for the agent's, or `nil` when the agent's says
     /// nothing it can use: the surface then keeps the mode it has.
     ///
     /// The screen saver (`.idle`) counts as the lock screen: like it, it is
     /// shown above every window, so a covered display is still on screen for
     /// the watchdog.
-    init?(_ mode: PresentationMode?) {
+    init?(_ mode: AgentSurfaceMode?) {
         switch mode {
         case .desktop: self = .desktop
         case .locked, .idle: self = .locked

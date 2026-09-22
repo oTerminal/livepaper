@@ -32,7 +32,8 @@ final class FakeNamedIDXPC: NSObject {
     }
 }
 
-enum FakePresentationMode {
+/// The agent's `WallpaperPresentationMode`, which its requests carry as `presentationMode`.
+enum FakeAgentSurfaceMode {
     case `default`, locked, idle
     /// A mode this bridge has not seen.
     case ambient
@@ -75,7 +76,7 @@ struct FakeCreationRequest {
     var cacheDirectory: URL?
     var destination: FakeDestination
     var isPreview: Bool
-    var presentationMode: FakePresentationMode = .default
+    var presentationMode: FakeAgentSurfaceMode = .default
     var activityState: FakeActivityState = .active
     var systemAppearance: FakeSystemAppearance = .dark
     var debugBackgrounds = false
@@ -91,7 +92,7 @@ final class FakeCreationRequestXPC: NSObject {
 }
 
 struct FakeUpdateRequest {
-    var presentationMode: FakePresentationMode
+    var presentationMode: FakeAgentSurfaceMode
     var activityState: FakeActivityState = .active
     var systemAppearance: FakeSystemAppearance = .dark
     var destination: FakeDestination

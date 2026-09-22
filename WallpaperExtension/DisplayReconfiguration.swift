@@ -48,7 +48,7 @@ final class DisplayReconfiguration {
     }
 
     private func settled() {
-        for (display, surfaces) in hosted.desktopSurfacesByDisplay() {
+        for (display, surfaces) in hosted.desktopSurfacesByDisplay(asking: supervisor) {
             guard let id = Displays.display(with: display), let geometry = Displays.geometry(of: id) else { continue }
             let old = surfaces.first?.displayGeometry
             guard geometry != old else { continue }

@@ -42,7 +42,7 @@ final class LivepaperWallpaperExtension: AppExtension {
         // One listener for every connection: it owns the spiral detector.
         listener = WallpaperAgentListener(
             handler: requests,
-            settings: SettingsEntry(provider: WallpaperExtensionIdentity.bundleIdentifier, thumbnail: Self.settingsTile(in: bundle)),
+            settings: SettingsEntry(provider: WallpaperExtensionIdentity.bundleIdentifier, tile: Self.settingsTile(in: bundle)),
             neutralColour: SurfaceLayers.neutralColour
         )
         beacon = HeartbeatBeacon(supervisor: supervisor, listener: listener, selfCheckFailed: !check.isUsable)
