@@ -14,12 +14,15 @@ struct ExtensionHostClientTests {
     let notifier = RecordingNotifier()
     let agent = FakeAgentRestarter()
     let sleep = FakeSleepSensor()
+    let restarts = MemoryAgentRestartStore()
     let client: ExtensionHostClient
 
     init() throws {
         home = try TemporaryFolder()
         location = LibraryLocation(home: home.url)
-        client = ExtensionHostClient(location: location, notifier: notifier, agent: agent, clock: clock, sleep: sleep)
+        client = ExtensionHostClient(
+            location: location, notifier: notifier, agent: agent, restartStore: restarts, clock: clock, sleep: sleep
+        )
     }
 
     static func state(generation: UInt64 = 5) throws -> RenderState {
@@ -156,6 +159,27 @@ struct ExtensionHostClientTests {
 
         #expect(agent.restarts == 1)
         #expect(notifier.posts(of: HostNotification.recover).isEmpty)
+    }
+
+    @Test func `a restart is recorded for the next launch`() async throws {
+        try await client.activate()
+        clock.advance(toSecond: 10)
+
+        await client.recover(.restartAgent)
+
+        #expect(restarts.lastRestart.map(Moment.millisecond(of:)) == 10_000)
+    }
+
+    @Test func `a restart recorded by the last launch keeps the ten-minute gap`() async throws {
+        restarts.lastRestart = Moment.after(-60)
+        try await client.activate()
+
+        await client.recover(.restartAgent)
+        clock.advance(toSecond: 540)
+        await client.recover(.restartAgent)
+
+        #expect(agent.restarts == 1)
+        #expect(client.lastAgentRestart.map(Moment.millisecond(of:)) == 540_000)
     }
 
     // MARK: The render state

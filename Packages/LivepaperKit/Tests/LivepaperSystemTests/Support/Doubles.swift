@@ -105,6 +105,12 @@ final class FakeAgentRestarter: AgentRestarting {
     }
 }
 
+/// Keeps the last restart in memory, as the app's defaults keep it from one launch to the next.
+@MainActor
+final class MemoryAgentRestartStore: AgentRestartStore {
+    var lastRestart: Date?
+}
+
 extension Moment {
     /// Milliseconds since launch, so that times made by adding durations compare exactly.
     static func millisecond(of date: Date) -> Int {

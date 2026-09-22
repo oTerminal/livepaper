@@ -39,8 +39,8 @@ private struct Script {
     var reducer = HostStatusReducer(timing: .standard)
     var steps: [Step] = []
 
-    init(activatedAt seconds: Double = 0) {
-        send(.activated(at: Moment.after(seconds)))
+    init(activatedAt seconds: Double = 0, lastAgentRestartAt restartSecond: Double? = nil) {
+        send(.activated(at: Moment.after(seconds), lastAgentRestart: restartSecond.map(Moment.after)))
     }
 
     mutating func send(_ event: HostEvent, at date: Date? = nil) {
@@ -203,6 +203,36 @@ struct HostStatusReducerTests {
             .init(97_001, .refuse(.silence, untilMillisecond: 650_001)),
             .init(650_002, .restart(.silence)),
         ])
+    }
+
+    @Test func `a restart made before this launch keeps the ten-minute gap`() {
+        var script = Script(lastAgentRestartAt: -100)
+
+        script.runClock(until: 3600)
+
+        #expect(script.steps.suffix(2) == [
+            .init(50_001, .refuse(.silence, untilMillisecond: 500_000)),
+            .init(500_001, .restart(.silence)),
+        ])
+    }
+
+    @Test func `a restart recorded later than the launch counts as made at the launch`() {
+        // The clock moved back since: the gap runs from the launch, and no longer.
+        var script = Script(lastAgentRestartAt: 86_400)
+
+        script.send(.restartRequested(at: Moment.after(10)))
+
+        #expect(script.steps == [.init(10_000, .refuse(.user, untilMillisecond: 600_000))])
+    }
+
+    @Test func `activating again keeps a restart made since the record was read`() {
+        var script = Script(lastAgentRestartAt: -1000)
+        script.runClock(until: 51)
+        script.send(.deactivated)
+
+        script.send(.activated(at: Moment.after(100), lastAgentRestart: Moment.after(-1000)))
+
+        #expect(script.reducer.lastAgentRestart.map(Moment.millisecond(of:)) == 50_001)
     }
 
     static let flagRows: [Row<Heartbeat.Flags, AgentRestartReason>] = [

@@ -29,6 +29,7 @@ public final class ExtensionHostClient: RenderHost {
     private var reducer: HostStatusReducer
     private let notifier: any DarwinNotifying
     private let agent: any AgentRestarting
+    private let restartStore: any AgentRestartStore
     private let clock: any WallClock
     private let sleep: any SleepSensor
     private let logger: Logger
@@ -39,12 +40,15 @@ public final class ExtensionHostClient: RenderHost {
     private var checkAt: Date?
     private var sleepWatch: Task<Void, Never>?
 
-    /// - Parameter location: the library, in the real home; the app is not sandboxed.
+    /// - Parameters:
+    ///   - location: the library, in the real home; the app is not sandboxed.
+    ///   - restartStore: where the last restart of the agent is kept across launches.
     public init(
         location: LibraryLocation = LibraryLocation(home: .homeDirectory),
         timing: HeartbeatTiming = .standard,
         notifier: any DarwinNotifying = DarwinNotifier(),
         agent: any AgentRestarting = WallpaperAgentRestarter(),
+        restartStore: any AgentRestartStore = DefaultsAgentRestartStore(),
         clock: any WallClock = SystemWallClock(),
         sleep: any SleepSensor = SystemSleepSensor(),
         logger: Logger = Logger(subsystem: LivepaperSystem.logSubsystem, category: HostLog.category)
@@ -52,6 +56,7 @@ public final class ExtensionHostClient: RenderHost {
         self.location = location
         self.notifier = notifier
         self.agent = agent
+        self.restartStore = restartStore
         self.clock = clock
         self.sleep = sleep
         self.logger = logger
@@ -65,7 +70,8 @@ public final class ExtensionHostClient: RenderHost {
     }
 
     /// Records the launch time, listens for the heartbeat and reports `.connecting`.
-    /// The playback-metrics probe starts each session off.
+    /// The playback-metrics probe starts each session off, and the ten-minute
+    /// gap runs from the last restart that any launch made.
     public func activate() async throws {
         let observing = notifier.observe(HostNotification.heartbeat) { [weak self] state in
             self?.heard(Heartbeat(packed: state))
@@ -74,7 +80,7 @@ public final class ExtensionHostClient: RenderHost {
         watchSleep()
         setPlaybackMetrics(false)
         logger.notice("\(HostLog.activated, privacy: .public)")
-        handle(.activated(at: clock.now))
+        handle(.activated(at: clock.now, lastAgentRestart: restartStore.lastRestart))
     }
 
     /// Replaces `render-state.json` atomically and tells the extension to read it.
@@ -182,6 +188,7 @@ public final class ExtensionHostClient: RenderHost {
                 logger.notice("\(HostLog.silence(level), privacy: .public)")
                 notifier.post(HostNotification.recover, state: UInt64(level.rawValue))
             case .restartAgent(let reason):
+                restartStore.lastRestart = reducer.lastAgentRestart
                 logger.notice("\(HostLog.restarting(reason), privacy: .public)")
                 restart = Task { [agent, logger] in
                     let outcome = await agent.restartAgent()

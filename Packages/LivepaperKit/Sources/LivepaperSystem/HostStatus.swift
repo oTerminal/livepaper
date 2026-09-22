@@ -25,7 +25,9 @@ nonisolated public enum AgentRestartRefusal: Equatable, Sendable {
 
 /// What the host's status is reduced over.
 nonisolated public enum HostEvent: Equatable, Sendable {
-    case activated(at: Date)
+    /// `lastAgentRestart` is the last restart that an earlier launch recorded,
+    /// so that relaunching the app does not open the gap early.
+    case activated(at: Date, lastAgentRestart: Date? = nil)
     case heartbeat(Heartbeat, at: Date)
     /// The clock, at the reducer's `nextCheck`.
     case tick(at: Date)
@@ -38,7 +40,7 @@ nonisolated public enum HostEvent: Equatable, Sendable {
     /// When the event happened; the two that carry no time change nothing that depends on it.
     public var time: Date? {
         switch self {
-        case .activated(let at), .heartbeat(_, let at), .tick(let at), .systemDidWake(let at), .restartRequested(let at): at
+        case .activated(let at, _), .heartbeat(_, let at), .tick(let at), .systemDidWake(let at), .restartRequested(let at): at
         case .systemWillSleep, .deactivated: nil
         }
     }
@@ -100,7 +102,7 @@ nonisolated public struct HostStatusReducer: Equatable, Sendable {
     public mutating func reduce(_ event: HostEvent) -> [HostAction] {
         var actions: [HostAction] = []
         switch event {
-        case .activated(let at): activate(at: at)
+        case .activated(let at, let recorded): activate(at: at, lastAgentRestart: recorded)
         case .heartbeat(let heartbeat, let at): actions = receive(heartbeat, at: at)
         case .tick(let at): actions = climb(at: at)
         case .systemWillSleep: if case .awake = phase { phase = .asleep }
@@ -113,10 +115,15 @@ nonisolated public struct HostStatusReducer: Equatable, Sendable {
         return actions
     }
 
-    private mutating func activate(at now: Date) {
+    /// A restart recorded later than now was recorded before the clock moved
+    /// back; it counts as made now, so that the gap still runs, and no longer.
+    private mutating func activate(at now: Date, lastAgentRestart recorded: Date?) {
         phase = .awake(graceFrom: now)
         activatedAt = now
         climbed = nil
+        if let recorded {
+            lastAgentRestart = max(lastAgentRestart ?? .distantPast, min(recorded, now))
+        }
     }
 
     private mutating func wake(at now: Date) {
