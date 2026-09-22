@@ -55,14 +55,24 @@ public struct RecentsStrip<ID: Hashable>: View {
                     ) {
                         onSelect(item.id)
                     }
+                    // Entering is the thumbnail's own affair; a removed one leaves quicker than it came.
+                    .transition(.asymmetric(
+                        insertion: .identity,
+                        removal: .opacity.animation(accessibility.fade(Motion.exit(Motion.Duration.panel)))
+                    ))
                 }
             }
             // Neighbours make room for an insertion by moving, not by jumping.
             .animation(accessibility.animation(Motion.Spring.move), value: items.map(\.id))
         }
         .scrollIndicators(.hidden)
-        // Room for the focus ring and the entrance's rise, which the scroll view would clip.
-        .scrollClipDisabled()
+        // Room inside the clip for the focus ring and the entrance's rise. The scroll
+        // view keeps clipping, so a strip with more items than fit ends at its edge;
+        // the margins are taken back outside, so the layout is unchanged.
+        .contentMargins(.vertical, Spacing.small, for: .scrollContent)
+        .contentMargins(.horizontal, Spacing.tight, for: .scrollContent)
+        .padding(.vertical, -Spacing.small)
+        .padding(.horizontal, -Spacing.tight)
         .onChange(of: items.isEmpty) { _, isEmpty in
             if !isEmpty, self.entranceIDs == nil {
                 self.entranceIDs = Set(items.map(\.id))
@@ -94,7 +104,9 @@ private struct RecentThumbnail<ID: Hashable>: View {
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
         let movesIn = !accessibility.reduceMotion
-        Button(action: action) {
+        Button {
+            withoutAnimationIfKeyPress(action)
+        } label: {
             Color.clear
                 .frame(width: Metrics.size.width, height: Metrics.size.height)
                 .overlay {
