@@ -30,7 +30,7 @@ enum AgentPayload {
             surface: surface,
             destination: destination(in: request),
             isPreview: field("isPreview", in: request).flatMap { $0 as? Bool } ?? false,
-            presentationMode: field("presentationMode", in: request).map { PresentationMode(agentName: caseName(of: $0)) },
+            mode: field("presentationMode", in: request).map { AgentSurfaceMode(agentName: caseName(of: $0)) },
             activityState: field("activityState", in: request).map { ActivityState(agentName: caseName(of: $0)) }
         )
     }
@@ -39,7 +39,7 @@ enum AgentPayload {
         UpdateRequest(
             surface: surface,
             destination: destination(in: request),
-            presentationMode: field("presentationMode", in: request).map { PresentationMode(agentName: caseName(of: $0)) },
+            mode: field("presentationMode", in: request).map { AgentSurfaceMode(agentName: caseName(of: $0)) },
             activityState: field("activityState", in: request).map { ActivityState(agentName: caseName(of: $0)) }
         )
     }

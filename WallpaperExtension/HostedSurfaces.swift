@@ -11,48 +11,41 @@ import QuartzCore
 import WallpaperAgentBridge
 
 /// One surface the extension hosts: the remote context WallpaperAgent shows,
-/// the layer tree in it, and what the extension knows of where it is.
+/// the layer tree in it, and the sizes the extension compares new ones with.
+/// Its display, whether it is the preview, its mode and whether the agent
+/// still shows it are the supervisor's to know (`PlaybackSupervisor.entry(for:)`).
 final class HostedSurface {
     let id: SurfaceID
     let context: RemoteContext
     let layers: SurfaceLayers
-    private(set) var display: DisplayIdentity
-    private(set) var isPreview: Bool
     /// What the layer tree is laid out for.
     var geometry: SurfaceGeometry
     /// The display's geometry as CoreGraphics last gave it, for the
     /// reconfiguration observer to compare with.
     var displayGeometry: SurfaceGeometry?
-    /// As the supervisor's store has it: `.desktop` until the agent says otherwise.
-    var mode = SurfacePresentationMode.desktop
-    /// `false` once the agent has invalidated it, until it acquires it again.
-    var isLive = true
 
-    init(id: SurfaceID, context: RemoteContext, layers: SurfaceLayers, placement: SurfacePlacement, isPreview: Bool) {
+    init(id: SurfaceID, context: RemoteContext, layers: SurfaceLayers, placement: SurfacePlacement) {
         self.id = id
         self.context = context
         self.layers = layers
-        display = placement.display
-        self.isPreview = isPreview
         geometry = placement.geometry
         displayGeometry = placement.displayGeometry
     }
 
     /// The agent acquired it again, within its grace. The supervisor lays the
     /// tree out for the new geometry itself.
-    func reacquired(at placement: SurfacePlacement, isPreview: Bool) {
-        display = placement.display
-        self.isPreview = isPreview
+    func reacquired(at placement: SurfacePlacement) {
         geometry = placement.geometry
         displayGeometry = placement.displayGeometry
-        isLive = true
     }
 }
 
-/// The surfaces the extension hosts, by surface ID. It mirrors the
-/// supervisor's store, in the same turn of the main actor: a surface is added
-/// when the supervisor makes one (`host`) and removed when it tears one down
-/// (`tearDown`), so a surface here is one the supervisor knows.
+/// The surfaces the extension hosts, by surface ID: their contexts and layer
+/// trees, which the supervisor does not hold. A surface is added when the
+/// supervisor makes one (`host`) and removed when it tears one down
+/// (`tearDown`), in the same turn of the main actor, so a surface here is one
+/// the supervisor knows, and what else there is to know of it is asked of the
+/// supervisor.
 final class HostedSurfaces {
     /// Whether the engines log the metrics line (`HostNotification.playbackMetrics`).
     private(set) var metricsProbe = false
@@ -65,7 +58,7 @@ final class HostedSurfaces {
     /// The supervisor's `makeSurface`: the layer tree for a new surface, whole
     /// before it goes into `context`, and in the render server before the
     /// agent is answered.
-    func host(_ surface: SurfaceID, in context: RemoteContext, at placement: SurfacePlacement, isPreview: Bool) -> SurfaceLayers {
+    func host(_ surface: SurfaceID, in context: RemoteContext, at placement: SurfacePlacement) -> SurfaceLayers {
         let layers = SurfaceLayers(
             id: surface,
             geometry: placement.geometry,
@@ -74,7 +67,7 @@ final class HostedSurfaces {
         )
         context.layer = layers.root
         CATransaction.flush()
-        surfaces[surface] = HostedSurface(id: surface, context: context, layers: layers, placement: placement, isPreview: isPreview)
+        surfaces[surface] = HostedSurface(id: surface, context: context, layers: layers, placement: placement)
         if metricsProbe {
             Task { await layers.setMetricsProbe(true) }
         }
@@ -94,17 +87,25 @@ final class HostedSurfaces {
     /// The surface whose picture a snapshot hands back: the one asked for, or,
     /// when the agent's identifier is unknown, a live desktop surface, the
     /// main display's first.
-    func snapshotSource(for surface: SurfaceID?) -> HostedSurface? {
+    func snapshotSource(for surface: SurfaceID?, asking supervisor: PlaybackSupervisor) -> HostedSurface? {
         if let surface, let hosted = surfaces[surface] { return hosted }
         let main = Displays.identity(of: CGMainDisplayID())
-        let desktops = surfaces.values.filter { $0.isLive && !$0.isPreview }.sorted { $0.id.description < $1.id.description }
-        return desktops.first { $0.display == main } ?? desktops.first
+        let desktops = liveDesktopSurfaces(asking: supervisor).sorted { $0.surface.id.description < $1.surface.id.description }
+        return (desktops.first { $0.display == main } ?? desktops.first)?.surface
     }
 
     /// The live desktop surfaces, by display: the ones the supervisor lays out
     /// again when a display's mode changes.
-    func desktopSurfacesByDisplay() -> [DisplayIdentity: [HostedSurface]] {
-        Dictionary(grouping: surfaces.values.filter { $0.isLive && !$0.isPreview }, by: \.display)
+    func desktopSurfacesByDisplay(asking supervisor: PlaybackSupervisor) -> [DisplayIdentity: [HostedSurface]] {
+        Dictionary(grouping: liveDesktopSurfaces(asking: supervisor), by: \.display).mapValues { $0.map(\.surface) }
+    }
+
+    /// The surfaces the agent shows on a desktop, and their displays, as the supervisor has them.
+    private func liveDesktopSurfaces(asking supervisor: PlaybackSupervisor) -> [(surface: HostedSurface, display: DisplayIdentity)] {
+        surfaces.values.compactMap { hosted in
+            guard let entry = supervisor.entry(for: hosted.id), entry.isLive, !entry.isPreview else { return nil }
+            return (hosted, entry.display)
+        }
     }
 
     /// Switches the probe on every surface, and on those to come. `false` when

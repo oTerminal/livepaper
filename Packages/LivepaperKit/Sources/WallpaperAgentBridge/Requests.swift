@@ -19,9 +19,11 @@ public struct SurfaceDestination: Equatable, Sendable {
     }
 }
 
-/// What a surface is showing for: WallpaperAgent's `WallpaperPresentationMode`.
-/// The lock screen is the desktop's own surface in `.locked` (`Spikes/results/S3.md`).
-public enum PresentationMode: Hashable, Sendable, CustomStringConvertible {
+/// What a surface is showing for, as the agent says it: its
+/// `WallpaperPresentationMode`, a request's `presentationMode`. Livepaper keeps
+/// Presentation for how a wallpaper is fitted to a display. The lock screen is
+/// the desktop's own surface in `.locked` (`Spikes/results/S3.md`).
+public enum AgentSurfaceMode: Hashable, Sendable, CustomStringConvertible {
     /// The desktop, which the agent calls `default`.
     case desktop
     case locked
@@ -83,20 +85,21 @@ public struct AcquireRequest: Equatable, Sendable {
     public var destination: SurfaceDestination
     /// Whether this is the Settings preview. `false` when the request does not say.
     public var isPreview: Bool
-    public var presentationMode: PresentationMode?
+    /// The request's `presentationMode`.
+    public var mode: AgentSurfaceMode?
     public var activityState: ActivityState?
 
     public init(
         surface: UUID,
         destination: SurfaceDestination,
         isPreview: Bool,
-        presentationMode: PresentationMode?,
+        mode: AgentSurfaceMode?,
         activityState: ActivityState?
     ) {
         self.surface = surface
         self.destination = destination
         self.isPreview = isPreview
-        self.presentationMode = presentationMode
+        self.mode = mode
         self.activityState = activityState
     }
 }
@@ -109,13 +112,14 @@ public struct UpdateRequest: Equatable, Sendable {
     /// update still says that something changed.
     public var surface: UUID?
     public var destination: SurfaceDestination
-    public var presentationMode: PresentationMode?
+    /// The request's `presentationMode`.
+    public var mode: AgentSurfaceMode?
     public var activityState: ActivityState?
 
-    public init(surface: UUID?, destination: SurfaceDestination, presentationMode: PresentationMode?, activityState: ActivityState?) {
+    public init(surface: UUID?, destination: SurfaceDestination, mode: AgentSurfaceMode?, activityState: ActivityState?) {
         self.surface = surface
         self.destination = destination
-        self.presentationMode = presentationMode
+        self.mode = mode
         self.activityState = activityState
     }
 }

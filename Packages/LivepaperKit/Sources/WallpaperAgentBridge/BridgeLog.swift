@@ -28,12 +28,12 @@ enum BridgeLog {
     static func acquire(_ request: AcquireRequest, identified: Bool) -> String {
         let surface = identified ? request.surface.uuidString : "\(request.surface.uuidString) (unidentified by the agent)"
         return "bridge: acquire surface \(surface) \(fields(request.destination)) preview \(request.isPreview) "
-            + "presentationMode=\(name(request.presentationMode)) activityState=\(name(request.activityState))"
+            + "presentationMode=\(name(request.mode)) activityState=\(name(request.activityState))"
     }
 
     static func update(_ request: UpdateRequest) -> String {
         "bridge: update surface \(request.surface?.uuidString ?? "none") \(fields(request.destination)) "
-            + "presentationMode=\(name(request.presentationMode)) activityState=\(name(request.activityState))"
+            + "presentationMode=\(name(request.mode)) activityState=\(name(request.activityState))"
     }
 
     static func invalidate(surface: UUID?) -> String {

@@ -24,10 +24,10 @@ struct RequestFieldsTests {
     static func acquire(
         _ destination: SurfaceDestination = builtInDestination,
         isPreview: Bool = false,
-        mode: PresentationMode? = .desktop,
+        mode: AgentSurfaceMode? = .desktop,
         activity: ActivityState? = .active
     ) -> AcquireRequest {
-        AcquireRequest(surface: surface, destination: destination, isPreview: isPreview, presentationMode: mode, activityState: activity)
+        AcquireRequest(surface: surface, destination: destination, isPreview: isPreview, mode: mode, activityState: activity)
     }
 
     static let acquireRows: [Row<Payload, AcquireRequest>] = [
@@ -60,12 +60,12 @@ struct RequestFieldsTests {
             acquire(SurfaceDestination(display: nil, size: Size(width: 1800, height: 1169), scale: 2))
         ),
         Row(
-            "a presentation mode the bridge has not seen is kept by name",
+            "a mode the bridge has not seen is kept by name",
             Payload { FakeCreationRequestXPC(FakeCreationRequest(destination: builtIn, isPreview: false, presentationMode: .ambient)) },
             acquire(mode: .other("ambient"))
         ),
         Row(
-            "a presentation mode with a payload is kept by its case name",
+            "a mode with a payload is kept by its case name",
             Payload {
                 FakeCreationRequestXPC(FakeCreationRequest(destination: builtIn, isPreview: false, presentationMode: .dimmed(level: 0.5)))
             },
@@ -103,17 +103,17 @@ struct RequestFieldsTests {
         Row(
             "locking puts the surface in the locked mode",
             Payload { FakeUpdateRequestXPC(FakeUpdateRequest(presentationMode: .locked, destination: builtIn)) },
-            UpdateRequest(surface: surface, destination: builtInDestination, presentationMode: .locked, activityState: .active)
+            UpdateRequest(surface: surface, destination: builtInDestination, mode: .locked, activityState: .active)
         ),
         Row(
             "unlocking puts it back in the default mode",
             Payload { FakeUpdateRequestXPC(FakeUpdateRequest(presentationMode: .default, destination: builtIn)) },
-            UpdateRequest(surface: surface, destination: builtInDestination, presentationMode: .desktop, activityState: .active)
+            UpdateRequest(surface: surface, destination: builtInDestination, mode: .desktop, activityState: .active)
         ),
         Row(
             "the idle mode",
             Payload { FakeUpdateRequestXPC(FakeUpdateRequest(presentationMode: .idle, destination: builtIn)) },
-            UpdateRequest(surface: surface, destination: builtInDestination, presentationMode: .idle, activityState: .active)
+            UpdateRequest(surface: surface, destination: builtInDestination, mode: .idle, activityState: .active)
         ),
         Row(
             "a suspended surface on a mode the bridge has not seen",
@@ -123,7 +123,7 @@ struct RequestFieldsTests {
             UpdateRequest(
                 surface: surface,
                 destination: SurfaceDestination(display: 3, size: Size(width: 1920, height: 1080), scale: 1),
-                presentationMode: .other("ambient"),
+                mode: .other("ambient"),
                 activityState: .suspended
             )
         ),
@@ -133,7 +133,7 @@ struct RequestFieldsTests {
             UpdateRequest(
                 surface: surface,
                 destination: SurfaceDestination(display: nil, size: nil, scale: nil),
-                presentationMode: nil,
+                mode: nil,
                 activityState: nil
             )
         ),
@@ -144,7 +144,7 @@ struct RequestFieldsTests {
         #expect(AgentPayload.update(row.input.make(), surface: Self.surface) == row.expected)
     }
 
-    static let modeNames: [Row<String, PresentationMode>] = [
+    static let modeNames: [Row<String, AgentSurfaceMode>] = [
         Row("default is the desktop", "default", .desktop),
         Row("locked is the lock screen", "locked", .locked),
         Row("idle is the screen saver", "idle", .idle),
@@ -152,8 +152,8 @@ struct RequestFieldsTests {
     ]
 
     @Test(arguments: modeNames)
-    func `names presentation modes as the agent does`(row: Row<String, PresentationMode>) {
-        #expect(PresentationMode(agentName: row.input) == row.expected)
+    func `names surface modes as the agent does`(row: Row<String, AgentSurfaceMode>) {
+        #expect(AgentSurfaceMode(agentName: row.input) == row.expected)
         #expect(row.expected.description == row.input)
     }
 

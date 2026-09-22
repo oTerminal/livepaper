@@ -3,6 +3,8 @@ import LivepaperCore
 /// Every line `PlaybackSupervisor` logs, worded here and nowhere else. Other
 /// milestones parse them (M8-hardening.md's soak, M10-1.0.md's checklist), so
 /// each is `key=value` after a fixed phrase, and `SupervisorLogTests` pins them.
+/// A recovery level or a pause reason is an enum without payloads, which
+/// prints as its case name (`flush`, `desktopCovered`): that is its wording.
 public enum SupervisorLog {
     /// What every line about one surface carries.
     public struct Surface: Equatable, Sendable {
@@ -59,14 +61,14 @@ public enum SupervisorLog {
         "showing nothing \(surface.fields)"
     }
 
-    public static func updated(_ surface: Surface, mode: SurfacePresentationMode) -> String {
+    public static func updated(_ surface: Surface, mode: SurfaceMode) -> String {
         "update \(surface.fields) mode=\(mode.rawValue)"
     }
 
     // MARK: Decisions and the render state
 
     public static func decision(display: DisplayIdentity, target: SurfaceTarget, generation: UInt64?) -> String {
-        "decision display=\(display) decision=\(name(of: target)) generation=\(generationText(generation))"
+        "decision display=\(display) decision=\(name(of: DisplayDecision(target))) generation=\(generationText(generation))"
     }
 
     /// `kept` is the generation still shown when the file cannot be trusted.
@@ -93,14 +95,14 @@ public enum SupervisorLog {
     public static func verdict(_ surface: Surface, _ step: WatchdogStep, attempt: Int) -> String {
         let verdict = switch step {
         case .healthy: "healthy"
-        case .recover(let level): name(of: level)
-        case .requestRestart: name(of: .restartAgent)
+        case .recover(let level): String(describing: level)
+        case .requestRestart: String(describing: RecoveryLevel.restartAgent)
         }
         return "check verdict \(surface.fields) verdict=\(verdict) attempt=\(attempt)"
     }
 
     public static func recoveryTried(_ surface: Surface, level: RecoveryLevel) -> String {
-        "recovery tried \(surface.fields) level=\(name(of: level))"
+        "recovery tried \(surface.fields) level=\(String(describing: level))"
     }
 
     /// The heartbeat now carries `restartAgentRequested`.
@@ -113,38 +115,18 @@ public enum SupervisorLog {
 
     /// The app's `HostNotification.recover`.
     public static func recoverRequested(_ level: RecoveryLevel, stalled count: Int) -> String {
-        "recover requested level=\(name(of: level)) stalled=\(count)"
+        "recover requested level=\(String(describing: level)) stalled=\(count)"
     }
 
     // MARK: Names
 
-    static func name(of target: SurfaceTarget) -> String {
-        switch target {
+    private static func name(of decision: DisplayDecision) -> String {
+        switch decision {
         case .nothing: "nothing"
         case .still: "still"
-        case .playback(_, .play): "play"
-        case .playback(_, .pause(let reason)): "pause.\(name(of: reason))"
-        case .playback(_, .suspend(let reason)): "suspend.\(name(of: reason))"
-        }
-    }
-
-    static func name(of level: RecoveryLevel) -> String {
-        switch level {
-        case .flush: "flush"
-        case .rebuildSurface: "rebuildSurface"
-        case .rebuildPipeline: "rebuildPipeline"
-        case .restartAgent: "restartAgent"
-        }
-    }
-
-    static func name(of reason: PauseReason) -> String {
-        switch reason {
-        case .user: "user"
-        case .desktopCovered: "desktopCovered"
-        case .displayAsleep: "displayAsleep"
-        case .displayLocked: "displayLocked"
-        case .lowPowerMode: "lowPowerMode"
-        case .onBattery: "onBattery"
+        case .playback(.play): "play"
+        case .playback(.pause(let reason)): "pause.\(String(describing: reason))"
+        case .playback(.suspend(let reason)): "suspend.\(String(describing: reason))"
         }
     }
 }

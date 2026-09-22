@@ -18,7 +18,7 @@ public struct WatchdogCandidate: Equatable, Sendable {
     /// Acquired and not invalidated.
     public var isLive: Bool
     public var isPreview: Bool
-    public var mode: SurfacePresentationMode
+    public var mode: SurfaceMode
     public var state: SurfacePlaybackState
     /// The render state's `coveredDisplays` holds the surface's display.
     public var displayCovered: Bool
@@ -26,7 +26,7 @@ public struct WatchdogCandidate: Equatable, Sendable {
     public var displayAsleep: Bool
 
     public init(
-        isLive: Bool, isPreview: Bool, mode: SurfacePresentationMode, state: SurfacePlaybackState, displayCovered: Bool, displayAsleep: Bool
+        isLive: Bool, isPreview: Bool, mode: SurfaceMode, state: SurfacePlaybackState, displayCovered: Bool, displayAsleep: Bool
     ) {
         self.isLive = isLive
         self.isPreview = isPreview

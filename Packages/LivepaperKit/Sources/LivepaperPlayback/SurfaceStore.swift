@@ -7,8 +7,9 @@
 import Foundation
 import LivepaperCore
 
-/// Where the agent is showing a surface, as its `update` says.
-public enum SurfacePresentationMode: String, Equatable, Sendable {
+/// Where the agent is showing a surface, as its `update` says. Not a
+/// `Presentation`, which is how a wallpaper is fitted to a display.
+public enum SurfaceMode: String, Equatable, Sendable {
     case desktop
     /// The lock screen: the same surface, above every window.
     case locked
@@ -39,11 +40,11 @@ public struct SurfaceStore: Equatable, Sendable {
     public struct Entry: Equatable, Sendable {
         public var display: DisplayIdentity
         public var isPreview: Bool
-        public var mode: SurfacePresentationMode
+        public var mode: SurfaceMode
         /// When the agent let go of it; `nil` while it is live.
         public var invalidatedAt: Date?
 
-        public init(display: DisplayIdentity, isPreview: Bool, mode: SurfacePresentationMode = .desktop, invalidatedAt: Date? = nil) {
+        public init(display: DisplayIdentity, isPreview: Bool, mode: SurfaceMode = .desktop, invalidatedAt: Date? = nil) {
             self.display = display
             self.isPreview = isPreview
             self.mode = mode
@@ -80,7 +81,7 @@ public struct SurfaceStore: Equatable, Sendable {
     }
 
     /// `false` for a surface the store does not know.
-    public mutating func update(_ surface: SurfaceID, mode: SurfacePresentationMode) -> Bool {
+    public mutating func update(_ surface: SurfaceID, mode: SurfaceMode) -> Bool {
         guard entries[surface] != nil else { return false }
         entries[surface]?.mode = mode
         return true

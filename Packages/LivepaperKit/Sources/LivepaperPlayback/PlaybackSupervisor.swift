@@ -8,8 +8,10 @@ import os
 /// The extension owns it on its main actor and calls it only from there: it is
 /// not `Sendable` and nothing in it is `@MainActor`. Each entry point takes
 /// the caller's isolation, and what it starts (the timers, the watchdog's
-/// checks, the calls on the surfaces) runs on that same actor. The entry
-/// points that start work return its task, which the extension may drop.
+/// checks, the calls on the surfaces) runs on that same actor. The agent and
+/// the system call in from synchronous callbacks, so an entry point that has
+/// work to wait on starts one task for it and returns it; the extension drops
+/// it, and the tests await it. Inside that task the work is structured.
 ///
 /// For each display it takes `decidePlayback` on the render state's
 /// conditions: when a surface is acquired, when a new state lands, a second
@@ -30,14 +32,15 @@ public final class PlaybackSupervisor {
     var current = CurrentRenderState.none
     var watchdog = WatchdogSchedule()
     /// The decision last logged for each display with a live surface.
-    var decisions: [DisplayIdentity: String] = [:]
+    var decisions: [DisplayIdentity: DisplayDecision] = [:]
     /// Surfaces with calls in flight, and those asked to reconcile meanwhile.
     var reconciling: Set<SurfaceID> = []
     var outdated: Set<SurfaceID> = []
     var expiry: (deadline: Date, timer: Task<Void, Never>)?
     var teardownTimer: Task<Void, Never>?
     var wakeTimer: Task<Void, Never>?
-    var checking: Task<Void, Never>?
+    /// Those waiting for the check that runs now to end.
+    var checkEnded: [CheckedContinuation<Void, Never>] = []
 
     /// - Parameters:
     ///   - location: The library, to resolve the render state's paths in.
@@ -76,6 +79,14 @@ public final class PlaybackSupervisor {
     }
 
     // MARK: Surfaces
+
+    /// What the supervisor knows of a surface: its display, whether it is the
+    /// Settings preview, its mode, and whether the agent still shows it. `nil`
+    /// for one it does not know, or has torn down. The extension reads it here
+    /// rather than keeping its own copy.
+    public func entry(for surface: SurfaceID) -> SurfaceStore.Entry? {
+        store.entries[surface]
+    }
 
     /// The agent acquired a surface. A surface the store does not know gets
     /// the layer tree `makeSurface` builds; one it knows is laid out again for
@@ -121,12 +132,27 @@ public final class PlaybackSupervisor {
     /// The agent's `update`: where the surface is shown now. Starts a check.
     @discardableResult
     public func update(
-        _ surface: SurfaceID, mode: SurfacePresentationMode, isolation: isolated (any Actor)? = #isolation
+        _ surface: SurfaceID, mode: SurfaceMode, isolation: isolated (any Actor)? = #isolation
     ) -> Task<Void, Never> {
         if store.update(surface, mode: mode) {
             log(SupervisorLog.updated(fields(surface), mode: mode))
         }
         return startCheck(.update)
+    }
+
+    /// The agent's `update` for a surface it did not name, or named in a way
+    /// the bridge could not read. Something changed all the same, so the
+    /// watchdog checks, for the same reason as after any update.
+    @discardableResult
+    public func agentUpdated(isolation: isolated (any Actor)? = #isolation) -> Task<Void, Never> {
+        startCheck(.update)
+    }
+
+    /// The agent gave one surface a new size in its `update`, as it does for
+    /// the Settings preview: that surface is laid out again. Nothing for a
+    /// surface the supervisor does not know.
+    public func layout(_ surface: SurfaceID, geometry: SurfaceGeometry) {
+        surfaces[surface]?.layout(surface: geometry)
     }
 
     /// A display's mode changed. The agent sends nothing and stretches the old
@@ -141,29 +167,40 @@ public final class PlaybackSupervisor {
     // MARK: The render state
 
     /// A read of the render state, at launch or on `HostNotification.renderStateChanged`.
+    /// The heartbeat acknowledges it as soon as this returns; the task brings the surfaces to it.
     @discardableResult
     public func apply(_ read: RenderStateRead, isolation: isolated (any Actor)? = #isolation) -> Task<Void, Never> {
         log(SupervisorLog.renderState(read, kept: current.generation))
         current = current.applying(read)
-        return reconcileAll()
+        refreshDecisions()
+        return Task {
+            _ = isolation
+            await self.reconcileEverySurface()
+        }
     }
 
     // MARK: Taking decisions
 
+    /// Takes every display's decision again, and brings every surface to it.
+    func reconcileAll(isolation: isolated (any Actor)? = #isolation) async {
+        refreshDecisions()
+        await reconcileEverySurface()
+    }
+
     /// Brings every surface to what its display's decision says: those within
     /// their grace too, so that a stopped state releases their decoders and a
-    /// re-acquire finds them up to date.
-    func reconcileAll(isolation: isolated (any Actor)? = #isolation) -> Task<Void, Never> {
-        refreshDecisions()
-        var work: [Task<Void, Never>] = []
-        for surface in store.entries.keys.sorted(by: { $0.description < $1.description }) {
-            work.append(Task {
-                _ = isolation
-                await self.reconcile(surface)
-            })
-        }
-        return Task {
-            for task in work { await task.value }
+    /// re-acquire finds them up to date. The surfaces are independent, so one
+    /// crossfading does not hold up another display's.
+    private func reconcileEverySurface(isolation: isolated (any Actor)? = #isolation) async {
+        await withDiscardingTaskGroup { group in
+            for surface in store.entries.keys.sorted(by: { $0.description < $1.description }) {
+                // An immediate child inherits the caller's actor, where the
+                // surfaces live; an ordinary one would run off it.
+                group.addImmediateTask {
+                    _ = isolation
+                    await self.reconcile(surface)
+                }
+            }
         }
     }
 
@@ -212,16 +249,16 @@ public final class PlaybackSupervisor {
     func refreshDecisions(isolation: isolated (any Actor)? = #isolation) {
         let at = now()
         let displays = Set(store.liveSurfaces.compactMap { store.entries[$0]?.display }).sorted { $0.description < $1.description }
-        var logged: [DisplayIdentity: String] = [:]
+        var decided: [DisplayIdentity: DisplayDecision] = [:]
         for display in displays {
             let target = current.target(for: display, location: location, host: host, now: at)
-            let name = SupervisorLog.name(of: target)
-            if decisions[display] != name {
+            let decision = DisplayDecision(target)
+            if decisions[display] != decision {
                 log(SupervisorLog.decision(display: display, target: target, generation: current.generation))
             }
-            logged[display] = name
+            decided[display] = decision
         }
-        decisions = logged
+        decisions = decided
         scheduleExpiry(displays.compactMap { current.expiry(for: $0, host: host, now: at) }.min())
     }
 
@@ -239,7 +276,7 @@ public final class PlaybackSupervisor {
             do { try await sleep() } catch { return }
             guard !Task.isCancelled else { return }
             self.expiry = nil
-            await self.reconcileAll().value
+            await self.reconcileAll()
         }
         expiry = (deadline, timer)
     }

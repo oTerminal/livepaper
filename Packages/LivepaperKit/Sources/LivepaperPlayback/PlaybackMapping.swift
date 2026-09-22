@@ -11,6 +11,23 @@ public enum SurfaceTarget: Equatable, Sendable {
     case playback(SurfaceWallpaper, PlaybackDecision)
 }
 
+/// A display's decision, whichever wallpaper it is about: what the supervisor
+/// logs when it changes, so that a new wallpaper played the same way is not a
+/// new decision.
+enum DisplayDecision: Equatable {
+    case nothing
+    case still
+    case playback(PlaybackDecision)
+
+    init(_ target: SurfaceTarget) {
+        switch target {
+        case .nothing: self = .nothing
+        case .still: self = .still
+        case .playback(_, let decision): self = .playback(decision)
+        }
+    }
+}
+
 /// One call on a `SurfacePlayback`.
 public enum SurfaceCall: Equatable, Sendable {
     case show(SurfaceWallpaper, crossfade: Bool)
