@@ -1,3 +1,9 @@
+// Surfaces that outlive the agent's connection, and the grace before one is
+// torn down, follow Phosphene's WallpaperXPCHandler.swift and
+// WallpaperState.swift (MIT, (c) 2026 kageroumado,
+// https://github.com/kageroumado/phosphene), by way of the spike's
+// SurfaceStore. See NOTICE at the repository root.
+
 import Foundation
 import LivepaperCore
 
