@@ -3,7 +3,8 @@ import SwiftUI
 
 struct HotkeyRecorderPage: View {
     @State private var next: Hotkey?
-    @State private var pause: Hotkey? = Hotkey(keyCode: 35, modifiers: [.control, .option], keyLabel: "P")
+    @State private var pause: Hotkey? = Self.pauseHotkey
+    private static let pauseHotkey = Hotkey(keyCode: 35, modifiers: [.control, .option], keyLabel: "P")
 
     var body: some View {
         StateSection(
@@ -18,6 +19,28 @@ struct HotkeyRecorderPage: View {
         StateSection(title: "Assigned", note: "The clear button does what Delete does while recording.") {
             LabeledContent("Pause or resume") {
                 HotkeyRecorder("Pause or resume", hotkey: $pause) { $0 == next ? "Next wallpaper" : nil }
+            }
+        }
+
+        StateSection(
+            title: "Recording",
+            note: "Held in the recording phase so it can be looked at: the accent ring is state, so it is a border. A click ends it."
+        ) {
+            LabeledContent("Next wallpaper") {
+                HotkeyRecorder("Next wallpaper", hotkey: .constant(nil), phase: .recording) { _ in nil }
+            }
+        }
+
+        StateSection(
+            title: "Conflict",
+            note: "Held in the conflict phase: a symbol and words in red, on the caption line that is always there. Recording continues."
+        ) {
+            LabeledContent("Next wallpaper") {
+                HotkeyRecorder(
+                    "Next wallpaper",
+                    hotkey: .constant(nil),
+                    phase: .conflict(Self.pauseHotkey, with: "Pause or resume")
+                ) { _ in nil }
             }
         }
 

@@ -7,7 +7,7 @@ import SwiftUI
 /// Everything here is driven by key presses, so nothing animates.
 public struct HotkeyRecorder: View {
     @Binding private var hotkey: Hotkey?
-    @State private var state = HotkeyRecorderState()
+    @State private var state: HotkeyRecorderState
     @State private var monitor: Any?
     @FocusState private var isFocused: Bool
 
@@ -16,11 +16,23 @@ public struct HotkeyRecorder: View {
 
     /// `label` names what the hotkey does, for VoiceOver. `conflict` names what
     /// already uses a combination, or returns `nil` if it is free.
-    public init(_ label: String, hotkey: Binding<Hotkey?>, conflict: @escaping (Hotkey) -> String?) {
+    ///
+    /// `phase` is where the recorder starts. The app leaves it idle; the Gallery
+    /// starts one recording, or in a conflict, to show those states without a
+    /// key press. A recorder started that way is a picture of the state: it
+    /// does not take key presses until it is clicked.
+    public init(
+        _ label: String,
+        hotkey: Binding<Hotkey?>,
+        phase: HotkeyRecorderState.Phase = .idle,
+        conflict: @escaping (Hotkey) -> String?
+    ) {
         self.label = label
         self.conflict = conflict
         _hotkey = hotkey
+        _state = State(initialValue: HotkeyRecorderState(hotkey: hotkey.wrappedValue, phase: phase))
     }
+
 
     public var body: some View {
         VStack(alignment: .leading, spacing: Spacing.tight) {

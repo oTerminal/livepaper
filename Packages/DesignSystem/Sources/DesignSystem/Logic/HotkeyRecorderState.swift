@@ -58,9 +58,12 @@ public nonisolated struct HotkeyRecorderState: Equatable, Sendable {
     public private(set) var hotkey: Hotkey?
     public private(set) var phase = Phase.idle
 
-    /// Unassigned unless told otherwise: global hotkeys ship unassigned.
-    public init(hotkey: Hotkey? = nil) {
+    /// Unassigned and idle unless told otherwise: global hotkeys ship unassigned.
+    /// A recorder can start in any phase, so a recording or a conflict can be
+    /// shown without a key press.
+    public init(hotkey: Hotkey? = nil, phase: Phase = .idle) {
         self.hotkey = hotkey
+        self.phase = phase
     }
 
     public var isRecording: Bool {

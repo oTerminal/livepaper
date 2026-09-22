@@ -22,6 +22,15 @@ struct HotkeyRecorderStateTests {
         #expect(state.phase == .idle)
     }
 
+    @Test func `a recorder can start in any phase`() {
+        var state = HotkeyRecorderState(hotkey: pause, phase: .conflict(next, with: "Next wallpaper"))
+
+        #expect(state.isRecording)
+        #expect(state.phase == .conflict(next, with: "Next wallpaper"))
+        #expect(state.send(.key(pause), conflict: noConflicts) == .changed(pause))
+        #expect(state.phase == .idle)
+    }
+
     @Test func `keys are ignored until recording begins`() {
         var state = HotkeyRecorderState()
 

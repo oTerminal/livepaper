@@ -32,6 +32,33 @@ struct WallpaperTilePage: View {
             .livePreviewScope()
         }
 
+        StateSection(
+            title: "Live",
+            note: """
+            What a tile shows once the pointer has rested on it: the preview crossfades in over the poster. This one is \
+            held live; move the pointer over it and away and it goes back to its poster.
+            """
+        ) {
+            LiveTile(poster: posters[7], title: "Overpass")
+        }
+
+        if !Self.photos.isEmpty {
+            StateSection(
+                title: "Real posters",
+                note: "Photographs from this Mac's stock desktop pictures, for judging the outline with and without Increase Contrast."
+            ) {
+                HStack(alignment: .top, spacing: Spacing.large) {
+                    ForEach(Self.photos.indices, id: \.self) { index in
+                        WallpaperTile(id: "photo-\(index)", poster: Self.photos[index].image, title: Self.photos[index].title) {
+                        } livePreview: {
+                            EmptyView()
+                        }
+                    }
+                }
+                .frame(maxWidth: 820)
+            }
+        }
+
         StateSection(title: "States", note: "Poster, selected, favourite, and a long title.") {
             HStack(alignment: .top, spacing: Spacing.large) {
                 WallpaperTile(id: "poster", poster: posters[3], title: "Poster") {} livePreview: { EmptyView() }
@@ -43,6 +70,38 @@ struct WallpaperTilePage: View {
             }
             .frame(maxWidth: 820)
         }
+    }
+}
+
+extension WallpaperTilePage {
+    /// Stock desktop pictures, where this Mac has them: light and dark edges, sky, and near-white.
+    fileprivate static let photos: [(title: String, image: Image)] = {
+        let names = ["Catalina Light", "Big Sur Night Grasses", "Catalina Clouds", "Hello Metallic Silver"]
+        let folder = URL(fileURLWithPath: "/System/Library/Desktop Pictures/.thumbnails")
+        return names.compactMap { name in
+            NSImage(contentsOf: folder.appending(path: "\(name).heic")).map { (name, Image(nsImage: $0)) }
+        }
+    }()
+}
+
+/// A tile whose own coordinator was told the pointer arrived and never left.
+private struct LiveTile: View {
+    @Accessibility private var accessibility
+    @State private var coordinator = LivePreviewCoordinator()
+    let poster: Image
+    let title: String
+
+    var body: some View {
+        WallpaperTile(id: "live", poster: poster, title: title) {} livePreview: { FakeLivePreview(seed: 7) }
+            .frame(width: 200)
+            .environment(coordinator)
+            // Like livePreviewScope: no hover autoplay under Reduce Motion.
+            .onChange(of: accessibility.reduceMotion, initial: true) { _, reduceMotion in
+                coordinator.isEnabled = !reduceMotion
+                if !reduceMotion {
+                    coordinator.pointerEntered("live")
+                }
+            }
     }
 }
 
