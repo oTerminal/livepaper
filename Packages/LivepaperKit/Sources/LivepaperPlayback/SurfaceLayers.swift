@@ -1,3 +1,8 @@
+// One layer tree per surface, made before the first reply, with switches and crossfades in place on
+// two video layers, follows the spike's SurfaceLayers and Phosphene's finding that a layer added
+// after the agent hosts the context does not composite (MIT, (c) 2026 kageroumado,
+// https://github.com/kageroumado/phosphene). See NOTICE at the repository root.
+
 import AVFoundation
 import CoreGraphics
 import LivepaperCore
