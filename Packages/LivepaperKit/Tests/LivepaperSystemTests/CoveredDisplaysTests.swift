@@ -18,6 +18,7 @@ struct CoveredDisplaysTests {
 
     static let ownPID: Int32 = 100
     static let otherPID: Int32 = 200
+    static let dockPID: Int32 = 300
 
     static func rect(_ x: Double, _ y: Double, _ width: Double, _ height: Double) -> Rect {
         Rect(origin: Point(x: x, y: y), size: Size(width: width, height: height))
@@ -52,8 +53,11 @@ struct CoveredDisplaysTests {
             []
         ),
         Row("a floating panel as large as the display covers it", [window(builtIn.frame, layer: 3)], [builtIn.identity]),
-        Row("the Dock's display-sized window does not cover it", [window(builtIn.frame, layer: 20)], []),
-        Row("an overlay above the Dock does not cover it", [window(builtIn.frame, layer: 25)], []),
+        Row("the Dock's display-sized window does not cover it", [window(builtIn.frame, layer: 20, owner: dockPID)], []),
+        Row("the Dock's windows never count, whatever their level", [window(builtIn.frame, layer: 27, owner: dockPID)], []),
+        Row("someone else's window at the Dock's level covers it", [window(builtIn.frame, layer: 20)], [builtIn.identity]),
+        Row("a display-sized window above the Dock's level covers it", [window(builtIn.frame, layer: 25)], [builtIn.identity]),
+        Row("a screen saver covers its display", [window(builtIn.frame, layer: 1000)], [builtIn.identity]),
         Row(
             "two windows that tile do not cover it, v1's known gap",
             [window(rect(0, 0, 900, 1169)), window(rect(900, 0, 900, 1169))],
@@ -63,7 +67,7 @@ struct CoveredDisplaysTests {
 
     @Test(arguments: rows)
     func `a display is covered by one window that contains it`(row: Row<[WindowListEntry], Set<DisplayIdentity>>) {
-        let covered = coveredDisplays(windows: row.input, displays: Self.displays, ignoringOwner: Self.ownPID)
+        let covered = coveredDisplays(windows: row.input, displays: Self.displays, ignoringOwners: [Self.ownPID, Self.dockPID])
 
         #expect(covered == row.expected)
     }
