@@ -122,12 +122,21 @@ extension CMSampleBuffer {
 
     /// Shown as soon as it is decoded, whatever the clock says: the first frame of a start.
     func displayImmediately() {
+        setOnFirstSample(kCMSampleAttachmentKey_DisplayImmediately)
+    }
+
+    /// Decoded and never shown: the frame that gives the hardware decoder back.
+    func doNotDisplay() {
+        setOnFirstSample(kCMSampleAttachmentKey_DoNotDisplay)
+    }
+
+    private func setOnFirstSample(_ key: CFString) {
         guard let attachments = CMSampleBufferGetSampleAttachmentsArray(self, createIfNecessary: true),
               CFArrayGetCount(attachments) > 0 else { return }
         let first = unsafeBitCast(CFArrayGetValueAtIndex(attachments, 0), to: CFMutableDictionary.self)
         CFDictionarySetValue(
             first,
-            Unmanaged.passUnretained(kCMSampleAttachmentKey_DisplayImmediately).toOpaque(),
+            Unmanaged.passUnretained(key).toOpaque(),
             Unmanaged.passUnretained(kCFBooleanTrue).toOpaque()
         )
     }

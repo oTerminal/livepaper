@@ -27,8 +27,10 @@ extension LayerAccess {
         return .audioFailed(audio.error)
     }
 
-    /// A start's first frame, pushed to the render server at once: the layer lives in a remote context.
+    /// A start's first frame, pushed to the render server at once: the layer lives in a remote
+    /// context. The renderer makes a hardware decoder for it.
     func enqueueFirst(_ frame: CMSampleBuffer) {
+        decoder.fed(frame.formatDescription)
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         renderer.enqueue(frame)

@@ -174,8 +174,8 @@ public actor LoopEngine {
         }
     }
 
-    /// Stops advancing and releases the readers and the decoder's queue. The picture on screen
-    /// stays where the renderer allows.
+    /// Stops advancing and releases the readers and the decoder. The picture on screen stays
+    /// where the renderer allows.
     public func suspend() async {
         guard !isRetired, lifecycle == .running else { return }
         generation += 1
@@ -186,11 +186,11 @@ public actor LoopEngine {
         dropAudio()
         probe.interruptGaps()
         settleIfIdle()
-        await flushRenderer(removingImage: false)
+        await letGo(.suspend)
     }
 
-    /// Releases everything and takes the picture off the layer, so that the layer reports it is
-    /// not ready for display until an engine gives it another (S5).
+    /// Releases everything, the decoder too, and takes the picture off the layer, so that the
+    /// layer reports it is not ready for display until an engine gives it another (S5).
     public func stop() async {
         guard !isRetired else { return }
         generation += 1
@@ -205,7 +205,7 @@ public actor LoopEngine {
         video = nil
         settleIfIdle()
         // Last, with nothing after it: a start that comes in meanwhile finds the rest done.
-        await flushRenderer(removingImage: true)
+        await letGo(.stop)
     }
 
     /// Flushes and starts the video again from a fresh reader: the watchdog's first step, and

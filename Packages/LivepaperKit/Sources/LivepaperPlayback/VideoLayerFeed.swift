@@ -1,7 +1,8 @@
 import AVFoundation
 
-/// One video layer as its engines see it: the layer's video renderer, and the layer's
-/// synchroniser, which clocks that renderer and, while the volume is up, the engine's audio.
+/// One video layer as its engines see it: the layer's video renderer, the layer's synchroniser,
+/// which clocks that renderer and, while the volume is up, the engine's audio, and the hardware
+/// decoder the renderer holds.
 ///
 /// Made once per layer, on the main actor where AVFoundation keeps the layer, and shared by the
 /// engines that drive the layer in turn. The renderer stays on the one synchroniser for the
@@ -14,9 +15,11 @@ import AVFoundation
 /// `RetirementGate`, one call at a time (the engine's feeding, its probe and its snapshot
 /// alike), and a layer has one engine whose gate is open: an owner retires an engine, which
 /// closes its gate and waits for a call under way, before it hands the layer to another.
+/// `decoder` is Sendable on its own.
 public struct VideoLayerFeed: @unchecked Sendable {
     let renderer: AVSampleBufferVideoRenderer
     let synchroniser: AVSampleBufferRenderSynchronizer
+    let decoder = LayerDecoder()
 
     @MainActor
     public init(layer: AVSampleBufferDisplayLayer) {
@@ -30,16 +33,26 @@ public struct VideoLayerFeed: @unchecked Sendable {
 }
 
 /// What one engine may touch on its layer, and only through its `RetirementGate`: the layer's
-/// renderer and clock, and the engine's own audio renderer while that is on the clock.
+/// renderer, clock and decoder, and the engine's own audio renderer while that is on the clock.
 struct LayerAccess {
     let renderer: AVSampleBufferVideoRenderer
     let synchroniser: AVSampleBufferRenderSynchronizer
+    let decoder: LayerDecoder
     /// Made the first time the volume is up, and on the layer's synchroniser until let go.
     private(set) var audio: AVSampleBufferAudioRenderer?
 
     init(_ feed: VideoLayerFeed) {
         renderer = feed.renderer
         synchroniser = feed.synchroniser
+        decoder = feed.decoder
+    }
+
+    /// Gives back the hardware decoder the renderer holds, if it holds one (`LayerDecoder`).
+    /// Call once the renderer is flushed and the clock stopped: the picture it keeps stays where it is.
+    func releaseDecoder() {
+        guard let video = decoder.release(),
+              let frame = releaseFrame(shapedLike: video, at: synchroniser.currentTime()) else { return }
+        renderer.enqueue(frame)
     }
 
     /// The engine's audio renderer, made and put on the layer's clock the first time.
