@@ -55,7 +55,11 @@ struct RenderStateReaderTests {
         Row("the stopped state holds the display's poster", Question(current: .state(stopped)), .still(.numbered(1))),
         Row("a readable state plays the display's wallpaper", Question(current: .state(playing)), .playback(.numbered(1), .play)),
         Row("a covered display pauses by its rule", Question(current: .state(covered)), .playback(.numbered(1), .pause(.desktopCovered))),
-        Row("the user's pause is the display's own", Question(current: .state(covered), display: 2), .playback(.numbered(2), .pause(.user))),
+        Row(
+            "the user's pause is the display's own",
+            Question(current: .state(covered), display: 2),
+            .playback(.numbered(2), .pause(.user))
+        ),
         Row(
             "conditions older than their expiry no longer pause",
             Question(current: .state(covered), now: Moment.after(31)),
@@ -116,7 +120,7 @@ struct RenderStateReaderTests {
     @Test func `the stopped fixture holds the still`() throws {
         let home = try TemporaryHome()
         let fixture = try Self.fixture()
-        try home.writeRenderState(Self.replacing(#""stopped": false"#, with: #""stopped": true"#, in: fixture))
+        try home.writeRenderState(try Self.replacing(#""stopped": false"#, with: #""stopped": true"#, in: fixture))
 
         let current = CurrentRenderState.none.applying(RenderStateReader(location: home.location).read())
 
@@ -124,7 +128,9 @@ struct RenderStateReaderTests {
             Issue.record("expected a state, have \(current)")
             return
         }
-        let target = current.target(for: .numbered(1), location: home.location, host: HostCapabilities(showsLockScreen: true), now: Moment.launch)
+        let target = current.target(
+            for: .numbered(1), location: home.location, host: HostCapabilities(showsLockScreen: true), now: Moment.launch
+        )
         #expect(target == .still(SurfaceWallpaper(state.displays[0], in: home.location)))
     }
 
@@ -150,7 +156,7 @@ struct RenderStateReaderTests {
     @Test func `a path that leaves the library is unreadable`() throws {
         let home = try TemporaryHome()
         let poster = #""wallpapers/AAAAAAAA-0000-0000-0000-000000000001/poster.heic""#
-        try home.writeRenderState(Self.replacing(poster, with: #""../../poster.heic""#, in: Self.fixture()))
+        try home.writeRenderState(try Self.replacing(poster, with: #""../../poster.heic""#, in: Self.fixture()))
 
         let read = RenderStateReader(location: home.location).read()
 
@@ -184,9 +190,9 @@ struct RenderStateReaderTests {
         return try Data(contentsOf: url)
     }
 
-    static func replacing(_ text: String, with replacement: String, in data: Data) -> Data {
-        let json = String(decoding: data, as: UTF8.self)
-        precondition(json.contains(text), "the fixture no longer says \(text)")
+    static func replacing(_ text: String, with replacement: String, in data: Data) throws -> Data {
+        let json = try #require(String(bytes: data, encoding: .utf8))
+        try #require(json.contains(text), "the fixture no longer says \(text)")
         return Data(json.replacingOccurrences(of: text, with: replacement).utf8)
     }
 }
@@ -197,7 +203,8 @@ final class TemporaryHome: Sendable {
     let location: LibraryLocation
 
     init() throws {
-        url = FileManager.default.temporaryDirectory.appending(path: "LivepaperPlaybackTests-\(UUID().uuidString)", directoryHint: .isDirectory)
+        url = FileManager.default.temporaryDirectory
+            .appending(path: "LivepaperPlaybackTests-\(UUID().uuidString)", directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         location = LibraryLocation(home: url)
     }

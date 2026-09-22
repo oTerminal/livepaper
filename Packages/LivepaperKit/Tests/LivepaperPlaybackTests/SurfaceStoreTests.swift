@@ -124,7 +124,11 @@ struct SurfaceStoreTests {
     }
 
     static let lookups: [Row<Lookup, SurfaceTarget>] = [
-        Row("a surface shows its display's wallpaper", Lookup(story: .of((0, .acquire(1, display: 2))), surface: 1), .playback(.numbered(6), .play)),
+        Row(
+            "a surface shows its display's wallpaper",
+            Lookup(story: .of((0, .acquire(1, display: 2))), surface: 1),
+            .playback(.numbered(6), .play)
+        ),
         Row(
             "a new surface for a known display gets that display's wallpaper",
             Lookup(story: .of((0, .acquire(1, display: 1)), (10, .invalidate(1)), (25, .tick), (97, .acquire(2, display: 1))), surface: 2),

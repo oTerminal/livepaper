@@ -38,21 +38,49 @@ struct PlaybackMappingTests {
         Row("a still that is already up stays", .reach(.still(one), from: .still, showing: one), []),
         Row("a still whose volume changed stays", .reach(.still(oneLouder), from: .still, showing: one), []),
         Row("a still of another wallpaper is replaced", .reach(.still(two), from: .still, showing: one), [.holdStill(two)]),
-        Row("a still is laid out again for a new presentation", .reach(.still(oneFitted), from: .still, showing: one), [.holdStill(oneFitted)]),
+        Row(
+            "a still is laid out again for a new presentation",
+            .reach(.still(oneFitted), from: .still, showing: one),
+            [.holdStill(oneFitted)]
+        ),
 
         // Play.
         Row("play from nothing shows the wallpaper without a fade", .reach(play(one), from: .nothing), [.show(one, crossfade: false)]),
-        Row("play from its own still starts its video without a fade", .reach(play(one), from: .still, showing: one), [.show(one, crossfade: false)]),
+        Row(
+            "play from its own still starts its video without a fade",
+            .reach(play(one), from: .still, showing: one),
+            [.show(one, crossfade: false)]
+        ),
         Row("play from another still starts without a fade", .reach(play(two), from: .still, showing: one), [.show(two, crossfade: false)]),
         Row("play of what already plays does nothing", .reach(play(one), from: .playing, showing: one), []),
         Row("switching a surface that plays crossfades", .reach(play(two), from: .playing, showing: one), [.show(two, crossfade: true)]),
-        Row("a new presentation is changed in place", .reach(play(oneFitted), from: .playing, showing: one), [.show(oneFitted, crossfade: false)]),
-        Row("a new volume is changed in place", .reach(play(oneLouder), from: .playing, showing: one), [.show(oneLouder, crossfade: false)]),
+        Row(
+            "a new presentation is changed in place",
+            .reach(play(oneFitted), from: .playing, showing: one),
+            [.show(oneFitted, crossfade: false)]
+        ),
+        Row(
+            "a new volume is changed in place",
+            .reach(play(oneLouder), from: .playing, showing: one),
+            [.show(oneLouder, crossfade: false)]
+        ),
         Row("play after pause resumes", .reach(play(one), from: .paused, showing: one), [.resume]),
         Row("play after suspend resumes", .reach(play(one), from: .suspended, showing: one), [.resume]),
-        Row("play of another wallpaper after pause switches without a fade", .reach(play(two), from: .paused, showing: one), [.show(two, crossfade: false)]),
-        Row("play of another wallpaper after suspend switches", .reach(play(two), from: .suspended, showing: one), [.show(two, crossfade: false)]),
-        Row("play with a new volume after pause changes it and plays", .reach(play(oneLouder), from: .paused, showing: one), [.show(oneLouder, crossfade: false)]),
+        Row(
+            "play of another wallpaper after pause switches without a fade",
+            .reach(play(two), from: .paused, showing: one),
+            [.show(two, crossfade: false)]
+        ),
+        Row(
+            "play of another wallpaper after suspend switches",
+            .reach(play(two), from: .suspended, showing: one),
+            [.show(two, crossfade: false)]
+        ),
+        Row(
+            "play with a new volume after pause changes it and plays",
+            .reach(play(oneLouder), from: .paused, showing: one),
+            [.show(oneLouder, crossfade: false)]
+        ),
 
         // Pause keeps the readers.
         Row("pause stops a playing surface and keeps its readers", .reach(paused(one), from: .playing, showing: one), [.pause]),
@@ -78,7 +106,11 @@ struct PlaybackMappingTests {
         Row("suspend of a suspended surface does nothing", .reach(suspended(one), from: .suspended, showing: one), []),
         Row("suspend never starts a video: nothing up holds the poster", .reach(suspended(one), from: .nothing), [.holdStill(one)]),
         Row("suspend leaves a still of the same wallpaper up", .reach(suspended(one), from: .still, showing: one), []),
-        Row("a new wallpaper while suspended is held as its poster", .reach(suspended(two), from: .suspended, showing: one), [.holdStill(two)]),
+        Row(
+            "a new wallpaper while suspended is held as its poster",
+            .reach(suspended(two), from: .suspended, showing: one),
+            [.holdStill(two)]
+        ),
         Row(
             "a new presentation while suspended is held as the poster, laid out anew",
             .reach(suspended(oneFitted), from: .suspended, showing: one),

@@ -28,49 +28,56 @@ public enum SurfaceCall: Equatable, Sendable {
 /// stop it. Only a surface that plays crossfades to another video; anything
 /// else switches without a fade. `show` leaves the surface playing, so
 /// nothing follows it but a pause.
-public func surfaceCalls(toReach target: SurfaceTarget, from state: SurfacePlaybackState, showing current: SurfaceWallpaper?) -> [SurfaceCall] {
+public func surfaceCalls(
+    toReach target: SurfaceTarget, from state: SurfacePlaybackState, showing current: SurfaceWallpaper?
+) -> [SurfaceCall] {
     switch target {
-    case .nothing:
-        return state == .nothing ? [] : [.showNothing]
-
-    case .still(let wallpaper):
-        return state == .still && looksTheSame(current, wallpaper) ? [] : [.holdStill(wallpaper)]
-
-    case .playback(let wallpaper, .play):
-        switch state {
-        case .nothing, .still:
-            return [.show(wallpaper, crossfade: false)]
-        case .playing:
-            if current == wallpaper { return [] }
-            return [.show(wallpaper, crossfade: current?.video != wallpaper.video)]
-        case .paused, .suspended:
-            return current == wallpaper ? [.resume] : [.show(wallpaper, crossfade: false)]
-        }
-
-    case .playback(let wallpaper, .pause):
-        switch state {
-        case .nothing, .still:
-            return state == .still && looksTheSame(current, wallpaper) ? [] : [.holdStill(wallpaper)]
-        case .playing, .paused, .suspended:
-            guard current?.video == wallpaper.video else { return [.holdStill(wallpaper)] }
-            guard looksTheSame(current, wallpaper) else { return [.show(wallpaper, crossfade: false), .pause] }
-            switch state {
-            case .playing: return [.pause]
-            // The readers went with the suspend: open them again so a picture is up.
-            case .suspended: return [.resume, .pause]
-            default: return []
-            }
-        }
-
-    case .playback(let wallpaper, .suspend):
-        switch state {
-        case .nothing, .still:
-            return state == .still && looksTheSame(current, wallpaper) ? [] : [.holdStill(wallpaper)]
-        case .playing, .paused, .suspended:
-            guard looksTheSame(current, wallpaper) else { return [.holdStill(wallpaper)] }
-            return state == .suspended ? [] : [.suspend]
-        }
+    case .nothing: state == .nothing ? [] : [.showNothing]
+    case .still(let wallpaper): holding(wallpaper, from: state, showing: current)
+    case .playback(let wallpaper, .play): playing(wallpaper, from: state, showing: current)
+    case .playback(let wallpaper, .pause): pausing(wallpaper, from: state, showing: current)
+    case .playback(let wallpaper, .suspend): suspending(wallpaper, from: state, showing: current)
     }
+}
+
+/// The poster, unless that very still is up.
+private func holding(
+    _ wallpaper: SurfaceWallpaper, from state: SurfacePlaybackState, showing current: SurfaceWallpaper?
+) -> [SurfaceCall] {
+    state == .still && looksTheSame(current, wallpaper) ? [] : [.holdStill(wallpaper)]
+}
+
+private func playing(
+    _ wallpaper: SurfaceWallpaper, from state: SurfacePlaybackState, showing current: SurfaceWallpaper?
+) -> [SurfaceCall] {
+    switch state {
+    case .nothing, .still: [.show(wallpaper, crossfade: false)]
+    case .playing where current == wallpaper: []
+    case .playing: [.show(wallpaper, crossfade: current?.video != wallpaper.video)]
+    case .paused, .suspended: current == wallpaper ? [.resume] : [.show(wallpaper, crossfade: false)]
+    }
+}
+
+private func pausing(
+    _ wallpaper: SurfaceWallpaper, from state: SurfacePlaybackState, showing current: SurfaceWallpaper?
+) -> [SurfaceCall] {
+    if state == .nothing || state == .still { return holding(wallpaper, from: state, showing: current) }
+    guard current?.video == wallpaper.video else { return [.holdStill(wallpaper)] }
+    guard looksTheSame(current, wallpaper) else { return [.show(wallpaper, crossfade: false), .pause] }
+    switch state {
+    case .playing: return [.pause]
+    // The readers went with the suspend: open them again, so that a picture is up.
+    case .suspended: return [.resume, .pause]
+    default: return []
+    }
+}
+
+private func suspending(
+    _ wallpaper: SurfaceWallpaper, from state: SurfacePlaybackState, showing current: SurfaceWallpaper?
+) -> [SurfaceCall] {
+    if state == .nothing || state == .still { return holding(wallpaper, from: state, showing: current) }
+    guard looksTheSame(current, wallpaper) else { return [.holdStill(wallpaper)] }
+    return state == .suspended ? [] : [.suspend]
 }
 
 /// When `decision` is to be taken again because the sensed conditions behind
