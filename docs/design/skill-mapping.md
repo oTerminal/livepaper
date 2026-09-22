@@ -22,7 +22,7 @@ Tokens live in `Packages/DesignSystem`. SwiftLint fails the build on raw animati
 | Reduced motion means gentler, not none | With `accessibilityReduceMotion`, movement becomes a 0.2 s crossfade, bounce 0, no stagger, no hover autoplay |
 | Concentric radii: outer = inner + padding | `ConcentricRectangle` with `.containerShape`; radius tokens where that does not apply |
 | Materials encode hierarchy; never light on light | Glass only on the floating functional layer (sidebar, toolbar, popover, inspector controls). Never glass on glass: group neighbours in `GlassEffectContainer`. Wallpaper tiles are not glass |
-| Materialise, don't fade | `glassEffectTransition(.materialize)` with `glassEffectID` |
+| Materialise, don't fade | For a glass control that appears beside other glass in one `GlassEffectContainer` (a toolbar button, a split button's other half): `glassEffectTransition(.materialize)` with `glassEffectID`. A panel with words in it (popover, toast, drop plate) enters from 0.96 with opacity, anchored at its trigger: materialise blurs the text and grows from the centre (see `DECISIONS.md`, GlassPopover) |
 | Image outlines | 1 px inside stroke, black at 10% in light mode, white at 10% in dark mode |
 | Tabular numbers for changing values | `.monospacedDigit()` |
 | Hit areas at least 40 x 40 | `.contentShape` sized independently of the icon |

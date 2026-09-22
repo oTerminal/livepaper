@@ -11,9 +11,11 @@ Every component reads accessibility through `@Accessibility`, never the system e
 
 Changes made from a key press run inside `withoutAnimation`, which also switches off a component's own `.animation(_:value:)`. Where one control answers both a click and a key press (a default button, a focused button pressed with Space), `withoutAnimationIfKeyPress` decides from the current event, so the rule does not rest on the caller.
 
-Every `.animation(_:value:)` sits on the one effect it drives, never on a container that also holds the caller's content. Hover fades run `Motion.enter` in and `Motion.exit` out. Focus rings follow the control's drawn shape (`contentShape(.focusEffect, …)`), not its 40 pt hit rectangle.
+Every `.animation(_:value:)` sits on the one effect it drives, never on a container that also holds the caller's content. Hover fades run `Motion.enter` in and `Motion.exit` out. Focus rings follow the control's drawn shape (`contentShape(.focusEffect, …)`), not its 40 pt hit rectangle. A focusable container's ring is the union of the focus shapes of everything inside it, so a container that is one tab stop (`SidebarRowGroup`) keeps its focusable view beside its rows, not around them.
 
-Reviewed on 2026-09-21 with `review-animations` and `make-interfaces-feel-better` (full mode); the findings are folded into the entries below. Still owed: the next-day look, and a pass at 0.1x by a person, which no static review replaces.
+VoiceOver on macOS speaks an element's value before its label ("3, Playlists, button"; "42%, Optimising, Harbour at Dusk.mov"), heard on 2026-09-22 with VoiceOver driven by script over every Gallery page. That order is right for a control whose value changes under the user (a slider, the focal point, the hotkey field, a menu button) and wrong for a row that is information, so rows fold their words into one label in reading order and set no value: `SidebarRow` ("Playlists, 3"), `DetailsList` ("Resolution, 3840 × 2160"), `DisplayNowPlayingCard` ("Built-in Display, Harbour at Dusk, Paused: on battery"), `ImportProgressRow` ("Harbour at Dusk.mov, 42%, Optimising") and the `DropZoneOverlay` plate ("Drop to Import. Videos and Live Photos…"). A native switch reads label first, so `LoginItemRow` and `PauseRuleToggle` need nothing.
+
+Reviewed on 2026-09-21 with `review-animations` and `make-interfaces-feel-better` (full mode); the findings are folded into the entries below. Looked at again on 2026-09-22: every page walked with VoiceOver (scripted, transcripts kept out of the repo), tabbed through with keyboard navigation on, and the motion recorded at 0.1x over the busy backdrop; what changed as a result is in the entries.
 
 ## Tokens
 
@@ -37,7 +39,8 @@ Reviewed on 2026-09-21 with `review-animations` and `make-interfaces-feel-better
 
 ### Outline
 - 1 pt, inside the image's edge, pure black at 10% in light mode and pure white at 10% in dark. Never a tinted neutral: it reads as dirt on the image edge.
-- Increase Contrast raises it to 35%, same colour. The skills give no number; 35% is a first choice, roughly three times the standard strength, and has not yet been judged against real posters with Increase Contrast on.
+- Increase Contrast raises it to 35%, same colour. The skills give no number; 35% is roughly three times the standard strength.
+- Judged on 2026-09-22 against four stock desktop pictures on the WallpaperTile page (a light sky, a near-black night shot, grey cloud, a near-white metallic render), light and dark, contrast on and off. At 10% the near-white picture on the light window and the night picture on the dark window keep an edge only just; at 35% both have a thin definite edge that still reads as the picture's own and not as a frame. 35% stays.
 - Drawn as a double-width stroke clipped to the shape, because `ConcentricRectangle` is not insettable.
 
 ### LayerMaterial
@@ -60,10 +63,11 @@ Reviewed on 2026-09-21 with `review-animations` and `make-interfaces-feel-better
 ### WallpaperTile
 - Not glass: tiles are content. Elevation is two fixed shadows behind the poster (12% radius 4, and 22% radius 10); hover fades the deeper one in over `Duration.hover` and out at 0.7x. Only an opacity animates: a shadow whose radius animates is re-blurred every frame, under a pointer that sweeps the grid constantly, next to live video.
 - Selection is a 3 pt accent ring 2 pt outside the tile, concentric with it (12 + 5 = 17 pt), because selection is state and state gets a border. It never animates.
-- The poster goes live after a 200 ms dwell, decided by `HoverDwell` (tested), and `LivePreviewCoordinator` shares one dwell across the grid so two tiles are never live. The preview crossfades in place over `Duration.panel` and leaves at 0.7x; the animation is scoped to the preview alone, so a grid reflow in the same update cannot animate a tile's frame. The caller supplies the preview as a view, so the package never touches AVFoundation.
+- The poster goes live after a 200 ms dwell, decided by `HoverDwell` (tested), and `LivePreviewCoordinator` shares one dwell across the grid so two tiles are never live. The preview crossfades in place over `Duration.panel` and leaves at 0.7x; the animation is scoped to the preview alone, so a grid reflow in the same update cannot animate a tile's frame. The caller supplies the preview as a view, so the package never touches AVFoundation. The Gallery holds one tile live by giving it its own coordinator and telling it the pointer arrived; no API was added for that.
+- VoiceOver reads a favourite as "Favourite, Paper Lanterns, button" and the selected tile with the selected trait.
 - Reduce Motion disables hover autoplay entirely (`livePreviewScope` switches the coordinator off).
 - No hover scale: a grid of tiles is swept constantly, and movement on every pass would be noise.
-- Press is 0.96 like every other control. The focus ring follows the poster, not the title.
+- Press is 0.96 like every other control. The focus ring follows the poster, not the title: a 16:10 rounded rectangle at the top of the label, set on the label itself, because a focus shape set on the picture inside the label is not the button's and the ring fell around poster and title together.
 
 ### FocalPointEditor
 - The value is a `UnitPoint`, 0 to 1 on each axis; the maths (`FocalPointMath`, tested) converts to and from the letterboxed picture and clamps to it.
@@ -86,15 +90,18 @@ Reviewed on 2026-09-21 with `review-animations` and `make-interfaces-feel-better
 - A click outside closes it (animated); Escape closes it without animation. Both come from a local event monitor rather than `onExitCommand`, because a click on a button does not always move keyboard focus, and Escape must work wherever focus is. A key-press open is the caller's `withoutAnimation`.
 - Only the presented popover is modal to VoiceOver, and focus moves into it. The bare `GlassPopover` view is not: the trait hides everything else on screen, which the first Gallery page showed by hiding its own other sections.
 - Open: `skill-mapping.md` says "materialise, don't fade" (`glassEffectTransition(.materialize)`). This popover, the toast and the drop-zone plate use scale plus opacity instead, which is what both reviews flagged as the one remaining disagreement. It wants judging at 0.1x over the busy backdrop by a person before either the code or the mapping changes; a re-open during the 0.13 s exit also briefly shows two panels.
+- Judged on 2026-09-22 from 0.1x recordings over the busy backdrop, both ways built and filmed (the materialise build was `glassEffectTransition(.materialize)` inside a `GlassEffectContainer` for all three). Decision: scale plus opacity stays. Materialise brings the panel in as a blur that sharpens, so the words are a smear at the moment the user reads them; it grows from the centre, not the trigger; its duration is the system's, so `Duration.popover`, the 0.7x exit and the Gallery's 0.1x do not reach it; and in that build the exit was a hard cut. It suits a glass control that appears beside other glass in one container (a toolbar button, a split button's second half), which is what the mapping row now says. The materialise build was not kept.
 
 ### Toast and UndoToast
-- One glass capsule, 40 pt tall, above the bottom edge. The undo button is tinted text, not a second glass surface. Dismiss is a full 40 pt square at the end cap, its glyph concentric with the cap. A leading symbol sits 2 pt closer to the edge than text would.
+- One glass capsule, 40 pt tall, above the bottom edge. The undo button is tinted text, not a second glass surface. Dismiss is a full 40 pt square at the end cap, its glyph concentric with the cap; its focus ring is the cap's circle, since a square ring on a capsule's end looked bolted on (seen in the keyboard pass). A leading symbol sits 2 pt closer to the edge than text would.
 - Rises 12 pt from `Motion.enterScale`, anchored at the bottom, with opacity, over `Duration.panel`; never its full height. Leaves at 0.7x. The animation is scoped to the toast's own container: a host that changes in the same transaction (a grid reflowing after a delete) never inherits it.
 - A second toast replaces the first in place (`ToastPresenter`, tested): the capsule keeps its identity and the text crossfades, so rapid actions cannot stack. State-driven transitions only. Accepted: a new toast inside the 0.18 s exit of the last one briefly overlaps it.
 - Lifetime 5 s, held while the pointer or VoiceOver focus is on it, so it never goes from under the user. Command-Z undoes without animation, and only an undo toast takes it: a plain toast leaves the app's own Undo alone. New messages are announced to VoiceOver.
 
 ### HotkeyRecorder
 - Ships unassigned. `HotkeyRecorderState` (tested) owns the behaviour: a combination needs Command, Control or Option (Shift alone would swallow typing) unless it is a function key; a conflict is shown and recording continues; Escape cancels, Delete clears.
+- The state and the view take a starting `phase`, so the Gallery can hold a recorder in the recording and conflict phases for looking at. One started that way is a picture: it listens only once clicked.
+- VoiceOver reads the field as "None, Next wallpaper, button" or "⌃⌥P, Pause or resume, button": value first, as for a text field, which is what it is.
 - No animation anywhere: every change is a key press.
 - While recording, a local event monitor takes key presses so Command-W and the like are recorded, not obeyed. A click elsewhere or the window losing key status cancels.
 - The caption line is always present, so rows below never jump when the hint or the conflict appears. A conflict is a red symbol plus words, and is announced.
@@ -102,7 +109,8 @@ Reviewed on 2026-09-21 with `review-animations` and `make-interfaces-feel-better
 ### SidebarRow
 - Not glass; it sits on the sidebar's glass. Selected is an accent fill at 18% (32% under Increase Contrast) in `Radius.control`; hover is `.quinary`, faded over `Duration.hover` in and 0.7x out.
 - No part of the row animates with the selection, symbol included: arrow keys move it, and a caller's `withAnimation` must not leak in.
-- `SidebarRowGroup` is the keyboard path: one tab stop, like a native list, where up and down move the selection inside `withoutAnimation`.
+- `SidebarRowGroup` is the keyboard path: one tab stop, like a native list, where up and down move the selection inside `withoutAnimation`. The focusable view sits behind the rows (`background`), not around them: as their ancestor its focus ring was the union of every row's ring shape, five rings at once. Behind them it is one `Radius.control` ring around the group. VoiceOver reads it as "Library, group" with four buttons inside, the selected one with the selected trait.
+- The badge is part of the label ("Playlists, 3"), not a value, which VoiceOver would read first.
 - Outline symbol by default, `.fill` plus accent when selected, in a fixed 20 pt slot so titles line up. Badge digits are monospaced.
 - Hit area 40 pt tall; the visible fill is inset 2 pt top and bottom so stacked rows' targets meet without overlapping. Stack rows with spacing 0. The focus ring follows the fill.
 - `PressButtonStyle(isStatic: true)`: a full-width row that shrinks on every click distracts, so it dims instead.
@@ -119,6 +127,7 @@ Reviewed on 2026-09-21 with `review-animations` and `make-interfaces-feel-better
 - The readout takes its width from a hidden "100%", monospaced, so nothing shifts at any text size.
 - Only a click on the mute button animates the symbol. Waves changing under a dragged slider, and a mute from the keyboard, swap at once.
 - Muted dims the slider to 45% without animation; moving the slider unmutes. VoiceOver reads "Muted, 60%", since the dimming is visual only.
+- The click's `withAnimation` (for the symbol replace) reached the slider's opacity and the readout's colour too: at 0.1x the slider faded to 45% over the spring. Both now carry `.animation(nil, value: isMuted)`, so only the symbol animates. Seen in the 0.1x recording on 2026-09-22; static review had missed it.
 
 ### SetOnDisplayButton
 - `.controlSize(.extraLarge)`: it is the inspector's one primary action, and its chevron sits 2 pt away, where a missed click would set the wrong display. A long display name truncates; the chevron keeps its size.
@@ -129,7 +138,7 @@ Reviewed on 2026-09-21 with `review-animations` and `make-interfaces-feel-better
 
 ### DetailsList
 - A two-column `Grid` on the first text baseline: labels trailing and `secondary`, values selectable, monospaced digits, two lines at most with middle truncation so a path keeps both ends.
-- No surface of its own; it lives in the inspector. VoiceOver reads each row as "label, value".
+- No surface of its own; it lives in the inspector. VoiceOver reads each row as one label, "Resolution, 3840 × 2160"; set as a value the number came first.
 
 ### DisplayNowPlayingCard
 - Lives inside a glass popover, so it is a `quaternary` fill at 60%, not glass. `Radius.card` as the `containerShape`, with a `ConcentricRectangle` thumbnail 8 pt in: 16 - 8 = 8 pt, concentric.
@@ -164,7 +173,7 @@ Reviewed on 2026-09-21 with `review-animations` and `make-interfaces-feel-better
 ### ImportProgressRow
 - Every state has the same height and columns. The native progress bar and caption are always laid out; on failure they go transparent and the message takes their place, so no frame animates.
 - The percent slot is sized by a hidden "100%", monospaced and trailing.
-- The trailing slot is one symbol in one button in every state (`xmark.circle.fill`, `arrow.clockwise.circle.fill`, `checkmark.circle.fill`: one variant, so the replace does not jump in weight); when finished it is disabled and hidden from VoiceOver.
+- The trailing slot is one symbol in one button in every state (`xmark.circle.fill`, `arrow.clockwise.circle.fill`, `checkmark.circle.fill`: one variant, so the replace does not jump in weight); when finished it is disabled and hidden from VoiceOver. Its focus ring is a circle, like the glyph; the target stays the 40 pt square.
 - The bar gives way to the failure message as one crossfade (`Duration.menu`), in step with the trailing symbol.
 - Rejected: pulling the 40 pt trailing slot out past the row's edge to align the glyph optically. The row's layout bounds stay honest, and its target never overlaps a neighbour's.
 - Failure is a symbol plus words in red, never red alone. Titles truncate in the middle because file names differ at the end.
@@ -184,11 +193,12 @@ Reviewed on 2026-09-21 with `review-animations` and `make-interfaces-feel-better
 ### LoginItemRow
 - Told its state (off, on, needs approval, not found); never asks `SMAppService`. The switch's binding reads the given state and its setter only calls `onChange`, so the switch can never disagree with System Settings.
 - No animation at all: the state changes rarely and from outside, and a caption fading in would mean animating the row's height.
-- Warnings are a symbol plus words, and are announced, since they appear while focus stays on the switch. VoiceOver reads "On, needs approval in System Settings", not a bare "on". Takes the app's name as a parameter.
+- Warnings are a symbol plus words, and are announced, since they appear while focus stays on the switch. Takes the app's name as a parameter.
+- The switch reads "Open at Login, on, switch"; the value given to it is not spoken (a native switch keeps its own on/off), so the warning is spoken twice instead: announced when it appears, and as the next element after the switch. The switch itself carries a hint with the same words.
 - Callers should hand the new state back in the same turn as `onChange`: a switch answered late slides on, back, and on again.
 
 ### PauseRuleToggle
-- A native switch whose label is the whole row, so the words are clickable and VoiceOver reads "title, detail, switch, on".
+- A native switch whose label is the whole row, so the words are clickable. VoiceOver reads the switch as "title, on, switch" and the detail as the next element; both are reachable.
 - Symbols sit in a fixed 24 pt slot so titles line up across rows. Every row is at least 40 pt, with or without a detail line.
 - A click on the words animates the thumb (`Spring.ui`), as a click on the switch does.
 - An unavailable rule shows off and disabled without changing the stored value, so the preference survives a move to another Mac.
