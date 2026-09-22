@@ -79,20 +79,22 @@ extension PlaybackSupervisor {
     private func runCheck(_ trigger: WatchdogTrigger, isolation: isolated (any Actor)? = #isolation) async {
         let judged = store.liveSurfaces.filter { WatchdogSchedule.mayJudge(candidate(for: $0)) }
         log(SupervisorLog.checkStarted(trigger, judging: judged.count))
-        let counts = judged.compactMap { surface in
-            surfaces[surface].map { playback in
-                (surface, playback.wallpaper, Task {
-                    _ = isolation
-                    return await playback.displayedPictures(over: WatchdogSchedule.window)
-                })
+        var countings: [Counting] = []
+        for surface in judged {
+            guard let playback = surfaces[surface] else { continue }
+            let pictures = Task {
+                _ = isolation
+                return await playback.displayedPictures(over: WatchdogSchedule.window)
             }
+            countings.append(Counting(surface: surface, wallpaper: playback.wallpaper, pictures: pictures))
         }
         var recovered = false
-        for (surface, wallpaper, counting) in counts {
-            guard let count = await counting.value,
+        for counting in countings {
+            let surface = counting.surface
+            guard let count = await counting.pictures.value,
                   let playback = surfaces[surface],
                   // A surface that went, stopped or switched while it was counted is not judged.
-                  store.entries[surface]?.isLive == true, playback.state == .playing, playback.wallpaper == wallpaper
+                  store.entries[surface]?.isLive == true, playback.state == .playing, playback.wallpaper == counting.wallpaper
             else { continue }
             log(SupervisorLog.counted(fields(surface), count))
             let attempt = watchdog.attempts[surface, default: 0]
@@ -111,6 +113,13 @@ extension PlaybackSupervisor {
             }
         }
         if recovered { _ = watchdog.request(.recovery) }
+    }
+
+    /// One surface's pictures being counted, and what it played when the count began.
+    private struct Counting {
+        let surface: SurfaceID
+        let wallpaper: SurfaceWallpaper?
+        let pictures: Task<PictureCount?, Never>
     }
 
     /// A surface went: its ladder goes with it.

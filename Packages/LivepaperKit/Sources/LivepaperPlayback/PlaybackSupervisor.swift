@@ -16,6 +16,8 @@ import os
 /// after a wake, and when the conditions behind a pause expire. Every surface
 /// of a display, the Settings preview included, follows that display's decision.
 public final class PlaybackSupervisor {
+    // Internal rather than private only so that the watchdog's extension, in
+    // the file beside this one, can reach them.
     let location: LibraryLocation
     let clock: any Clock<Duration>
     let now: () -> Date
@@ -43,8 +45,10 @@ public final class PlaybackSupervisor {
     ///     after a wake, the expiry of sensed conditions.
     ///   - now: The wall clock. The app stamps its sensed conditions with it,
     ///     so decisions are taken on it.
-    ///   - tearDown: Called when a surface's grace has run out: the extension
-    ///     invalidates its context. The supervisor has already let its layer tree go.
+    ///   - tearDown: Called when a surface's grace has run out, the store's
+    ///     `.tearDown` effect: the extension invalidates the surface's context
+    ///     and drops it. The supervisor then releases the layer tree's decoders
+    ///     with `showNothing()` and lets it go.
     public init(
         location: LibraryLocation,
         clock: any Clock<Duration>,
@@ -146,14 +150,17 @@ public final class PlaybackSupervisor {
 
     // MARK: Taking decisions
 
-    /// Brings every live surface to what its display's decision says.
+    /// Brings every surface to what its display's decision says: those within
+    /// their grace too, so that a stopped state releases their decoders and a
+    /// re-acquire finds them up to date.
     func reconcileAll(isolation: isolated (any Actor)? = #isolation) -> Task<Void, Never> {
         refreshDecisions()
-        let work = store.liveSurfaces.map { surface in
-            Task {
+        var work: [Task<Void, Never>] = []
+        for surface in store.entries.keys.sorted(by: { $0.description < $1.description }) {
+            work.append(Task {
                 _ = isolation
                 await self.reconcile(surface)
-            }
+            })
         }
         return Task {
             for task in work { await task.value }
@@ -172,7 +179,7 @@ public final class PlaybackSupervisor {
         defer { reconciling.remove(surface) }
         repeat {
             outdated.remove(surface)
-            guard let playback = surfaces[surface], store.entries[surface]?.isLive == true else { return }
+            guard let playback = surfaces[surface], store.entries[surface] != nil else { return }
             let target = store.target(for: surface, in: current, location: location, host: host, now: now())
             for call in surfaceCalls(toReach: target, from: playback.state, showing: playback.wallpaper) {
                 await perform(call, on: playback, surface: surface)

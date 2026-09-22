@@ -195,6 +195,17 @@ struct PlaybackSupervisorTests {
         #expect(bench.surface(2).playbackCalls == [.show(.numbered(4), crossfade: false)])
     }
 
+    @Test func `a surface within its grace follows a new state, so stopping releases its decoder too`() async {
+        let bench = SupervisorBench()
+        await bench.apply(Self.state(.numbered(1)))
+        await bench.acquire(1, display: 1, preview: true)
+        bench.supervisor.invalidate(.numbered(1))
+
+        await bench.apply(Self.state(.numbered(1), generation: 2, stopped: true))
+
+        #expect(bench.surface(1).playbackCalls == [.show(.numbered(1), crossfade: false), .holdStill(.numbered(1))])
+    }
+
     @Test func `an unknown surface cannot be invalidated`() {
         let bench = SupervisorBench()
 
