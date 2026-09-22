@@ -163,6 +163,18 @@ extension LoopEngine {
         settleIfIdle()
     }
 
+    /// Flushes the layer's renderer and gives back what `halt` does not keep. The decoder goes
+    /// after a flush, so that the release frame is all the renderer has left to decode, and the
+    /// picture after the decoder: a picture taken off first comes back with the release frame.
+    func letGo(_ halt: Halt) async {
+        let run = generation
+        await flushRenderer(removingImage: false)
+        // A start that came in meanwhile has the layer, its decoder and its picture now.
+        guard run == generation else { return }
+        if !halt.keeps.decoder { onLayer { $0.releaseDecoder() } }
+        if !halt.keeps.picture { await flushRenderer(removingImage: true) }
+    }
+
     func flushRenderer(removingImage: Bool) async {
         await withCheckedContinuation { continuation in
             let once = ResumeOnce(continuation)
