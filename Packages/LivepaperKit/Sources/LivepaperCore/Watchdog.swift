@@ -53,8 +53,11 @@ public func allowAgentRestart(last: Date?, now: Date, minimumGap: Duration = .se
     return now.elapsed(since: last) >= minimumGap
 }
 
-/// How long the app waits for the extension's heartbeat before acting.
+/// How often the extension sends its heartbeat, and how long the app waits for it before acting.
 public struct HeartbeatTiming: Equatable, Sendable {
+    /// The extension sends one heartbeat every `interval`. It is shorter than
+    /// `lifetime`, so that one late heartbeat is not taken for silence.
+    public var interval: Duration
     /// After launch, how long the extension has to send its first heartbeat.
     public var grace: Duration
     /// How long a heartbeat counts for.
@@ -62,14 +65,15 @@ public struct HeartbeatTiming: Equatable, Sendable {
     /// How long each recovery level is given before the next is tried.
     public var step: Duration
 
-    public init(grace: Duration, lifetime: Duration, step: Duration) {
+    public init(interval: Duration, grace: Duration, lifetime: Duration, step: Duration) {
+        self.interval = interval
         self.grace = grace
         self.lifetime = lifetime
         self.step = step
     }
 
     /// Provisional until M5 measures the production extension.
-    public static let standard = HeartbeatTiming(grace: .seconds(20), lifetime: .seconds(15), step: .seconds(10))
+    public static let standard = HeartbeatTiming(interval: .seconds(5), grace: .seconds(20), lifetime: .seconds(15), step: .seconds(10))
 }
 
 /// Judges the extension's heartbeat: `nil` while all is well, otherwise the
