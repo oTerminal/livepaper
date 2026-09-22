@@ -26,6 +26,11 @@ Packages/LivepaperKit/Sources/LivepaperPlayback/
                                   reply, with both video layers made up front
     SurfaceStore.swift            surfaces that outlive the agent's connection, and
                                   the grace period before a teardown
+WallpaperExtension/
+    AgentRequests.swift           the acquire flow: the tree set in the context and
+                                  flushed before the reply
+    HostedSurfaces.swift          one remote context per surface, kept by surface ID
+                                  so that it outlives the agent's connection
 
 No GPL project was read for this work.
 
