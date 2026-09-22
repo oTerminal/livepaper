@@ -2,6 +2,7 @@ import Foundation
 import LivepaperCore
 import LivepaperSystem
 import LivepaperTestSupport
+import os
 import Testing
 
 // Some tests wait on the client's streams; one that never yields fails the test instead of hanging the run.
@@ -21,7 +22,8 @@ struct ExtensionHostClientTests {
         home = try TemporaryFolder()
         location = LibraryLocation(home: home.url)
         client = ExtensionHostClient(
-            location: location, notifier: notifier, agent: agent, restartStore: restarts, clock: clock, sleep: sleep
+            location: location, notifier: notifier, agent: agent, restartStore: restarts, clock: clock, sleep: sleep,
+            logger: Logger(subsystem: "app.livepaper.tests", category: HostLog.category)
         )
     }
 

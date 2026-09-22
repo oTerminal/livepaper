@@ -75,7 +75,14 @@ public struct HeartbeatTiming: Equatable, Sendable {
         self.step = step
     }
 
-    /// Provisional until M5 measures the production extension.
+    /// Measured on the product extension on 2026-09-22, macOS 27.0. Heartbeats
+    /// came every 5.00 s, gaps 4.80 to 5.11 s over 4 minutes, and 13 ms after
+    /// the app applied a state, since the extension beats on each change of
+    /// render state. After an agent restart the extension's first heartbeat
+    /// came in 0.07 s. The install hazard recovered with the desktop live
+    /// 30.6 s after launch: the restart at grace plus one step, then 0.57 s for
+    /// the agent and the extension to come back. The grace stays at 20 s to
+    /// leave the extension room to come up at login, which M8 measures.
     public static let standard = HeartbeatTiming(interval: .seconds(5), grace: .seconds(20), lifetime: .seconds(15), step: .seconds(10))
 }
 

@@ -2,6 +2,7 @@ import Foundation
 import LivepaperCore
 import LivepaperSystem
 import LivepaperTestSupport
+import os
 import Testing
 
 // Some tests wait on what the sensors hand on; one that never comes fails the test instead of hanging the run.
@@ -35,7 +36,8 @@ struct ConditionsSensingTests {
             lock: lock,
             displaySleep: displaySleep,
             covered: covered,
-            clock: clock
+            clock: clock,
+            logger: Logger(subsystem: "app.livepaper.tests", category: SensingLog.category)
         ) { conditions in
             continuation.yield(conditions)
         }
