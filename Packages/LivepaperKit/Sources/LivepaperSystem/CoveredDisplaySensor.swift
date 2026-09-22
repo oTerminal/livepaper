@@ -63,16 +63,7 @@ public final class SystemCoveredDisplaySensor: CoveredDisplaySensor {
 
     private func somethingMoved() {
         settling?.cancel()
-        settling = Task { [weak self] in
-            var waited = Duration.zero
-            for settle in Self.settles {
-                try? await Task.sleep(for: settle - waited)
-                waited = settle
-                guard !Task.isCancelled, let self else { return }
-                let covered = Self.coveredNow()
-                if covered != broadcast.latest { broadcast.send(covered) }
-            }
-        }
+        settling = broadcast.sendSettled(after: Self.settles) { Self.coveredNow() }
     }
 
     private static func coveredNow() -> Set<DisplayIdentity> {
