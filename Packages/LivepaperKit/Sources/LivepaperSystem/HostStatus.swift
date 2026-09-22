@@ -15,7 +15,7 @@ nonisolated public enum AgentRestartReason: Hashable, Sendable {
 
 /// Why a restart that was asked for is not made now.
 nonisolated public enum AgentRestartRefusal: Equatable, Sendable {
-    /// The last restart was less than `HostStatusReducer.agentRestartGap` ago.
+    /// The last restart was less than `agentRestartGap` ago.
     case tooSoon(allowedFrom: Date)
     /// The last restart has not been followed by a heartbeat. When Livepaper is
     /// not selected the agent never launches the extension, so restarting it
@@ -65,8 +65,6 @@ nonisolated public enum HostAction: Equatable, Sendable {
 /// A wake starts a new grace period, because the extension's heartbeat from
 /// before the sleep is old by then and says nothing about whether it is alive.
 nonisolated public struct HostStatusReducer: Equatable, Sendable {
-    /// The least time between two restarts of the agent.
-    public static let agentRestartGap: Duration = .seconds(600)
     /// How far past a change of `judgeHeartbeat`'s answer the next check lands,
     /// so that it lands on the far side of it.
     static let resolution: Duration = .milliseconds(1)
@@ -164,8 +162,8 @@ nonisolated public struct HostStatusReducer: Equatable, Sendable {
         if reason != .user, restartUnanswered {
             return refuse(reason, .awaitingHeartbeat)
         }
-        if let last = lastAgentRestart, !allowAgentRestart(last: last, now: now, minimumGap: Self.agentRestartGap) {
-            return refuse(reason, .tooSoon(allowedFrom: last + Self.agentRestartGap))
+        if let last = lastAgentRestart, !allowAgentRestart(last: last, now: now) {
+            return refuse(reason, .tooSoon(allowedFrom: last + agentRestartGap))
         }
         lastAgentRestart = now
         restartUnanswered = true
@@ -213,7 +211,7 @@ nonisolated public struct HostStatusReducer: Equatable, Sendable {
         guard case .awake(let graceFrom) = phase else { return nil }
         if judge(at: now) == .restartAgent {
             guard !restartUnanswered, let last = lastAgentRestart else { return nil }
-            let gapOpens = last + Self.agentRestartGap
+            let gapOpens = last + agentRestartGap
             return gapOpens > now ? gapOpens + Self.resolution : nil
         }
         let graceEnds = graceFrom + timing.grace
