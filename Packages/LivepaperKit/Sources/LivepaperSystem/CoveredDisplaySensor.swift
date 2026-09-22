@@ -22,7 +22,10 @@ public protocol CoveredDisplaySensor: AnyObject {
 ///   screen was unlocked: what is on screen then may not be what was before.
 public final class SystemCoveredDisplaySensor: CoveredDisplaySensor {
     /// After each event the list is read twice: once the window has started to
-    /// move, and once a fullscreen transition has had time to finish.
+    /// move, and once a fullscreen transition has had time to finish. On
+    /// macOS 27 the Space change comes as the fullscreen animation ends, and
+    /// the fullscreen window is in the list 0.06 s later, the Dock's gone
+    /// 0.17 s later, so both reads see it.
     public static let settles: [Duration] = [.milliseconds(250), .milliseconds(1000)]
 
     private let broadcast = Broadcast<Set<DisplayIdentity>>()

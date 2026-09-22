@@ -13,12 +13,17 @@ nonisolated public struct ConnectedDisplay: Equatable, Sendable {
     /// Where the display sits in global display space, in points, y growing
     /// downwards: the space the window list uses.
     public var frame: Rect
+    /// The height of the strip beside the camera housing at the top of the
+    /// display, in points: `NSScreen.safeAreaInsets.top`, 0 on a display with
+    /// no housing. No window covers that strip, not even a fullscreen one.
+    public var topSafeAreaInset: Double
 
-    public init(identity: DisplayIdentity, displayID: UInt32, pixelSize: Size, frame: Rect) {
+    public init(identity: DisplayIdentity, displayID: UInt32, pixelSize: Size, frame: Rect, topSafeAreaInset: Double = 0) {
         self.identity = identity
         self.displayID = displayID
         self.pixelSize = pixelSize
         self.frame = frame
+        self.topSafeAreaInset = topSafeAreaInset
     }
 }
 
@@ -76,10 +81,11 @@ enum ConnectedDisplays {
         guard CGGetOnlineDisplayList(0, nil, &count) == .success, count > 0 else { return [] }
         var ids = [CGDirectDisplayID](repeating: 0, count: Int(count))
         guard CGGetOnlineDisplayList(count, &ids, &count) == .success else { return [] }
-        return ids.prefix(Int(count)).compactMap(display(for:))
+        let insets = topSafeAreaInsets()
+        return ids.prefix(Int(count)).compactMap { display(for: $0, topSafeAreaInset: insets[$0] ?? 0) }
     }
 
-    static func display(for id: CGDirectDisplayID) -> ConnectedDisplay? {
+    static func display(for id: CGDirectDisplayID, topSafeAreaInset: Double) -> ConnectedDisplay? {
         guard CGDisplayMirrorsDisplay(id) == kCGNullDirectDisplay,
               let cfUUID = CGDisplayCreateUUIDFromDisplayID(id)?.takeRetainedValue(),
               let uuid = UUID(uuidString: CFUUIDCreateString(nil, cfUUID) as String)
@@ -93,7 +99,21 @@ enum ConnectedDisplays {
                 width: Double(mode?.pixelWidth ?? CGDisplayPixelsWide(id)),
                 height: Double(mode?.pixelHeight ?? CGDisplayPixelsHigh(id))
             ),
-            frame: Rect(bounds)
+            frame: Rect(bounds),
+            topSafeAreaInset: topSafeAreaInset
+        )
+    }
+
+    /// Each screen's top safe-area inset, by its CoreGraphics number. Only a
+    /// display with a camera housing has one; a display AppKit lists no
+    /// screen for is taken to have none.
+    static func topSafeAreaInsets() -> [CGDirectDisplayID: Double] {
+        let screenNumber = NSDeviceDescriptionKey("NSScreenNumber")
+        return Dictionary(
+            NSScreen.screens.compactMap { screen in
+                (screen.deviceDescription[screenNumber] as? NSNumber).map { ($0.uint32Value, Double(screen.safeAreaInsets.top)) }
+            },
+            uniquingKeysWith: { first, _ in first }
         )
     }
 }
