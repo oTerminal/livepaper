@@ -14,11 +14,11 @@ nonisolated public enum HostLog {
     }
 
     public static func silence(_ level: RecoveryLevel) -> String {
-        "host: no heartbeat, asking the extension to \(name(of: level))"
+        "host: no heartbeat, asking the extension to \(String(describing: level))"
     }
 
     public static func recover(_ level: RecoveryLevel) -> String {
-        "host: asking the extension to \(name(of: level))"
+        "host: asking the extension to \(String(describing: level))"
     }
 
     public static func restarting(_ reason: AgentRestartReason) -> String {
@@ -70,17 +70,8 @@ nonisolated public enum HostLog {
         case .connecting: "connecting"
         case .notSelected: "notSelected"
         case .live: "live"
-        case .recovering(let level): "recovering(\(name(of: level)))"
+        case .recovering(let level): "recovering(\(String(describing: level)))"
         case .unavailable: "unavailable"
-        }
-    }
-
-    public static func name(of level: RecoveryLevel) -> String {
-        switch level {
-        case .flush: "flush"
-        case .rebuildSurface: "rebuildSurface"
-        case .rebuildPipeline: "rebuildPipeline"
-        case .restartAgent: "restartAgent"
         }
     }
 
