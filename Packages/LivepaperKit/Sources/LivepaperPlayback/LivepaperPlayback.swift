@@ -1,5 +1,4 @@
-/// Gapless looping playback shared by every render host: the loop engine, the
-/// playback supervisor and the layer tree.
-///
-/// Empty until milestone M5 (docs/roadmap.md).
+/// Gapless looping playback shared by every render host: the loop engine (`LoopEngine`), the
+/// layer tree of a surface (`SurfaceLayers`), the playback supervisor, and the app's
+/// `PreviewPlayer` (docs/specs/M5-engine.md).
 public enum LivepaperPlayback {}
