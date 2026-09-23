@@ -42,6 +42,13 @@ final class ManualWallClock: WallClock {
     func advance(toSecond seconds: TimeInterval) {
         advance(to: Moment.after(seconds))
     }
+
+    /// Moves to `seconds` at once, then makes the calls that fell due on the
+    /// way, late, as a wall-clock timer does when the Mac wakes.
+    func sleep(untilSecond seconds: TimeInterval) {
+        now = max(now, Moment.after(seconds))
+        advance(to: now)
+    }
 }
 
 /// Remembers what was posted, and delivers what the extension would post.

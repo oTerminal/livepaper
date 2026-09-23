@@ -154,6 +154,19 @@ struct ExtensionHostClientTests {
         #expect(client.currentStatus == .live)
     }
 
+    @Test func `a check that fell due in a sleep nobody heard posts nothing when it fires at the wake`() async throws {
+        try await client.activate()
+        clock.advance(toSecond: 3)
+        notifier.deliver(Heartbeat(generation: 5, flags: .desktopSurfaceAcquired))
+
+        clock.sleep(untilSecond: 4000)
+
+        #expect(notifier.posts(of: HostNotification.recover).isEmpty)
+        #expect(client.lastAgentRestart == nil)
+        #expect(client.currentStatus == .live)
+        #expect(clock.scheduled.map(Moment.millisecond(of:)) == [4_020_001])
+    }
+
     // MARK: Recovery asked for by the app
 
     @Test func `the lower levels are posted for the extension to try`() async throws {

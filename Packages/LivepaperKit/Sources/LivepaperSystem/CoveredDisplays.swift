@@ -27,14 +27,17 @@ nonisolated public struct WindowListEntry: Equatable, Sendable {
 ///
 /// A fullscreen app on a display with a camera housing starts below the menu
 /// bar, and the strip beside the housing is black: the desktop is not
-/// composited there either. The owners to ignore are the app itself and the
-/// Dock: the Dock keeps a display-sized window on every display, above the
-/// normal level, that covers nothing. Several windows that cover a display
-/// between them do not count; that is v1's known gap. A zoomed window leaves
-/// the menu bar, where the wallpaper shows through, so it does not count
-/// either, except in one case: with the Dock hidden, a zoomed window below a
-/// camera housing has a fullscreen window's bounds, so it counts although the
-/// menu bar still shows a strip of wallpaper, and the wallpaper pauses under it.
+/// composited there either. The owners to ignore are the app itself, the
+/// Dock, which keeps a display-sized window on every display, above the
+/// normal level, that covers nothing, and loginwindow, whose lock screen
+/// shield is display-sized too and stays listed for about a second after the
+/// unlock: the lock screen is the lock sensor's business. Several windows
+/// that cover a display between them do not count; that is v1's known gap. A
+/// zoomed window leaves the menu bar, where the wallpaper shows through, so
+/// it does not count either, except in one case: with the Dock hidden, a
+/// zoomed window below a camera housing has a fullscreen window's bounds, so
+/// it counts although the menu bar still shows a strip of wallpaper, and the
+/// wallpaper pauses under it.
 nonisolated public func coveredDisplays(
     windows: [WindowListEntry],
     displays: [ConnectedDisplay],

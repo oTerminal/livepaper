@@ -78,7 +78,9 @@ nonisolated public enum HostAction: Equatable, Sendable {
 ///
 /// A wake starts a new grace period, because the extension's heartbeat from
 /// before the sleep is old by then and says nothing about whether it is alive.
-/// It does not count as a heartbeat.
+/// It does not count as a heartbeat. An event long after the check that was
+/// due is a wake too: the timer could not make the check, so the Mac slept
+/// through it, and the sleep and the wake may be heard after it, or never.
 nonisolated public struct HostStatusReducer: Equatable, Sendable {
     /// How far past a change of `judgeHeartbeat`'s answer the next check lands,
     /// so that it lands on the far side of it.
@@ -113,6 +115,7 @@ nonisolated public struct HostStatusReducer: Equatable, Sendable {
     }
 
     public mutating func reduce(_ event: HostEvent) -> [HostAction] {
+        if let now = event.time, sleptThroughCheck(before: now) { wake(at: now) }
         var actions: [HostAction] = []
         switch event {
         case .activated(let at, let recorded): activate(at: at, lastAgentRestart: recorded)
@@ -143,6 +146,14 @@ nonisolated public struct HostStatusReducer: Equatable, Sendable {
         guard phase != .stopped else { return }
         phase = .awake(graceFrom: now)
         climbed = nil
+    }
+
+    /// The timer makes a check within a fraction of a second of `nextCheck`.
+    /// Half a step later it could not have: the Mac was asleep. A check late by
+    /// less, and so judged, reaches no level past the one it was due for.
+    private func sleptThroughCheck(before now: Date) -> Bool {
+        guard let due = nextCheck else { return false }
+        return now > due + timing.step / 2
     }
 
     private mutating func deactivate() {

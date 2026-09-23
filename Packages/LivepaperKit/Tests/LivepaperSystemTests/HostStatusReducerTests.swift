@@ -5,7 +5,7 @@ import Testing
 
 /// Drives the reducer as the client does: events as they come, and a tick at
 /// each `nextCheck`, with the times written down in milliseconds since launch.
-private struct Script {
+struct HostScript {
     /// An action, with any time in it in milliseconds since launch.
     enum Did: Equatable {
         case post(RecoveryLevel)
@@ -81,7 +81,7 @@ private struct Script {
 
 struct HostStatusReducerTests {
     @Test func `activating reports connecting and waits for the grace period`() {
-        let script = Script()
+        let script = HostScript()
 
         #expect(script.reducer.status == .connecting)
         #expect(script.reducer.nextCheck.map(Moment.millisecond(of:)) == 20_001)
@@ -99,7 +99,7 @@ struct HostStatusReducerTests {
 
     @Test(arguments: heartbeatRows)
     func `the heartbeat's flags give the status`(row: Row<Heartbeat.Flags, RenderHostStatus>) {
-        var script = Script()
+        var script = HostScript()
 
         script.heartbeat(row.input, at: 3)
 
@@ -107,7 +107,7 @@ struct HostStatusReducerTests {
     }
 
     @Test func `a heartbeat moves the next check to where it expires`() {
-        var script = Script()
+        var script = HostScript()
 
         script.heartbeats(from: 3, through: 28)
 
@@ -116,7 +116,7 @@ struct HostStatusReducerTests {
     }
 
     @Test func `silence from launch skips the levels nobody can receive and restarts the agent a step after the grace period`() {
-        var script = Script()
+        var script = HostScript()
 
         script.runClock(until: 3600)
 
@@ -130,7 +130,7 @@ struct HostStatusReducerTests {
     }
 
     @Test func `silence from launch reports the first level until the restart is due`() {
-        var script = Script()
+        var script = HostScript()
 
         script.runClock(until: 25)
 
@@ -138,23 +138,8 @@ struct HostStatusReducerTests {
         #expect(script.reducer.nextCheck.map(Moment.millisecond(of:)) == 30_001)
     }
 
-    @Test func `a wake before the first heartbeat still skips the levels nobody can receive`() {
-        var script = Script()
-        script.send(.systemWillSleep)
-        script.send(.systemDidWake(at: Moment.after(1000)))
-
-        script.runClock(until: 1100)
-
-        #expect(script.steps == [
-            .init(1_020_001, .skip(.flush)),
-            .init(1_030_001, .skip(.rebuildSurface)),
-            .init(1_030_001, .skip(.rebuildPipeline)),
-            .init(1_030_001, .restart(.silence)),
-        ])
-    }
-
     @Test func `silence reports the level it has reached`() {
-        var script = Script()
+        var script = HostScript()
         script.heartbeats(from: 3, through: 23)
 
         script.runClock(until: 50)
@@ -163,7 +148,7 @@ struct HostStatusReducerTests {
     }
 
     @Test func `silence after heartbeats climbs the whole ladder from when the last one expires`() {
-        var script = Script()
+        var script = HostScript()
         script.heartbeats(from: 3, through: 23)
 
         script.runClock(until: 70)
@@ -177,7 +162,7 @@ struct HostStatusReducerTests {
     }
 
     @Test func `a heartbeat after the restart ends the recovery`() {
-        var script = Script()
+        var script = HostScript()
         script.runClock(until: 51)
 
         script.heartbeat(at: 51.5)
@@ -188,7 +173,7 @@ struct HostStatusReducerTests {
     }
 
     @Test func `when Livepaper is not selected the agent is restarted once, not every ten minutes`() {
-        var script = Script()
+        var script = HostScript()
 
         script.runClock(until: 86_400)
 
@@ -199,7 +184,7 @@ struct HostStatusReducerTests {
     }
 
     @Test func `an unanswered restart still lets the status line's button restart the agent after ten minutes`() {
-        var script = Script()
+        var script = HostScript()
         script.runClock(until: 700)
 
         script.send(.restartRequested(at: Moment.after(700)))
@@ -208,7 +193,7 @@ struct HostStatusReducerTests {
     }
 
     @Test func `a heartbeat after an unanswered restart lets silence restart the agent again`() {
-        var script = Script()
+        var script = HostScript()
         script.runClock(until: 900)
         script.heartbeat(at: 900)
 
@@ -219,7 +204,7 @@ struct HostStatusReducerTests {
     }
 
     @Test func `a second silence within ten minutes waits for the gap, then restarts`() {
-        var script = Script()
+        var script = HostScript()
         script.runClock(until: 51)
         script.heartbeat(at: 52)
 
@@ -234,7 +219,7 @@ struct HostStatusReducerTests {
     }
 
     @Test func `a restart made before this launch keeps the ten-minute gap`() {
-        var script = Script(lastAgentRestartAt: -100)
+        var script = HostScript(lastAgentRestartAt: -100)
 
         script.runClock(until: 3600)
 
@@ -246,7 +231,7 @@ struct HostStatusReducerTests {
 
     @Test func `a restart recorded later than the launch counts as made at the launch`() {
         // The clock moved back since: the gap runs from the launch, and no longer.
-        var script = Script(lastAgentRestartAt: 86_400)
+        var script = HostScript(lastAgentRestartAt: 86_400)
 
         script.send(.restartRequested(at: Moment.after(10)))
 
@@ -254,7 +239,7 @@ struct HostStatusReducerTests {
     }
 
     @Test func `activating again keeps a restart made since the record was read`() {
-        var script = Script(lastAgentRestartAt: -1000)
+        var script = HostScript(lastAgentRestartAt: -1000)
         script.runClock(until: 51)
         script.send(.deactivated)
 
@@ -271,7 +256,7 @@ struct HostStatusReducerTests {
 
     @Test(arguments: flagRows)
     func `a heartbeat can ask for the agent to be restarted`(row: Row<Heartbeat.Flags, AgentRestartReason>) {
-        var script = Script()
+        var script = HostScript()
 
         script.heartbeat(row.input, at: 3)
 
@@ -280,7 +265,7 @@ struct HostStatusReducerTests {
     }
 
     @Test func `a flag that stays up is refused once, then honoured when the gap opens`() {
-        var script = Script()
+        var script = HostScript()
         script.heartbeat(.restartAgentRequested, at: 3)
 
         script.heartbeats(.restartAgentRequested, from: 8, through: 603)
@@ -293,7 +278,7 @@ struct HostStatusReducerTests {
     }
 
     @Test func `after the button's restart, silence waits for a heartbeat before restarting again`() {
-        var script = Script()
+        var script = HostScript()
         script.heartbeat(at: 3)
         script.send(.restartRequested(at: Moment.after(10)))
 
@@ -311,7 +296,7 @@ struct HostStatusReducerTests {
     }
 
     @Test func `the status line's button goes through the ten-minute gap`() {
-        var script = Script()
+        var script = HostScript()
         script.heartbeat(at: 3)
 
         script.send(.restartRequested(at: Moment.after(10)))
@@ -324,55 +309,8 @@ struct HostStatusReducerTests {
         #expect(script.reducer.status == .recovering(.restartAgent))
     }
 
-    @Test func `sleep stops the checks and a wake gives the extension a fresh grace period`() {
-        var script = Script()
-        script.heartbeats(from: 3, through: 98)
-
-        script.send(.systemWillSleep)
-        #expect(script.reducer.nextCheck == nil)
-        script.send(.systemDidWake(at: Moment.after(4000)))
-
-        #expect(script.reducer.status == .live)
-        #expect(script.reducer.nextCheck.map(Moment.millisecond(of:)) == 4_020_001)
-        script.runClock(until: 4025)
-        #expect(script.steps == [.init(4_020_001, .post(.flush))])
-    }
-
-    @Test func `a heartbeat after a wake keeps the host live`() {
-        var script = Script()
-        script.heartbeats(from: 3, through: 98)
-        script.send(.systemWillSleep)
-        script.send(.systemDidWake(at: Moment.after(4000)))
-
-        script.heartbeats(from: 4002, through: 4100)
-
-        #expect(script.steps.isEmpty)
-        #expect(script.reducer.status == .live)
-    }
-
-    @Test func `a tick while asleep does nothing`() {
-        var script = Script()
-        script.heartbeats(from: 3, through: 98)
-        script.send(.systemWillSleep)
-
-        script.send(.tick(at: Moment.after(4000)))
-
-        #expect(script.steps.isEmpty)
-        #expect(script.reducer.status == .live)
-    }
-
-    @Test func `a heartbeat while asleep counts as a wake`() {
-        var script = Script()
-        script.heartbeats(from: 3, through: 98)
-        script.send(.systemWillSleep)
-
-        script.heartbeat(at: 4000)
-
-        #expect(script.reducer.nextCheck.map(Moment.millisecond(of:)) == 4_020_001)
-    }
-
     @Test func `deactivating stops the host and its checks`() {
-        var script = Script()
+        var script = HostScript()
         script.heartbeat(at: 3)
 
         script.send(.deactivated)
@@ -385,7 +323,7 @@ struct HostStatusReducerTests {
     }
 
     @Test func `activating again waits for a new heartbeat`() {
-        var script = Script()
+        var script = HostScript()
         script.heartbeat(at: 3)
         script.send(.deactivated)
 

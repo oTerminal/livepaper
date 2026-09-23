@@ -81,14 +81,16 @@ public final class SystemCoveredDisplaySensor: CoveredDisplaySensor {
 /// The on-screen windows, by bounds, layer and owner. Window names would need
 /// Screen Recording, so they are never asked for.
 enum WindowList {
-    static let dockBundleIdentifier = "com.apple.dock"
+    /// The Dock, whose display-sized window sits above the normal level on
+    /// every display, and loginwindow, whose lock screen shield stays in the
+    /// list for about a second after unlocking.
+    static let bundleIdentifiersThatCoverNothing = ["com.apple.dock", "com.apple.loginwindow"]
 
-    /// The app itself, and the Dock, whose display-sized window sits above the
-    /// normal level on every display. The Dock is found by its bundle
-    /// identifier on each read, since it gets a new process when it restarts.
+    /// The app itself and `bundleIdentifiersThatCoverNothing`, found on each
+    /// read, since the Dock gets a new process when it restarts.
     static func ownersThatCoverNothing() -> Set<Int32> {
-        let dock = NSRunningApplication.runningApplications(withBundleIdentifier: dockBundleIdentifier).map(\.processIdentifier)
-        return Set(dock).union([ProcessInfo.processInfo.processIdentifier])
+        let system = bundleIdentifiersThatCoverNothing.flatMap(NSRunningApplication.runningApplications(withBundleIdentifier:))
+        return Set(system.map(\.processIdentifier)).union([ProcessInfo.processInfo.processIdentifier])
     }
 
     static func onScreen() -> [WindowListEntry] {

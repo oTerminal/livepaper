@@ -1,3 +1,4 @@
+import CoreGraphics
 import LivepaperCore
 import LivepaperSystem
 import Testing
@@ -26,6 +27,8 @@ struct CoveredDisplaysTests {
     static let otherPID: Int32 = 200
     static let dockPID: Int32 = 300
     static let windowServerPID: Int32 = 400
+    static let loginwindowPID: Int32 = 500
+    static let shieldLevel = Int(CGShieldingWindowLevel())
 
     static func rect(_ x: Double, _ y: Double, _ width: Double, _ height: Double) -> Rect {
         Rect(origin: Point(x: x, y: y), size: Size(width: width, height: height))
@@ -86,6 +89,16 @@ struct CoveredDisplaysTests {
         Row("a display-sized window above the Dock's level covers it", [window(builtIn.frame, layer: 25)], [builtIn.identity]),
         Row("a screen saver covers its display", [window(builtIn.frame, layer: 1000)], [builtIn.identity]),
         Row(
+            "the lock screen's shield, still listed a second after unlocking, covers nothing",
+            [
+                window(builtIn.frame, layer: shieldLevel, owner: loginwindowPID),
+                window(external.frame, layer: shieldLevel, owner: loginwindowPID),
+            ],
+            []
+        ),
+        Row("loginwindow's windows never count, whatever their level", [window(builtIn.frame, owner: loginwindowPID)], []),
+        Row("someone else's window at the shield's level covers it", [window(builtIn.frame, layer: shieldLevel)], [builtIn.identity]),
+        Row(
             "two windows that tile do not cover it, v1's known gap",
             [window(rect(0, 0, 900, 1169)), window(rect(900, 0, 900, 1169))],
             []
@@ -99,7 +112,9 @@ struct CoveredDisplaysTests {
 
     @Test(arguments: rows)
     func `a display is covered by one window that contains it`(row: Row<[WindowListEntry], Set<DisplayIdentity>>) {
-        let covered = coveredDisplays(windows: row.input, displays: Self.displays, ignoringOwners: [Self.ownPID, Self.dockPID])
+        let covered = coveredDisplays(
+            windows: row.input, displays: Self.displays, ignoringOwners: [Self.ownPID, Self.dockPID, Self.loginwindowPID]
+        )
 
         #expect(covered == row.expected)
     }
