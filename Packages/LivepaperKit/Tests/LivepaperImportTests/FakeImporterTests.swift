@@ -134,6 +134,24 @@ struct FakeImporterTests {
         #expect(await bench.wallpapers == [first])
     }
 
+    @Test func `the same file is found in the library at once, without an import or a step of the clock`() async throws {
+        let bench = FakeBench()
+        let rain = ImportCandidate(source: URL(filePath: "/Users/tester/Movies/Rain.webm"), name: "Rain")
+        guard case .finished(.imported(let first, _)) = await bench.run(rain).events.last else {
+            Issue.record("the first import failed")
+            return
+        }
+        let before = bench.clock.now
+
+        let again = try await bench.importer.existingWallpaper(for: ImportCandidate(source: rain.source, name: "Rain again"))
+        let other = try await bench.importer.existingWallpaper(for: .numbered(1))
+
+        #expect(again == first)
+        #expect(other == nil, "a file the library does not have")
+        #expect(bench.clock.now == before)
+        #expect(await bench.wallpapers == [first])
+    }
+
     @Test func `the fingerprint is the SHA-256 of the source file's path, so the file need not be there`() async {
         let bench = FakeBench()
 

@@ -50,19 +50,42 @@ public func skipWords(_ reason: SkipReason) -> String {
     }
 }
 
-/// The toast for a source file the library already has: nothing was imported.
-public func duplicateToastWords(of wallpaper: Wallpaper) -> String {
-    "Already in the library as “\(wallpaper.name)”"
-}
+/// What an import says in a plain toast. A cancel says nothing.
+public struct ImportToast: Equatable, Sendable {
+    public enum Kind: Equatable, Sendable {
+        /// Nothing new: the file is in the library, or on the list, already.
+        case alreadyThere
+        /// It was not imported, and the words say why.
+        case notImported
+    }
 
-/// The toast for a source that discovery passed over, named as the user dropped it.
-public func skippedToastWords(_ skipped: SkippedSource) -> String {
-    "“\(skipped.url.lastPathComponent)” was not imported. \(skipWords(skipped.reason))."
-}
+    public let kind: Kind
+    public let words: String
 
-/// The toast for an import that failed. `name` is the candidate's.
-public func failedToastWords(name: String, error: any Error) -> String {
-    "“\(name)” was not imported. \(importFailureWords(error).reason)."
+    public init(kind: Kind, words: String) {
+        self.kind = kind
+        self.words = words
+    }
+
+    /// A source file the library already has: nothing was imported.
+    public static func duplicate(of wallpaper: Wallpaper) -> ImportToast {
+        ImportToast(kind: .alreadyThere, words: "Already in the library as “\(wallpaper.name)”")
+    }
+
+    /// A file dropped again while its row is still on the list. `name` is the candidate's.
+    public static func alreadyListed(name: String) -> ImportToast {
+        ImportToast(kind: .alreadyThere, words: "“\(name)” is already in the import list")
+    }
+
+    /// A source that discovery passed over, named as the user dropped it.
+    public static func skipped(_ skipped: SkippedSource) -> ImportToast {
+        ImportToast(kind: .notImported, words: "“\(skipped.url.lastPathComponent)” was not imported. \(skipWords(skipped.reason)).")
+    }
+
+    /// An import that failed, or a source that could not be searched. `name` is the candidate's.
+    public static func failed(name: String, error: any Error) -> ImportToast {
+        ImportToast(kind: .notImported, words: "“\(name)” was not imported. \(importFailureWords(error).reason).")
+    }
 }
 
 private func words(for error: ImportError) -> (reason: String, canRetry: Bool) {

@@ -127,25 +127,37 @@ struct ImportWordsTests {
 
     // MARK: Toasts
 
-    @Test func `a duplicate's toast names the wallpaper it already is`() {
-        #expect(duplicateToastWords(of: .numbered(1)) == "Already in the library as “Harbour 1”")
-    }
+    static let toasts: [Row<ImportToast, ImportToast>] = [
+        Row(
+            "a duplicate names the wallpaper it already is",
+            .duplicate(of: .numbered(1)),
+            ImportToast(kind: .alreadyThere, words: "Already in the library as “Harbour 1”")
+        ),
+        Row(
+            "a file dropped again while its row is on the list",
+            .alreadyListed(name: "Harbour 1"),
+            ImportToast(kind: .alreadyThere, words: "“Harbour 1” is already in the import list")
+        ),
+        Row(
+            "a skipped source is named as it was dropped, and says why",
+            .skipped(SkippedSource(
+                url: URL(filePath: "/Users/tester/Workshop/2345678901"), reason: .wallpaperEngine(.unsupportedType("scene"))
+            )),
+            ImportToast(
+                kind: .notImported,
+                words: "“2345678901” was not imported. It is a Wallpaper Engine scene; only video items can be imported."
+            )
+        ),
+        Row(
+            "a failure names the file and says why",
+            .failed(name: "Harbour 1", error: ImportError.rejected(.protected)),
+            ImportToast(kind: .notImported, words: "“Harbour 1” was not imported. It is copy-protected.")
+        ),
+    ]
 
-    @Test func `a skipped source's toast names it and says why`() {
-        let skipped = SkippedSource(
-            url: URL(filePath: "/Users/tester/Workshop/2345678901"), reason: .wallpaperEngine(.unsupportedType("scene"))
-        )
-
-        #expect(
-            skippedToastWords(skipped)
-                == "“2345678901” was not imported. It is a Wallpaper Engine scene; only video items can be imported."
-        )
-    }
-
-    @Test func `a failure's toast names the file and says why`() {
-        let words = failedToastWords(name: "Harbour 1", error: ImportError.rejected(.protected))
-
-        #expect(words == "“Harbour 1” was not imported. It is copy-protected.")
+    @Test(arguments: toasts)
+    func `each toast says what happened to the file`(row: Row<ImportToast, ImportToast>) {
+        #expect(row.input == row.expected)
     }
 
     @Test func `a source file that has gone is found out as the importer finds it out`() async throws {

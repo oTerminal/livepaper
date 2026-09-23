@@ -85,6 +85,8 @@ final class AppModel: ImportLibrary {
     @ObservationIgnored var histories: [DisplayIdentity: RotationHistory] = [:]
     @ObservationIgnored var pendingDeletion: PendingDeletion?
     @ObservationIgnored var runningImport: (id: UUID, task: Task<Void, Never>)?
+    /// Rows being looked for in the library before their turn (`ImportList.Effect.check`).
+    @ObservationIgnored var importChecks: [UUID: Task<Void, Never>] = [:]
     @ObservationIgnored var importTick: Task<Void, Never>?
     @ObservationIgnored var settling: [WallpaperID: Task<Void, Never>] = [:]
     /// Moves on with each set, so that only the latest one's apply says done.
@@ -282,6 +284,7 @@ extension AppModel {
         // Edits in progress are kept; the displays have them at the next launch.
         settleDrafts()
         runningImport?.task.cancel()
+        importChecks.values.forEach { $0.cancel() }
         importTick?.cancel()
         sensing?.stop()
         for watch in watches {

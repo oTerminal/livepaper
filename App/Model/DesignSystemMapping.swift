@@ -59,19 +59,14 @@ extension ImportList.RowState {
         case .failed(let reason, _, _): .failed(message: reason)
         }
     }
-
-    /// Retry is offered only where it can help.
-    var canRetry: Bool {
-        if case .failed(_, let canRetry, _) = self { canRetry } else { false }
-    }
 }
 
-extension ImportList.Row {
-    /// The wallpaper a finished row made, or already was: its poster can stand in the row.
-    var wallpaper: Wallpaper? {
-        switch state {
-        case .finished(let wallpaper, _), .duplicate(let wallpaper, _): wallpaper
-        case .waiting, .running, .failed: nil
+extension ImportToast {
+    /// A plain toast, its symbol from its kind.
+    var toastItem: ToastItem {
+        switch kind {
+        case .alreadyThere: ToastItem(message: words, systemImage: "square.on.square")
+        case .notImported: ToastItem(message: words, systemImage: "exclamationmark.triangle")
         }
     }
 }

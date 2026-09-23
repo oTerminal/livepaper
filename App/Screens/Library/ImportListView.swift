@@ -37,33 +37,27 @@ struct ImportListRow: View {
     let row: ImportList.Row
 
     var body: some View {
+        let state = row.state
         ImportProgressRow(
             title: row.candidate.name,
             poster: poster,
-            state: row.state.importProgressState,
-            onCancel: isUnderWay ? { model.cancelImport(row.id) } : nil,
-            onRetry: row.state.canRetry ? { model.retryImport(row.id) } : nil
+            state: state.importProgressState,
+            onCancel: state.canCancel ? { model.cancelImport(row.id) } : nil,
+            onRetry: state.canRetry ? { model.retryImport(row.id) } : nil
         )
         .contextMenu {
-            if row.state.canRetry {
+            if state.canRemove {
                 Button("Remove from List") { model.cancelImport(row.id) }
             }
         }
     }
 
-    private var isUnderWay: Bool {
-        switch row.state {
-        case .waiting, .running: true
-        case .finished, .duplicate, .failed: false
-        }
-    }
-
     /// The wallpaper it made or already was; before that, a Wallpaper Engine item's own preview.
     private var poster: Image? {
-        if let wallpaper = row.wallpaper {
-            model.art.poster(for: wallpaper, size: Layout.thumbnail)
+        if let wallpaper = row.state.wallpaper {
+            model.art.poster(for: wallpaper, size: Layout.poster)
         } else if let preview = row.candidate.preview {
-            model.art.picture(at: preview, size: Layout.thumbnail)
+            model.art.picture(at: preview, size: Layout.poster)
         } else {
             nil
         }
@@ -73,8 +67,8 @@ struct ImportListRow: View {
 private nonisolated enum Layout {
     /// Three rows and the start of a fourth, so the list says there is more.
     static let maxHeight: CGFloat = 200
-    /// The row's thumbnail.
-    static let thumbnail = CGSize(width: 64, height: 40)
+    /// The size `ImportProgressRow` draws a row's poster at, which it is decoded to cover.
+    static let poster = CGSize(width: 64, height: 40)
 }
 
 #Preview("Import list, every row state") {

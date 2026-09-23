@@ -35,10 +35,10 @@ extension AppModel {
             let found = await Discovering.run(urls)
             guard canImport else { return }
             for skipped in found.skipped {
-                showToast(skippedToastWords(skipped), systemImage: "exclamationmark.triangle")
+                showToast(.skipped(skipped))
             }
             for failure in found.failures {
-                showToast(failedToastWords(name: failure.name, error: failure.error), systemImage: "exclamationmark.triangle")
+                showToast(.failed(name: failure.name, error: failure.error))
             }
             guard !found.candidates.isEmpty else { return }
             perform(importList.enqueue(found.candidates, ids: found.candidates.map { _ in UUID() }))
@@ -83,22 +83,31 @@ extension AppModel {
         perform(importList.retry(row))
     }
 
-    /// Any plain toast; a delete's undo toast it replaces is final.
-    func showToast(_ message: String, systemImage: String? = nil) {
-        toasts.send(.show(ToastItem(message: message, systemImage: systemImage)))
+    /// A plain toast of the import's; a delete's undo toast it replaces is final.
+    func showToast(_ toast: ImportToast) {
+        toasts.send(.show(toast.toastItem))
     }
 
     // MARK: Running the list
 
+    /// Carries out what the list answered. Which row runs, what a row shows and
+    /// what a toast says are the list's; the model only runs and reports.
     private func perform(_ effects: [ImportList.Effect]) {
         for effect in effects {
             switch effect {
             case .start(let id, let candidate):
+                importChecks.removeValue(forKey: id)?.cancel()
                 start(id, candidate)
+            case .check(let id, let candidate):
+                check(id, candidate)
             case .cancel(let id):
-                guard runningImport?.id == id else { continue }
-                runningImport?.task.cancel()
-                runningImport = nil
+                importChecks.removeValue(forKey: id)?.cancel()
+                if runningImport?.id == id {
+                    runningImport?.task.cancel()
+                    runningImport = nil
+                }
+            case .toast(let toast):
+                showToast(toast)
             }
         }
         scheduleImportTick()
@@ -123,35 +132,40 @@ extension AppModel {
         runningImport = (id, task)
     }
 
+    /// Looks for a waiting row's file in the library beside the running import.
+    /// A file that cannot be read says so when its turn comes.
+    private func check(_ id: UUID, _ candidate: ImportCandidate) {
+        guard let importer else { return }
+        importChecks[id] = Task { [weak self] in
+            let existing = try? await importer.existingWallpaper(for: candidate)
+            guard !Task.isCancelled, let self else { return }
+            importChecks[id] = nil
+            if let existing {
+                AppLog.logger.notice("\(AppLog.importDuplicate(of: existing), privacy: .public)")
+            }
+            perform(importList.checked(id, existing: existing, at: Date()))
+        }
+    }
+
+    /// The list ignores what arrives for a row that is no longer running; the log keeps it,
+    /// since a cancel that came during the commit still imported the file.
     private func received(_ event: ImportEvent, for id: UUID) {
-        guard isRunning(id) else { return }
-        let effects = importList.received(event, for: id, at: Date())
         if case .finished(let outcome) = event {
             switch outcome {
             case .imported(let wallpaper, _):
                 AppLog.logger.notice("\(AppLog.importFinished(wallpaper), privacy: .public)")
             case .duplicate(let wallpaper):
                 AppLog.logger.notice("\(AppLog.importDuplicate(of: wallpaper), privacy: .public)")
-                showToast(duplicateToastWords(of: wallpaper), systemImage: "square.on.square")
             }
         }
-        perform(effects)
+        perform(importList.received(event, for: id, at: Date()))
     }
 
     private func failed(_ id: UUID, _ candidate: ImportCandidate, _ error: any Error) {
-        guard isRunning(id) else { return }
-        let effects = importList.failed(id, error: error, at: Date())
         if !(error is CancellationError) {
             AppLog.logger.error("\(AppLog.importFailed(candidate.name, error), privacy: .public)")
-            showToast(failedToastWords(name: candidate.name, error: error), systemImage: "exclamationmark.triangle")
         }
-        perform(effects)
-    }
-
-    /// Late news of a row that was cancelled changes nothing and says nothing.
-    private func isRunning(_ id: UUID) -> Bool {
-        guard let row = importList.rows.first(where: { $0.id == id }), case .running = row.state else { return false }
-        return true
+        perform(importList.failed(id, error: error, at: Date()))
     }
 
     /// Finished rows, and failed rows Retry cannot help, leave `ImportList.finishedLifetime` after they ended.

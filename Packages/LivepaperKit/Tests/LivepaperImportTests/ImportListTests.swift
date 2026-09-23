@@ -4,10 +4,13 @@ import LivepaperCore
 import LivepaperImport
 
 /// The import list under the grid, driven as the app drives it. Candidates, rows and wallpapers are numbered alike,
-/// and times are seconds after `Moment.launch`.
+/// and times are seconds after `Moment.launch`. Row 101 is candidate 1 dropped a second time, and so on.
 struct ImportListTests {
     enum Step: Sendable {
-        case enqueue(ClosedRange<Int>)
+        /// One drop of these candidates, on these rows.
+        case drop(candidates: [Int], rows: [Int])
+        /// The library check answered for row `number`: the wallpaper it already is, or nil.
+        case checked(Int, existing: Int?, at: TimeInterval)
         case progress(Int, ImportStage, Double?)
         case imported(Int, at: TimeInterval)
         /// Candidate `number` is already in the library as wallpaper `of`.
@@ -16,6 +19,16 @@ struct ImportListTests {
         case cancel(Int)
         case retry(Int)
         case tick(at: TimeInterval)
+
+        /// Candidates `numbers`, each on the row of its number.
+        static func enqueue(_ numbers: ClosedRange<Int>) -> Step {
+            .drop(candidates: Array(numbers), rows: Array(numbers))
+        }
+
+        /// Candidate `number` again, on row `100 + number`.
+        static func enqueueAgain(_ number: Int) -> Step {
+            .drop(candidates: [number], rows: [100 + number])
+        }
     }
 
     /// A row as the test sees it: its number and its state.
@@ -58,8 +71,10 @@ struct ImportListTests {
         var effects: [ImportList.Effect] = []
         for step in steps {
             switch step {
-            case .enqueue(let numbers):
-                effects = list.enqueue(numbers.map(ImportCandidate.numbered), ids: numbers.map(UUID.row))
+            case .drop(let candidates, let rows):
+                effects = list.enqueue(candidates.map(ImportCandidate.numbered), ids: rows.map(UUID.row))
+            case .checked(let number, let existing, let seconds):
+                effects = list.checked(.row(number), existing: existing.map { .numbered($0) }, at: Moment.after(seconds))
             case .progress(let number, let stage, let fraction):
                 effects = list.received(.progress(ImportProgress(stage: stage, fraction: fraction)), for: .row(number), at: Moment.launch)
             case .imported(let number, let seconds):
@@ -79,27 +94,16 @@ struct ImportListTests {
         return (list, effects)
     }
 
-    /// A failure Retry can help with: "It could not be read".
-    static let unreadable = MediaError.readFailed("unknown")
-
-    static let report = ImportReport(
-        plan: .remux,
-        writtenBy: .remux,
-        seam: judgeLoopSeam(TrackReading(
-            timescale: 600, frames: [TrackReading.Frame(pts: 0, duration: 20, isSync: true)], trackDuration: 20, hasEditList: false
-        ))
-    )
-
     static let scenarios: [Row<[Step], Outcome>] = [
         Row(
-            "several candidates: the first starts, the rest wait",
+            "several candidates: the first starts, the rest wait and are looked for in the library at once",
             [.enqueue(1...3)],
-            Outcome(rows: [.running(1), .waiting(2), .waiting(3)], effects: [.starts(1)])
+            Outcome(rows: [.running(1), .waiting(2), .waiting(3)], effects: [.starts(1), .checks(2), .checks(3)])
         ),
         Row(
-            "more candidates while one runs: they wait, and nothing more starts",
+            "more candidates while one runs: they wait and are looked for, and nothing more starts",
             [.enqueue(1...1), .enqueue(2...3)],
-            Outcome(rows: [.running(1), .waiting(2), .waiting(3)], effects: [])
+            Outcome(rows: [.running(1), .waiting(2), .waiting(3)], effects: [.checks(2), .checks(3)])
         ),
         Row(
             "progress: the stage in words, and how far through it",
@@ -123,9 +127,9 @@ struct ImportListTests {
             Outcome(rows: [.finished(1, at: 10), .running(2)], effects: [.starts(2)])
         ),
         Row(
-            "a duplicate: nothing was imported, and the next starts",
+            "a duplicate: nothing was imported, its toast names what it already is, and the next starts",
             [.enqueue(1...2), .duplicate(1, of: 7, at: 10)],
-            Outcome(rows: [.duplicate(1, of: 7, at: 10), .running(2)], effects: [.starts(2)])
+            Outcome(rows: [.duplicate(1, of: 7, at: 10), .running(2)], effects: [.toasts(.alreadyThere, alreadyHarbour7), .starts(2)])
         ),
         Row(
             "the last import ending starts nothing",
@@ -139,12 +143,15 @@ struct ImportListTests {
         ),
 
         Row(
-            "a failure: the reason in words, and the next starts",
+            "a failure: the reason in words, a toast that says why, and the next starts",
             [.enqueue(1...2), .failed(1, ImportError.rejected(.protected))],
-            Outcome(rows: [.failed(1, "It is copy-protected", canRetry: false), .running(2)], effects: [.starts(2)])
+            Outcome(
+                rows: [.failed(1, "It is copy-protected", canRetry: false), .running(2)],
+                effects: [.toasts(.notImported, "“Harbour 1” was not imported. It is copy-protected."), .starts(2)]
+            )
         ),
         Row(
-            "a cancel that comes back as an error: the row goes, and the next starts",
+            "a cancel that comes back as an error: the row goes, says nothing, and the next starts",
             [.enqueue(1...2), .failed(1, CancellationError())],
             Outcome(rows: [.running(2)], effects: [.starts(2)])
         ),
@@ -165,9 +172,9 @@ struct ImportListTests {
             Outcome(rows: [], effects: [.cancels(1)])
         ),
         Row(
-            "cancelling a waiting row removes it, and nothing else",
+            "cancelling a waiting row removes it and drops its check, and nothing else",
             [.enqueue(1...3), .cancel(2)],
-            Outcome(rows: [.running(1), .waiting(3)], effects: [])
+            Outcome(rows: [.running(1), .waiting(3)], effects: [.cancels(2)])
         ),
         Row(
             "an outcome that arrives after the cancel is ignored",
@@ -241,6 +248,7 @@ struct ImportListTests {
             [.enqueue(1...2), .failed(1, ImportError.rejected(.protected), at: 10), .tick(at: 14.9)],
             Outcome(rows: [.failed(1, "It is copy-protected", canRetry: false, at: 10), .running(2)], effects: [])
         ),
+
         Row(
             "a retried row that fails again keeps the time of the second failure",
             [
@@ -251,15 +259,26 @@ struct ImportListTests {
         ),
     ]
 
+    /// Wallpaper 7's name, as a duplicate's toast gives it.
+    static let alreadyHarbour7 = "Already in the library as “Harbour 7”"
+
     @Test(arguments: scenarios)
     func `runs one import at a time`(row: Row<[Step], Outcome>) {
-        let (list, effects) = Self.play(row.input)
+        Self.expect(row)
+    }
+
+    /// Plays the row's steps and checks the rows and the last effects, and that each row shows its own candidate.
+    static func expect(_ row: Row<[Step], Outcome>, sourceLocation: SourceLocation = #_sourceLocation) {
+        let (list, effects) = play(row.input)
 
         let shown = list.rows.map { listed in
-            Shown(number: (1...99).first { UUID.row($0) == listed.id } ?? 0, state: listed.state)
+            Shown(number: (1...199).first { UUID.row($0) == listed.id } ?? 0, state: listed.state)
         }
-        #expect(Outcome(rows: shown, effects: effects) == row.expected)
-        #expect(list.rows.map(\.candidate) == shown.map { .numbered($0.number) }, "each row shows its own candidate")
+        #expect(Outcome(rows: shown, effects: effects) == row.expected, sourceLocation: sourceLocation)
+        #expect(
+            list.rows.map(\.candidate) == shown.map { .numbered($0.number % 100) }, "each row shows its own candidate",
+            sourceLocation: sourceLocation
+        )
     }
 }
 
@@ -283,6 +302,8 @@ extension ImportListTests {
         Row("nothing running once the last has finished", [.enqueue(1...1), .imported(1, at: 10)], nil),
         Row("the next drop counts from one again", [.enqueue(1...1), .imported(1, at: 10), .enqueue(2...3)], [1, 2]),
         Row("so does a retry after the list went quiet", [.enqueue(1...1), .failed(1, unreadable), .retry(1)], [1, 1]),
+        Row("a file refused as already listed is not counted", [.enqueue(1...2), .enqueueAgain(2)], [1, 2]),
+        Row("nor is one the library had before its turn", [.enqueue(1...3), .checked(3, existing: 7, at: 5)], [1, 2]),
     ]
 
     @Test(arguments: progress)
@@ -311,12 +332,34 @@ extension ImportListTests {
     }
 }
 
+// What the steps feed the list.
+extension ImportListTests {
+    /// A failure Retry can help with: "It could not be read".
+    static let unreadable = MediaError.readFailed("unknown")
+
+    static let report = ImportReport(
+        plan: .remux,
+        writtenBy: .remux,
+        seam: judgeLoopSeam(TrackReading(
+            timescale: 600, frames: [TrackReading.Frame(pts: 0, duration: 20, isSync: true)], trackDuration: 20, hasEditList: false
+        ))
+    )
+}
+
 extension ImportList.Effect {
     static func starts(_ number: Int) -> Self {
-        .start(.row(number), .numbered(number))
+        .start(.row(number), .numbered(number % 100))
+    }
+
+    static func checks(_ number: Int) -> Self {
+        .check(.row(number), .numbered(number % 100))
     }
 
     static func cancels(_ number: Int) -> Self {
         .cancel(.row(number))
+    }
+
+    static func toasts(_ kind: ImportToast.Kind, _ words: String) -> Self {
+        .toast(ImportToast(kind: kind, words: words))
     }
 }

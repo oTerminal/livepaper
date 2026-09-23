@@ -84,6 +84,10 @@ public func judgeAttempt(_ report: LoopSeamReport, transcodesSoFar retries: Int)
 public protocol ImportRunning: Sendable {
     /// The import as a stream of events, ending with `.finished`. Letting go of the stream cancels the import.
     func events(importing candidate: ImportCandidate) -> AsyncThrowingStream<ImportEvent, any Error>
+    /// The wallpaper the library already has for the candidate's source file,
+    /// found by its fingerprint as an import would find it; nil for a new file.
+    /// Reads the file and writes nothing, so it can run beside an import.
+    func existingWallpaper(for candidate: ImportCandidate) async throws -> Wallpaper?
 }
 
 extension Importer: ImportRunning {}
@@ -132,6 +136,12 @@ public struct Importer: Sendable {
             }
             continuation.onTermination = { _ in task.cancel() }
         }
+    }
+
+    /// The whole file is hashed, so this runs off the caller's actor, as `run` does.
+    @concurrent
+    public func existingWallpaper(for candidate: ImportCandidate) async throws -> Wallpaper? {
+        try await library.wallpaper(withFingerprint: fingerprint(of: candidate.source))
     }
 
     @concurrent

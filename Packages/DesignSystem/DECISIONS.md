@@ -190,6 +190,7 @@ Where a component's own action can arrive from a focused button (Space or Return
 - The bar gives way to the failure message as one crossfade (`Duration.menu`), in step with the trailing symbol.
 - Rejected: pulling the 40 pt trailing slot out past the row's edge to align the glyph optically. The row's layout bounds stay honest, and its target never overlaps a neighbour's.
 - Failure is a symbol plus words in red, never red alone. Titles truncate in the middle because file names differ at the end.
+- The bar is a new one whenever it switches between knowing its length and not (M6). Changed in place, AppKit's indeterminate sweep ran on for about two seconds into Finished: seen when an import that was still at its fingerprint (no fraction) found its file already in the library, which M6's duplicate-at-once flow shows on every drop of a file the library has.
 
 ### EmptyState
 - Content layer, so no glass: `.borderedProminent` primary, link-style secondary with its own 40 pt target (the stack has no spacing, so the two targets meet and never overlap).

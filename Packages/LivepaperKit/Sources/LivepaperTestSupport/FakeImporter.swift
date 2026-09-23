@@ -48,9 +48,13 @@ public struct FakeImporter<C: Clock>: ImportRunning where C.Duration == Duration
         }
     }
 
+    /// At once, off the clock: a path costs nothing to hash.
+    public func existingWallpaper(for candidate: ImportCandidate) async throws -> Wallpaper? {
+        try await library.wallpaper(withFingerprint: Self.fingerprint(of: candidate))
+    }
+
     private func run(_ candidate: ImportCandidate, progress: (ImportProgress) -> Void) async throws -> ImportOutcome {
-        let digest = SHA256.hash(data: Data(candidate.source.path.utf8))
-        let fingerprint = Fingerprint(sha256: digest.map { String(format: "%02x", $0) }.joined())
+        let fingerprint = Self.fingerprint(of: candidate)
         try await walk(.fingerprint, progress)
         if let existing = try await library.wallpaper(withFingerprint: fingerprint) { return .duplicate(of: existing) }
 
@@ -76,6 +80,12 @@ public struct FakeImporter<C: Clock>: ImportRunning where C.Duration == Duration
             progress(ImportProgress(stage: stage, fraction: fraction))
             try await clock.sleep(until: clock.now.advanced(by: step), tolerance: nil)
         }
+    }
+
+    /// The SHA-256 of the source file's path.
+    private static func fingerprint(of candidate: ImportCandidate) -> Fingerprint {
+        let digest = SHA256.hash(data: Data(candidate.source.path.utf8))
+        return Fingerprint(sha256: digest.map { String(format: "%02x", $0) }.joined())
     }
 
     /// One frame with nothing wrong at its seam.
