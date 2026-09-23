@@ -107,7 +107,7 @@ public enum CodeSignature {
 }
 
 /// Valve's steamcmd, kept in Livepaper's folder in Application Support
-/// (`steamcmd/`), fetched from Valve on first use and never bundled (record 0009).
+/// (`Steam/steamcmd/`), fetched from Valve on first use and never bundled (record 0009).
 ///
 /// What Valve's archive holds is checked before anything in it runs, and again
 /// before each start of steamcmd, since it updates itself: the executable, and
@@ -134,9 +134,11 @@ public struct SteamCmdTool: Sendable {
         self.requirement = requirement
     }
 
-    /// In Livepaper's folder in Application Support.
+    /// In a folder of its own inside Livepaper's folder in Application Support:
+    /// steamcmd puts a `Frameworks` link in the folder above its own, which
+    /// would otherwise be the library's.
     public init(home: URL) {
-        self.init(folder: home.appending(path: "Library/Application Support/Livepaper/steamcmd", directoryHint: .isDirectory))
+        self.init(folder: home.appending(path: "Library/Application Support/Livepaper/Steam/steamcmd", directoryHint: .isDirectory))
     }
 
     public var executable: URL { folder.appending(path: "steamcmd", directoryHint: .notDirectory) }

@@ -238,8 +238,8 @@ struct SteamCmdToolTests {
         #expect(SteamCmdTool.archive.scheme == "https")
     }
 
-    @Test func `lives in Livepaper's folder in Application Support`() {
+    @Test func `lives in a folder of its own inside Livepaper's folder in Application Support`() {
         let tool = SteamCmdTool(home: URL(filePath: "/Users/someone", directoryHint: .isDirectory))
-        #expect(tool.executable.path == "/Users/someone/Library/Application Support/Livepaper/steamcmd/steamcmd")
+        #expect(tool.executable.path == "/Users/someone/Library/Application Support/Livepaper/Steam/steamcmd/steamcmd")
     }
 }
