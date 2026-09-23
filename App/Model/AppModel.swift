@@ -299,16 +299,16 @@ extension AppModel {
     /// Makes a change to the library, the app state or both. The library is
     /// saved before it counts, so a change that cannot be saved is not made; the
     /// app state counts at once, and lasts until quit if it cannot be saved.
-    /// The displays then follow in one render state.
-    ///
-    /// Answers the apply that carries the change, for Set on Display's feedback;
-    /// nil when the change was not made.
+    /// The displays then follow in one render state. Answers whether it was made.
     @discardableResult
-    func commit(library newLibrary: Library? = nil, state newState: AppState? = nil) -> Task<Void, Never>? {
-        try? change(library: newLibrary, state: newState)
+    func commit(library newLibrary: Library? = nil, state newState: AppState? = nil) -> Bool {
+        do { try change(library: newLibrary, state: newState) } catch { return false }
+        return true
     }
 
-    /// `commit`, for an import's insert and a delete, which must hear that the library was not saved.
+    /// `commit`, for what must hear that a change was refused (an import's insert, a delete,
+    /// Set on Display's feedback). Answers the apply that carries it to the displays; nil
+    /// when it is saved and they have it later (paused all, or before the launch has read them).
     @discardableResult
     func change(library newLibrary: Library? = nil, state newState: AppState? = nil) throws -> Task<Void, Never>? {
         if let libraryProblem { throw libraryProblem }
@@ -342,10 +342,10 @@ extension AppModel {
     /// not be read.
     ///
     /// Answers the apply that carries what is kept now: a new one, or the one
-    /// still running when nothing has changed.
+    /// still running when nothing has changed; nil when nothing is applied now.
     @discardableResult
     func applyRenderState() -> Task<Void, Never>? {
-        guard isLaunched, areDisplaysKnown, !isPausedAll, !isQuitting, libraryProblem == nil else { return applying }
+        guard isLaunched, areDisplaysKnown, !isPausedAll, !isQuitting, libraryProblem == nil else { return nil }
         guard let next = RenderState.make(
             library: library, state: state, connected: displays.map(\.identity), conditions: conditions, previous: renderState
         ) else { return applying }

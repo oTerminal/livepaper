@@ -23,15 +23,13 @@ extension AppModel {
 
     func set(_ assignment: Assignment, on display: DisplayIdentity) {
         var rng = SystemRandomNumberGenerator()
-        let next = state.assigning(assignment, to: [display], now: Date(), rng: &rng)
-        showFeedback(for: assignment, until: commit(state: next))
+        setWithFeedback(assignment, state.assigning(assignment, to: [display], now: Date(), rng: &rng))
     }
 
     /// Every display, plugged in now or later, shows it.
     func setOnAllDisplays(_ assignment: Assignment) {
         var rng = SystemRandomNumberGenerator()
-        let next = state.assigningToAll(assignment, connected: displays.map(\.identity), now: Date(), rng: &rng)
-        showFeedback(for: assignment, until: commit(state: next))
+        setWithFeedback(assignment, state.assigningToAll(assignment, connected: displays.map(\.identity), now: Date(), rng: &rng))
     }
 
     /// Takes a display's own assignment away: it shows what All Displays has, or nothing.
@@ -46,12 +44,21 @@ extension AppModel {
         commit(state: state.choosingPlaylist(id, for: display, in: library, now: Date(), rng: &rng))
     }
 
-    private func showFeedback(for assignment: Assignment, until applied: Task<Void, Never>?) {
+    /// Working until the displays have it, or at once when it is saved for Resume
+    /// All; back to idle when it was refused. Only the latest set of an assignment speaks.
+    private func setWithFeedback(_ assignment: Assignment, _ next: AppState) {
         let token = feedbackTokens[assignment, default: 0] + 1
         feedbackTokens[assignment] = token
         setOnDisplayFeedback[assignment, default: SetOnDisplayFeedback()].started()
+        let applying: Task<Void, Never>?
+        do {
+            applying = try change(state: next)
+        } catch {
+            setOnDisplayFeedback[assignment]?.refused()
+            return
+        }
         Task {
-            await applied?.value
+            await applying?.value
             guard feedbackTokens[assignment] == token else { return }
             setOnDisplayFeedback[assignment]?.applied(at: Date())
             guard let idleAt = setOnDisplayFeedback[assignment]?.idleAt else { return }

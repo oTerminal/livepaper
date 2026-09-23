@@ -6,6 +6,7 @@ struct SetOnDisplayFeedbackTests {
     enum Event: Sendable {
         case started
         case applied(at: Double)
+        case refused
         case tick(at: Double)
     }
 
@@ -23,6 +24,9 @@ struct SetOnDisplayFeedbackTests {
             [.started, .applied(at: 0), .started, .applied(at: 1), .tick(at: 1.5)],
             .done
         ),
+        Row("a set that was refused goes back to idle: nothing was saved", [.started, .refused], .idle),
+        Row("a refusal once done changes nothing", [.started, .applied(at: 0), .refused], .done),
+        Row("a refusal nobody started changes nothing", [.refused], .idle),
     ]
 
     @Test(arguments: rows)
@@ -33,6 +37,7 @@ struct SetOnDisplayFeedbackTests {
             switch event {
             case .started: feedback.started()
             case .applied(let seconds): feedback.applied(at: Moment.after(seconds))
+            case .refused: feedback.refused()
             case .tick(let seconds): feedback.tick(at: Moment.after(seconds))
             }
         }

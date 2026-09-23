@@ -23,11 +23,20 @@ public struct SetOnDisplayFeedback: Equatable, Sendable {
         idleAt = nil
     }
 
+    /// The set is saved and on the displays, or saved to show at Resume All.
     /// Only a set that is working can be done.
     public mutating func applied(at now: Date) {
         guard phase == .working else { return }
         phase = .done
         idleAt = now.addingTimeInterval(Self.doneDuration / .seconds(1))
+    }
+
+    /// The set was refused, as every change is while the library cannot be
+    /// read: nothing was saved, so it is never done.
+    public mutating func refused() {
+        guard phase == .working else { return }
+        phase = .idle
+        idleAt = nil
     }
 
     public mutating func tick(at now: Date) {

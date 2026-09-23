@@ -182,8 +182,8 @@ extension AppModel {
     @discardableResult
     func createPlaylist(named name: String, with wallpapers: [WallpaperID] = []) -> PlaylistID? {
         let id = PlaylistID(uuid: UUID())
-        guard let next = try? state.creatingPlaylist(id, named: name, with: wallpapers), let playlist = next[playlist: id] else { return nil }
-        commit(state: next)
+        guard let next = try? state.creatingPlaylist(id, named: name, with: wallpapers), let playlist = next[playlist: id],
+              commit(state: next) else { return nil }
         section = section.afterCreating(playlist)
         return id
     }
