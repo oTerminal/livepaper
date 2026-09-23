@@ -46,7 +46,7 @@ struct PlaylistPickerTests {
         #expect(state.rotation[Self.first] == RotationState(current: .numbered(4), position: 0, lastRotation: Moment.launch))
     }
 
-    @Test func `No Playlist keeps the wallpaper the display shows, as its own assignment`() throws {
+    @Test func `choosing No Playlist keeps the wallpaper the display shows, as its own assignment`() throws {
         let state = try Self.choosing(nil, in: Self.onPlaylists)
 
         #expect(state.assignments == [Self.first: .wallpaper(.numbered(2)), Self.second: .playlist(.numbered(2))])
@@ -55,7 +55,7 @@ struct PlaylistPickerTests {
         #expect(state.recents == [.numbered(5)])
     }
 
-    @Test func `No Playlist on a display showing apply to all's playlist gives it its own wallpaper, and no other`() throws {
+    @Test func `choosing No Playlist on a display showing apply to all's playlist gives it its own wallpaper, and no other`() throws {
         let before = AppStateEditsTests.state {
             $0.applyToAll = .playlist(.numbered(1))
             $0.rotation = [
@@ -77,11 +77,11 @@ struct PlaylistPickerTests {
     ]
 
     @Test(arguments: unchanged)
-    func `No Playlist changes nothing on a display showing no playlist`(row: Row<AppState, Void>) throws {
+    func `choosing No Playlist changes nothing on a display showing no playlist`(row: Row<AppState, Void>) throws {
         #expect(try Self.choosing(nil, in: row.input) == row.input)
     }
 
-    @Test func `No Playlist on a playlist with nothing to show takes the display's own assignment away`() throws {
+    @Test func `choosing No Playlist on a playlist with nothing to show takes the display's own assignment away`() throws {
         let empty = Playlist(id: .numbered(3), name: "Empty", wallpapers: [], interval: Playlist.defaultInterval, shuffle: false)
         let before = AppStateEditsTests.state {
             $0.playlists.append(empty)
