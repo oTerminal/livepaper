@@ -10,7 +10,6 @@ import SwiftUI
 /// `Motion.Duration.popover` in, 0.7x out, opacity only under Reduce Motion. A
 /// click outside closes it with motion; Escape, a key press, without. The panel
 /// never activates the app, so the app the user was in stays frontmost.
-@MainActor
 final class MenuBarPopover: NSObject, NSWindowDelegate {
     private let presentation = PopoverPresentation()
     private let panel = PopoverPanel()
@@ -24,7 +23,7 @@ final class MenuBarPopover: NSObject, NSWindowDelegate {
     init(anchor: NSStatusBarButton, options: LaunchOptions, contentPadding: CGFloat, content: some View) {
         self.anchor = anchor
         super.init()
-        presentation.accessibility = options.accessibility()
+        presentation.accessibility = .system(overriding: options.overrides)
         let root = PopoverRoot(presentation: presentation, contentPadding: contentPadding, content: content)
             .launchOptions(options)
         let hostingView = NSHostingView(rootView: root)
@@ -99,7 +98,7 @@ final class MenuBarPopover: NSObject, NSWindowDelegate {
 
     // MARK: Placing
 
-    /// Under the menu bar, centred on the item and kept on its screen, the top
+    /// Under the menu bar, centred on the item and kept on its display, the top
     /// edge fixed as the content grows or shrinks.
     private func place() {
         guard let button = anchor, let itemWindow = button.window else { return }
@@ -143,7 +142,7 @@ final class MenuBarPopover: NSObject, NSWindowDelegate {
         monitors = []
     }
 
-    /// `point` is in screen coordinates.
+    /// `point` is in AppKit's global coordinates.
     private func isOverItem(_ point: CGPoint) -> Bool {
         guard let button = anchor, let window = button.window else { return false }
         return window.convertToScreen(button.convert(button.bounds, to: nil)).contains(point)

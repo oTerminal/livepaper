@@ -73,9 +73,9 @@ struct LibraryProblemNotice: View {
 /// picker and transport; the posters are asked for at the size they are drawn.
 enum PopoverMetrics {
     static let width: CGFloat = 400
-    /// `DisplayNowPlayingCard`'s thumbnail.
+    /// The size `DisplayNowPlayingCard` draws a display's poster at.
     static let cardPosterSize = CGSize(width: 64, height: 40)
-    /// `RecentsStrip`'s thumbnail.
+    /// The size `RecentsStrip` draws each poster at.
     static let recentPosterSize = CGSize(width: 72, height: 45)
 }
 

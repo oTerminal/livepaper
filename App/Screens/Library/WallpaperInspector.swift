@@ -105,13 +105,14 @@ struct WallpaperInspector: View {
         }
     }
 
+    /// Core decides the name, and the field shows what it decided: the name as
+    /// kept, or the old one back when it was refused.
     private func commitName() {
-        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmed.isEmpty || trimmed == wallpaper.name {
+        guard model.rename(wallpaper.id, to: name), let renamed = model.library[wallpaper.id]?.name else {
             name = wallpaper.name
-        } else {
-            model.rename(wallpaper.id, to: trimmed)
+            return
         }
+        name = renamed
     }
 
     // MARK: Bindings to the edit in progress

@@ -4,7 +4,6 @@ import SwiftUI
 
 /// The menu-bar item: a click toggles the glass popover, a secondary click (or a
 /// Control-click) shows a short menu of what the popover does not hold.
-@MainActor
 final class MenuBarItem: NSObject, NSMenuDelegate {
     /// The secondary-click menu's items, answered by whoever runs the app.
     struct Menu {

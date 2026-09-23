@@ -1,3 +1,4 @@
+import DesignSystem
 import LivepaperCore
 import SwiftUI
 
@@ -33,8 +34,9 @@ enum NamePrompt: Equatable {
 }
 
 extension View {
-    /// Asks for a name in an alert on the window, and hands it to `commit`
-    /// unless it is empty. Cancel, or Escape, leaves everything as it was.
+    /// Asks for a name in an alert on the window, and hands `commit` the name
+    /// as typed: Core takes it as it takes any name, and refuses an empty one.
+    /// Cancel, or Escape, leaves everything as it was.
     func namePrompt(_ prompt: Binding<NamePrompt?>, commit: @escaping (NamePrompt, String) -> Void) -> some View {
         modifier(NamePromptAlert(prompt: prompt, commit: commit))
     }
@@ -49,11 +51,9 @@ private struct NamePromptAlert: ViewModifier {
         content
             .alert(prompt?.title ?? "", isPresented: isPresented, presenting: prompt) { prompt in
                 TextField("Name", text: $name)
+                // Return is a key press: the sidebar and the grid change without motion.
                 Button(prompt.confirmTitle) {
-                    let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-                    if !trimmed.isEmpty {
-                        commit(prompt, trimmed)
-                    }
+                    withoutAnimationIfKeyPress { commit(prompt, name) }
                 }
                 .keyboardShortcut(.defaultAction)
                 Button("Cancel", role: .cancel) {}

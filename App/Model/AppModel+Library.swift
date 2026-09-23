@@ -36,10 +36,12 @@ extension AppModel {
         setFavourite(!wallpaper.isFavourite, for: id)
     }
 
-    /// Spaces around the name are dropped; an empty name leaves the old one.
-    func rename(_ id: WallpaperID, to name: String) {
-        guard let next = try? library.renaming(id, to: name) else { return }
-        commit(library: next)
+    /// Named as Core names it (`Library.renaming`). Answers false when the name
+    /// was refused, such as an empty one, so the field can show the old name again.
+    @discardableResult
+    func rename(_ id: WallpaperID, to name: String) -> Bool {
+        guard let next = try? library.renaming(id, to: name) else { return false }
+        return commit(library: next)
     }
 
     // MARK: Delete and undo
@@ -188,10 +190,12 @@ extension AppModel {
         return id
     }
 
-    /// Spaces around the name are dropped; an empty name leaves the old one.
-    func renamePlaylist(_ id: PlaylistID, to name: String) {
-        guard let next = try? state.renamingPlaylist(id, to: name) else { return }
-        commit(state: next)
+    /// Named as Core names it (`AppState.renamingPlaylist`). Answers false when
+    /// the name was refused, so the field can show the old name again.
+    @discardableResult
+    func renamePlaylist(_ id: PlaylistID, to name: String) -> Bool {
+        guard let next = try? state.renamingPlaylist(id, to: name) else { return false }
+        return commit(state: next)
     }
 
     /// Displays that showed it show what All Displays has, or nothing; the sidebar

@@ -78,13 +78,15 @@ struct PlaylistInspector: View {
         }
     }
 
+    /// Core decides the name, and the field shows what it decided: the name as
+    /// kept, or the old one back when it was refused.
     private func commitName() {
-        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmed.isEmpty || trimmed == playlist.name {
+        guard model.renamePlaylist(playlist.id, to: name), let renamed = model.playlists.first(where: { $0.id == playlist.id })?.name
+        else {
             name = playlist.name
-        } else {
-            model.renamePlaylist(playlist.id, to: trimmed)
+            return
         }
+        name = renamed
     }
 
     private var interval: Binding<Duration> {

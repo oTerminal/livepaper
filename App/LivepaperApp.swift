@@ -95,7 +95,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if !menu.performItem(titled: title) { AppLog.logger.notice("fakes: no menu item \(title, privacy: .public)") }
         case ("quit", _): NSApp.terminate(nil)
         default:
-            guard !model.performLibraryCommand(verb, rest) else { return }
+            guard !FakesCommands(model: model).perform(verb, rest) else { return }
             AppLog.logger.notice("fakes: unknown command \(verb, privacy: .public) \(rest, privacy: .public)")
         }
     }

@@ -4,7 +4,7 @@ import SwiftUI
 /// Opens the library window and Settings from anywhere: the popover, a menu,
 /// and M7's hotkeys. The Dock icon follows the library window: it comes when
 /// the window opens and goes when it closes, and the app stays in the menu bar.
-@MainActor @Observable
+@Observable
 final class AppWindows {
     static let libraryID = "library"
 

@@ -4,8 +4,8 @@ import SwiftUI
 
 /// The section's wallpapers as tiles, one live at a time. One tile is selected:
 /// a click selects it, the arrow keys, Home and End move it, and Delete (or
-/// Command-Delete) deletes it. The grid is one tab stop, like a native
-/// collection; none of what a key does animates.
+/// Command-Delete) deletes it. The grid is one tab stop, like a native grid;
+/// none of what a key does animates.
 struct WallpaperGrid: View {
     @Environment(AppModel.self) private var model
     let grid: [Wallpaper]

@@ -56,17 +56,6 @@ struct LaunchOptions: Equatable {
         )
     }
 
-    /// What `@Accessibility` gives a view under these overrides, for AppKit code
-    /// that starts a change the design system animates before any view is drawn.
-    func accessibility(workspace: NSWorkspace = .shared) -> DesignSystem.AccessibilitySettings {
-        DesignSystem.AccessibilitySettings(
-            reduceMotion: reduceMotion ?? workspace.accessibilityDisplayShouldReduceMotion,
-            reduceTransparency: reduceTransparency ?? workspace.accessibilityDisplayShouldReduceTransparency,
-            increaseContrast: increaseContrast ?? workspace.accessibilityDisplayShouldIncreaseContrast,
-            motionSpeed: overrides.motionSpeed ?? 1
-        )
-    }
-
     var colorScheme: ColorScheme? {
         switch appearance {
         case .light: .light

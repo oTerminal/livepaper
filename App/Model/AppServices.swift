@@ -84,7 +84,7 @@ extension AppServices {
 }
 
 extension NSScreen {
-    /// CoreGraphics' number for the display this screen is on.
+    /// CoreGraphics' number for this `NSScreen`'s display.
     fileprivate var displayID: CGDirectDisplayID? {
         (deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber)?.uint32Value
     }

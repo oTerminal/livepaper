@@ -62,7 +62,7 @@ struct PosterFill: View {
 nonisolated final class PosterCache: @unchecked Sendable {
     static let shared = PosterCache()
 
-    /// A poster to show at `size` points on a screen of `scale`.
+    /// A poster to show at `size` points on a display of `scale`.
     struct Request: Hashable, Sendable {
         var url: URL
         var size: CGSize

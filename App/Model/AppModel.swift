@@ -18,6 +18,8 @@ import Observation
 /// This file holds what is kept and the life of the app (launch, Pause All,
 /// quit) and the one way a change is made (`commit`). The screens' values are
 /// in AppModel+Screens.swift and the actions in the other AppModel+ files.
+/// `@MainActor` is written out: conforming to `ImportLibrary`, a `Sendable`
+/// protocol, takes a type out of the target's default main-actor isolation.
 @MainActor @Observable
 final class AppModel: ImportLibrary {
     // MARK: What is kept
