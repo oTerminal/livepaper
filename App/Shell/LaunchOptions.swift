@@ -5,7 +5,7 @@ import SwiftUI
 /// What the command line asks of this run: the fakes, and the Gallery's switches,
 /// so that a recording of the app runs at 0.1x as the Gallery's does.
 ///
-///     Livepaper -fakes YES -slowMotion YES -reduceMotion YES -appearance Dark
+///     Livepaper -fakes YES -fakeLibrary seeded -slowMotion YES -reduceMotion YES -appearance Dark
 ///
 /// Read from the launch arguments only, never from saved defaults, so a switch
 /// lasts one run. A switch that is not given overrides nothing: the design system
@@ -19,6 +19,8 @@ struct LaunchOptions: Equatable {
     /// The fakes run: fake render host, displays, sensors, library and importer.
     /// Nothing touches the real wallpaper.
     var isFakes = false
+    /// What the fakes run's library starts with: `-fakeLibrary seeded` for screenshots.
+    var fakeLibrary = FakeLibrary.empty
     var slowMotion: Bool?
     var reduceMotion: Bool?
     var reduceTransparency: Bool?
@@ -32,6 +34,7 @@ struct LaunchOptions: Equatable {
     /// the command line gave it.
     init(arguments: [String: Any]) {
         isFakes = Self.flag(arguments["fakes"]) ?? false
+        fakeLibrary = (arguments["fakeLibrary"] as? String).flatMap(FakeLibrary.init) ?? .empty
         slowMotion = Self.flag(arguments["slowMotion"])
         reduceMotion = Self.flag(arguments["reduceMotion"])
         reduceTransparency = Self.flag(arguments["reduceTransparency"])

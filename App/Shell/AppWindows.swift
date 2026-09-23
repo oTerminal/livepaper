@@ -10,6 +10,8 @@ final class AppWindows {
 
     /// Runs before either window opens: the popover closes, so that it is not left over the window.
     @ObservationIgnored var willOpenWindow: (() -> Void)?
+    /// Runs when the library window closes: its toast, and a delete's undo, go with it.
+    @ObservationIgnored var didCloseLibrary: (() -> Void)?
     private(set) var isLibraryOpen = false
 
     /// SwiftUI's actions, read from a view in the app by `SceneActionsReader`.
@@ -47,6 +49,7 @@ final class AppWindows {
     fileprivate func libraryDidClose() {
         isLibraryOpen = false
         NSApp.setActivationPolicy(.accessory)
+        didCloseLibrary?()
     }
 }
 

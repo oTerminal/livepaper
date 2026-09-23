@@ -1,3 +1,4 @@
+import AppKit
 import DesignSystem
 import LivepaperTestSupport
 import SwiftUI
@@ -53,6 +54,12 @@ struct DrawnPoster: View {
         let renderer = ImageRenderer(content: DrawnPoster(seed: seed).frame(width: pointSize.width, height: pointSize.height))
         renderer.scale = 2
         return renderer.cgImage
+    }
+
+    /// The picture as JPEG: a Wallpaper Engine item's preview in the fakes run's sample files.
+    static func jpeg(seed: Int) -> Data? {
+        guard let image = cgImage(seed: seed) else { return nil }
+        return NSBitmapImageRep(cgImage: image).representation(using: .jpeg, properties: [:])
     }
 
     /// The picture as an `Image`, which is what the design system's components take.
