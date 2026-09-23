@@ -221,6 +221,7 @@ Where a component's own action can arrive from a focused button (Space or Return
 - Symbols sit in a fixed 24 pt slot so titles line up across rows. Every row is at least 40 pt, with or without a detail line.
 - A click on the words animates the thumb (`Spring.ui`), as a click on the switch does.
 - An unavailable rule shows off and disabled without changing the stored value, so the preference survives a move to another Mac.
+- The switch is named explicitly (M6): the title is its label, the detail and note its hint, and the row's words are hidden from VoiceOver so that nothing is read twice. In the app's Settings the accessibility tree showed the four switches with no title or description, found by role alone, while LoginItemRow's switch, which already named itself explicitly, had one: evidently a label of a symbol, two lines of text and a tap gesture is not one a switch names itself from. The detail is no longer the next element. Not yet walked with VoiceOver.
 
 ### StatusLine
 - The one place a wallpaper service that has stopped responding is reported: a static warning symbol, the words, and Restart. No pulse.
