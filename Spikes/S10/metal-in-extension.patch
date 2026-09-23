@@ -1,0 +1,1003 @@
+diff --git a/WallpaperExtension/AgentRequests.swift b/WallpaperExtension/AgentRequests.swift
+index cc89237..0df34f5 100644
+--- a/WallpaperExtension/AgentRequests.swift
++++ b/WallpaperExtension/AgentRequests.swift
+@@ -94,7 +94,16 @@ final class AgentRequests: SurfaceRequestHandler {
+                 display: placement.display,
+                 isPreview: request.isPreview,
+                 geometry: placement.geometry,
+-                makeSurface: { hosted.host(surface, in: context, at: placement) }
++                makeSurface: {
++                    let layers = hosted.host(surface, in: context, at: placement)
++                    #if LIVEPAPER_S10
++                    // Spike S10: the supervisor drives the spike's stand-in, which drives the layers.
++                    if let spike = S10Controller.shared.playback(for: surface) { return spike }
++                    return layers
++                    #else
++                    return layers
++                    #endif
++                }
+             )
+             answer.send(hosted[surface]?.context.id)
+             self.follow(request.mode, of: surface)
+diff --git a/WallpaperExtension/HostedSurfaces.swift b/WallpaperExtension/HostedSurfaces.swift
+index 37a1e64..08436bb 100644
+--- a/WallpaperExtension/HostedSurfaces.swift
++++ b/WallpaperExtension/HostedSurfaces.swift
+@@ -65,6 +65,10 @@ final class HostedSurfaces {
+             logger: .surface,
+             prepareVideoLayer: WallpaperAgentBridge.disallowDisplayCompositing
+         )
++        #if LIVEPAPER_S10
++        // Spike S10: the Metal layer joins the tree before the context is hosted.
++        _ = S10Controller.shared.attach(to: layers, surface: surface, geometry: placement.geometry)
++        #endif
+         context.layer = layers.root
+         CATransaction.flush()
+         surfaces[surface] = HostedSurface(id: surface, context: context, layers: layers, placement: placement)
+@@ -80,6 +84,9 @@ final class HostedSurfaces {
+     /// obligation, and lets it go.
+     func tearDown(_ surface: SurfaceID) {
+         guard let hosted = surfaces.removeValue(forKey: surface) else { return }
++        #if LIVEPAPER_S10
++        S10Controller.shared.detach(surface)
++        #endif
+         hosted.context.invalidate()
+         ExtensionLog.notice(.contextInvalidated(surface, context: hosted.context.id))
+     }
+diff --git a/WallpaperExtension/S10MetalSpike.swift b/WallpaperExtension/S10MetalSpike.swift
+new file mode 100644
+index 0000000..a6278c8
+--- /dev/null
++++ b/WallpaperExtension/S10MetalSpike.swift
+@@ -0,0 +1,950 @@
++// Spike S10 (Spikes/results/S10.md): a live Metal render loop inside the render host, with a
++// synthetic load, to learn whether a CAMetalLayer in a surface's tree composites on the desktop and
++// what it costs. Compiled only with the LIVEPAPER_S10 condition, which no product build sets:
++//
++//     xcodebuild … build SWIFT_ACTIVE_COMPILATION_CONDITIONS='$(inherited) LIVEPAPER_S10'
++//
++// At run time it is driven by the Darwin notification `app.livepaper.s10`, whose state is a mode
++// word (S10Mode). State 0, the default, is the product's own behaviour: the video plays.
++#if LIVEPAPER_S10
++
++import CoreVideo
++import Foundation
++import LivepaperCore
++import LivepaperPlayback
++import Metal
++import os
++import QuartzCore
++import Synchronization
++
++// MARK: The mode word
++
++/// `load | fps << 4 | link << 12`, set with `notifyutil -s app.livepaper.s10 <word> -p app.livepaper.s10`.
++nonisolated struct S10Mode: Equatable, Sendable, CustomStringConvertible {
++    enum Load: UInt64, Sendable {
++        /// The product: the video plays.
++        case video = 0
++        /// One full-screen textured quad with a water-ripple fragment shader.
++        case light = 1
++        /// About twenty full-screen passes a frame.
++        case heavy = 2
++        /// The Metal picture stays up and the loop is stopped: the Metal "paused" level.
++        case freeze = 3
++        /// The video, paused by the spike with the desktop in view: the video's paused level.
++        case videoPaused = 4
++    }
++
++    enum Link: UInt64, Sendable {
++        case metalDisplayLink = 0
++        case cvDisplayLink = 1
++        case timer = 2
++    }
++
++    var load: Load
++    var fps: Int
++    var link: Link
++
++    init(word: UInt64) {
++        load = Load(rawValue: word & 0xF) ?? .video
++        let rate = Int((word >> 4) & 0xFF)
++        fps = rate == 0 ? 60 : rate
++        link = Link(rawValue: (word >> 12) & 0xF) ?? .metalDisplayLink
++    }
++
++    var isMetal: Bool { load == .light || load == .heavy || load == .freeze }
++    var runsLoop: Bool { load == .light || load == .heavy }
++
++    var description: String { "load=\(load) fps=\(fps) link=\(link)" }
++}
++
++nonisolated enum S10Log {
++    static let logger = Logger(subsystem: WallpaperExtensionIdentity.logSubsystem, category: "s10")
++
++    static func notice(_ text: String) {
++        logger.notice("s10: \(text, privacy: .public)")
++    }
++
++    static func error(_ text: String) {
++        logger.error("s10: \(text, privacy: .public)")
++    }
++}
++
++// MARK: The controller
++
++/// The mode, and every surface the spike stands in for.
++@MainActor
++final class S10Controller {
++    static let shared = S10Controller()
++    static let notification = DarwinNotification("app.livepaper.s10")
++
++    private(set) var mode: S10Mode
++    private var surfaces: [SurfaceID: S10Surface] = [:]
++    private var observation: DarwinObservation?
++
++    private init() {
++        mode = S10Mode(word: Self.notification.currentState() ?? 0)
++        observation = Self.notification.observe(on: .main) { word in
++            MainActor.assumeIsolated { S10Controller.shared.set(S10Mode(word: word)) }
++        }
++        S10Log.notice("controller up mode=\(mode) observing=\(observation != nil) gpu=\(S10GPU.shared?.device.name ?? "none")")
++    }
++
++    /// The Metal layer goes into `layers.root` here, before the context is hosted: a layer added
++    /// after the agent hosts the context does not composite.
++    func attach(to layers: SurfaceLayers, surface: SurfaceID, geometry: SurfaceGeometry) -> S10Surface {
++        let spike = S10Surface(layers: layers, id: surface, geometry: geometry, mode: mode)
++        surfaces[surface] = spike
++        return spike
++    }
++
++    func playback(for surface: SurfaceID) -> S10Surface? {
++        surfaces[surface]
++    }
++
++    func detach(_ surface: SurfaceID) {
++        surfaces.removeValue(forKey: surface)?.detach()
++    }
++
++    private func set(_ new: S10Mode) {
++        guard new != mode else { return }
++        S10Log.notice("mode \(mode) -> \(new) surfaces=\(surfaces.count)")
++        mode = new
++        for spike in surfaces.values {
++            Task { await spike.apply(new) }
++        }
++    }
++}
++
++// MARK: The surface
++
++/// One surface as the supervisor drives it, standing in for its `SurfaceLayers`. In a video mode
++/// every call goes through to the layers. In a Metal mode the layers hold the poster, with their
++/// decoder released, and the Metal loop draws above them: it runs while the supervisor would play,
++/// and stops when it would pause or suspend (covered, asleep, locked), as the video does.
++///
++/// Main thread only, as `SurfaceLayers` is; unchecked so that the controller can hand it to a task.
++nonisolated final class S10Surface: SurfacePlayback, @unchecked Sendable {
++    let id: SurfaceID
++    let layers: SurfaceLayers
++    let metalLayer: CAMetalLayer
++    private let loop: S10Loop?
++    private var geometry: SurfaceGeometry
++    private var mode: S10Mode
++    /// What the supervisor believes the surface does.
++    private(set) var state = SurfacePlaybackState.nothing
++    private(set) var wallpaper: SurfaceWallpaper?
++
++    init(layers: SurfaceLayers, id: SurfaceID, geometry: SurfaceGeometry, mode: S10Mode) {
++        self.id = id
++        self.layers = layers
++        self.geometry = geometry
++        self.mode = mode
++        metalLayer = CAMetalLayer()
++        if let gpu = S10GPU.shared {
++            metalLayer.device = gpu.device
++            loop = S10Loop(layer: metalLayer, gpu: gpu, surface: id)
++        } else {
++            loop = nil
++            S10Log.error("no Metal device surface=\(id)")
++        }
++        metalLayer.pixelFormat = .bgra8Unorm
++        metalLayer.framebufferOnly = true
++        metalLayer.isOpaque = true
++        metalLayer.maximumDrawableCount = 3
++        metalLayer.displaySyncEnabled = true
++        metalLayer.allowsNextDrawableTimeout = true
++        metalLayer.presentsWithTransaction = false
++        metalLayer.colorspace = CGColorSpace(name: CGColorSpace.sRGB)
++        metalLayer.opacity = 0
++        CATransaction.begin()
++        CATransaction.setDisableActions(true)
++        layOutMetalLayer()
++        layers.root.addSublayer(metalLayer)
++        CATransaction.commit()
++        S10Log.notice("metal layer in tree surface=\(id) frame=\(metalLayer.frame) drawable=\(metalLayer.drawableSize) mode=\(mode)")
++    }
++
++    // MARK: SurfacePlayback
++
++    func show(_ wallpaper: SurfaceWallpaper, crossfade: Bool) async {
++        self.wallpaper = wallpaper
++        state = .playing
++        if mode.isMetal {
++            await coverWithMetal(wallpaper)
++            startLoop(reason: "show")
++        } else {
++            showMetal(false)
++            await layers.show(wallpaper, crossfade: crossfade)
++            if mode.load == .videoPaused { await layers.pause() }
++        }
++    }
++
++    func holdStill(poster wallpaper: SurfaceWallpaper) async {
++        self.wallpaper = wallpaper
++        state = .still
++        stopLoop(reason: "holdStill", release: true)
++        showMetal(false)
++        await layers.holdStill(poster: wallpaper)
++    }
++
++    func showNothing() async {
++        wallpaper = nil
++        state = .nothing
++        stopLoop(reason: "showNothing", release: true)
++        showMetal(false)
++        await layers.showNothing()
++    }
++
++    func pause() async {
++        guard state == .playing else { return }
++        state = .paused
++        if mode.isMetal {
++            stopLoop(reason: "pause", release: false)
++        } else if mode.load != .videoPaused {
++            await layers.pause()
++        }
++    }
++
++    func resume() async {
++        guard state == .paused || state == .suspended else { return }
++        let was = state
++        state = .playing
++        if mode.isMetal {
++            startLoop(reason: "resume")
++        } else if mode.load == .videoPaused {
++            if was == .suspended {
++                await layers.resume()
++                await layers.pause()
++            }
++        } else {
++            await layers.resume()
++        }
++    }
++
++    func suspend() async {
++        guard state == .playing || state == .paused else { return }
++        state = .suspended
++        if mode.isMetal {
++            stopLoop(reason: "suspend", release: true)
++        } else {
++            await layers.suspend()
++        }
++    }
++
++    func recover(_ level: RecoveryLevel) async {
++        if mode.isMetal {
++            S10Log.notice("recover level=\(level) surface=\(id): loop restarted")
++            if state == .playing {
++                stopLoop(reason: "recover", release: false)
++                startLoop(reason: "recover")
++            }
++        } else {
++            await layers.recover(level)
++        }
++    }
++
++    /// The watchdog does not judge the spike's Metal picture, nor a video the spike paused.
++    func displayedPictures(over window: Duration) async -> PictureCount? {
++        guard !mode.isMetal, mode.load != .videoPaused else { return nil }
++        return await layers.displayedPictures(over: window)
++    }
++
++    func layout(surface geometry: SurfaceGeometry) {
++        self.geometry = geometry
++        layers.layout(surface: geometry)
++        CATransaction.begin()
++        CATransaction.setDisableActions(true)
++        layOutMetalLayer()
++        CATransaction.commit()
++        CATransaction.flush()
++        S10Log.notice("layout surface=\(id) frame=\(metalLayer.frame) drawable=\(metalLayer.drawableSize)")
++    }
++
++    // MARK: The mode
++
++    func apply(_ new: S10Mode) async {
++        let old = mode
++        mode = new
++        guard let wallpaper, state == .playing || state == .paused || state == .suspended else {
++            S10Log.notice("mode applied surface=\(id) state=\(state): nothing up")
++            return
++        }
++        switch (old.isMetal, new.isMetal) {
++        case (false, true):
++            await coverWithMetal(wallpaper)
++        case (true, false):
++            stopLoop(reason: "mode", release: true)
++            showMetal(false)
++            await layers.show(wallpaper, crossfade: false)
++            if state == .paused || new.load == .videoPaused { await layers.pause() }
++            if state == .suspended { await layers.suspend() }
++        case (false, false):
++            if state == .playing {
++                if new.load == .videoPaused { await layers.pause() } else if old.load == .videoPaused { await layers.resume() }
++            }
++        case (true, true):
++            break
++        }
++        if new.isMetal {
++            stopLoop(reason: "mode", release: new.load != old.load)
++            if state == .playing { startLoop(reason: "mode") }
++        }
++        S10Log.notice("mode applied surface=\(id) state=\(state) \(new)")
++    }
++
++    // MARK: Helpers
++
++    func detach() {
++        stopLoop(reason: "detach", release: true)
++    }
++
++    /// The poster under the Metal layer, with the video's decoder released.
++    private func coverWithMetal(_ wallpaper: SurfaceWallpaper) async {
++        if layers.state != .still || layers.wallpaper != wallpaper {
++            await layers.holdStill(poster: wallpaper)
++        }
++        showMetal(true)
++    }
++
++    private func showMetal(_ shown: Bool) {
++        guard (metalLayer.opacity == 1) != shown else { return }
++        CATransaction.begin()
++        CATransaction.setDisableActions(true)
++        metalLayer.opacity = shown ? 1 : 0
++        CATransaction.commit()
++        CATransaction.flush()
++        S10Log.notice("metal layer \(shown ? "shown" : "hidden") surface=\(id)")
++    }
++
++    private func startLoop(reason: String) {
++        guard mode.runsLoop else {
++            if mode.load == .freeze { S10Log.notice("loop held (freeze) reason=\(reason) surface=\(id)") }
++            return
++        }
++        loop?.start(mode, reason: reason)
++    }
++
++    private func stopLoop(reason: String, release: Bool) {
++        loop?.stop(reason: reason, release: release)
++    }
++
++    private func layOutMetalLayer() {
++        let scale = geometry.scale > 0 ? geometry.scale : 1
++        metalLayer.frame = CGRect(x: 0, y: 0, width: geometry.size.width, height: geometry.size.height)
++        metalLayer.contentsScale = scale
++        let pixels = geometry.pixelSize
++        metalLayer.drawableSize = CGSize(width: max(1, pixels.width.rounded()), height: max(1, pixels.height.rounded()))
++    }
++}
++
++// MARK: The GPU
++
++/// The device, the queue and the pipelines, shared by every surface.
++nonisolated final class S10GPU: @unchecked Sendable {
++    static let shared: S10GPU? = S10GPU()
++
++    let device: MTLDevice
++    let queue: MTLCommandQueue
++    let sampler: MTLSamplerState
++    private let pipelines: [String: MTLRenderPipelineState]
++
++    private init?() {
++        guard let device = MTLCreateSystemDefaultDevice(), let queue = device.makeCommandQueue() else { return nil }
++        self.device = device
++        self.queue = queue
++        queue.label = "app.livepaper.s10"
++        let samplerDescriptor = MTLSamplerDescriptor()
++        samplerDescriptor.minFilter = .linear
++        samplerDescriptor.magFilter = .linear
++        samplerDescriptor.sAddressMode = .mirrorRepeat
++        samplerDescriptor.tAddressMode = .mirrorRepeat
++        guard let sampler = device.makeSamplerState(descriptor: samplerDescriptor) else { return nil }
++        self.sampler = sampler
++        do {
++            let library = try device.makeLibrary(source: s10Shaders, options: nil)
++            guard let vertex = library.makeFunction(name: "s10_vertex") else { return nil }
++            var made: [String: MTLRenderPipelineState] = [:]
++            for name in ["s10_base", "s10_ripple", "s10_blur", "s10_godrays", "s10_threshold", "s10_combine", "s10_aberration", "s10_grade"] {
++                let descriptor = MTLRenderPipelineDescriptor()
++                descriptor.vertexFunction = vertex
++                descriptor.fragmentFunction = library.makeFunction(name: name)
++                descriptor.colorAttachments[0].pixelFormat = .bgra8Unorm
++                made[name] = try device.makeRenderPipelineState(descriptor: descriptor)
++            }
++            pipelines = made
++        } catch {
++            S10Log.error("shaders failed: \(error)")
++            return nil
++        }
++    }
++
++    func pipeline(_ name: String) -> MTLRenderPipelineState {
++        guard let pipeline = pipelines[name] else { fatalError("s10: no pipeline \(name)") }
++        return pipeline
++    }
++}
++
++/// Matches `Uniforms` in the shaders: 40 bytes.
++nonisolated struct S10Uniforms {
++    var time: Float = 0
++    var pad: Float = 0
++    var resolution = SIMD2<Float>(1, 1)
++    var direction = SIMD2<Float>(0, 0)
++    var light = SIMD2<Float>(0.7, 0.2)
++    var threshold: Float = 0.6
++    var strength: Float = 0.8
++}
++
++/// One surface's textures: the picture the ripple distorts, made once per size, and the heavy
++/// load's four intermediates, made when the heavy load first runs and let go on a suspend.
++nonisolated final class S10Targets: @unchecked Sendable {
++    let size: CGSize
++    let base: MTLTexture
++    private let lock = NSLock()
++    private var work: [MTLTexture] = []
++
++    init?(gpu: S10GPU, size: CGSize) {
++        self.size = size
++        guard let base = Self.texture(gpu, size) else { return nil }
++        self.base = base
++        guard let buffer = gpu.queue.makeCommandBuffer() else { return nil }
++        var uniforms = S10Uniforms()
++        uniforms.resolution = SIMD2(Float(size.width), Float(size.height))
++        S10Frame.pass(buffer, gpu, "s10_base", to: base, inputs: [], &uniforms)
++        buffer.commit()
++        buffer.waitUntilCompleted()
++    }
++
++    func workTextures(_ gpu: S10GPU) -> [MTLTexture]? {
++        lock.withLock {
++            if work.isEmpty {
++                let made = (0 ..< 4).compactMap { _ in Self.texture(gpu, size) }
++                guard made.count == 4 else { return nil }
++                work = made
++            }
++            return work
++        }
++    }
++
++    func releaseWork() {
++        lock.withLock { work = [] }
++    }
++
++    private static func texture(_ gpu: S10GPU, _ size: CGSize) -> MTLTexture? {
++        let descriptor = MTLTextureDescriptor.texture2DDescriptor(
++            pixelFormat: .bgra8Unorm, width: Int(size.width), height: Int(size.height), mipmapped: false
++        )
++        descriptor.usage = [.renderTarget, .shaderRead]
++        descriptor.storageMode = .private
++        return gpu.device.makeTexture(descriptor: descriptor)
++    }
++}
++
++/// Encodes one frame of a load.
++nonisolated enum S10Frame {
++    /// The number of full-screen passes each load draws a frame.
++    static func passes(_ load: S10Mode.Load) -> Int {
++        load == .heavy ? 20 : 1
++    }
++
++    static func encode(_ load: S10Mode.Load, _ buffer: MTLCommandBuffer, _ gpu: S10GPU, targets: S10Targets, drawable: MTLTexture, time: Float) {
++        var uniforms = S10Uniforms()
++        uniforms.time = time
++        uniforms.resolution = SIMD2(Float(targets.size.width), Float(targets.size.height))
++        guard load == .heavy, let work = targets.workTextures(gpu) else {
++            pass(buffer, gpu, "s10_ripple", to: drawable, inputs: [targets.base], &uniforms)
++            return
++        }
++        let (scene, first, second, third) = (work[0], work[1], work[2], work[3])
++        // 1: the scene.
++        pass(buffer, gpu, "s10_ripple", to: scene, inputs: [targets.base], &uniforms)
++        // 2-11: five separable Gaussian pairs, wider each time, for the out-of-focus copy.
++        var source = scene
++        for radius in 1 ... 5 {
++            uniforms.direction = SIMD2(Float(radius), 0)
++            pass(buffer, gpu, "s10_blur", to: first, inputs: [source], &uniforms)
++            uniforms.direction = SIMD2(0, Float(radius))
++            pass(buffer, gpu, "s10_blur", to: second, inputs: [first], &uniforms)
++            source = second
++        }
++        // 12: radial god rays from a light that drifts.
++        uniforms.direction = .zero
++        uniforms.light = SIMD2(0.65 + 0.1 * sin(time * 0.3), 0.15)
++        pass(buffer, gpu, "s10_godrays", to: third, inputs: [scene], &uniforms)
++        // 13: the bloom's threshold.
++        pass(buffer, gpu, "s10_threshold", to: first, inputs: [third], &uniforms)
++        // 14-17: the bloom's blur, two pairs.
++        for radius in [2, 4] {
++            uniforms.direction = SIMD2(Float(radius), 0)
++            pass(buffer, gpu, "s10_blur", to: scene, inputs: [first], &uniforms)
++            uniforms.direction = SIMD2(0, Float(radius))
++            pass(buffer, gpu, "s10_blur", to: first, inputs: [scene], &uniforms)
++        }
++        // 18: combine: the rays over a tilt-shift of sharp and blurred, plus the bloom.
++        pass(buffer, gpu, "s10_combine", to: scene, inputs: [third, first, second], &uniforms)
++        // 19: chromatic aberration.
++        pass(buffer, gpu, "s10_aberration", to: first, inputs: [scene], &uniforms)
++        // 20: grade and vignette, into the drawable.
++        pass(buffer, gpu, "s10_grade", to: drawable, inputs: [first], &uniforms)
++    }
++
++    static func pass(
++        _ buffer: MTLCommandBuffer, _ gpu: S10GPU, _ name: String, to target: MTLTexture, inputs: [MTLTexture], _ uniforms: inout S10Uniforms
++    ) {
++        let descriptor = MTLRenderPassDescriptor()
++        descriptor.colorAttachments[0].texture = target
++        descriptor.colorAttachments[0].loadAction = .dontCare
++        descriptor.colorAttachments[0].storeAction = .store
++        guard let encoder = buffer.makeRenderCommandEncoder(descriptor: descriptor) else { return }
++        encoder.setRenderPipelineState(gpu.pipeline(name))
++        encoder.setFragmentBytes(&uniforms, length: MemoryLayout<S10Uniforms>.stride, index: 0)
++        for (index, texture) in inputs.enumerated() {
++            encoder.setFragmentTexture(texture, index: index)
++        }
++        encoder.setFragmentSamplerState(gpu.sampler, index: 0)
++        encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
++        encoder.endEncoding()
++    }
++}
++
++// MARK: The loop
++
++/// A thread with a run loop of its own, for the CAMetalDisplayLink: the extension's main thread
++/// answers the agent and is left alone.
++nonisolated final class S10RenderThread: Thread, @unchecked Sendable {
++    static let shared: S10RenderThread = {
++        let thread = S10RenderThread()
++        thread.name = "app.livepaper.s10.render"
++        thread.qualityOfService = .userInteractive
++        thread.start()
++        thread.ready.wait()
++        return thread
++    }()
++
++    private let ready = DispatchSemaphore(value: 0)
++    private(set) var runLoop: RunLoop?
++
++    override func main() {
++        runLoop = RunLoop.current
++        RunLoop.current.add(Port(), forMode: .default)
++        ready.signal()
++        while true {
++            _ = autoreleasepool { RunLoop.current.run(mode: .default, before: .distantFuture) }
++        }
++    }
++
++    func perform(_ block: @escaping @Sendable () -> Void) {
++        guard let runLoop else { return }
++        runLoop.perform(inModes: [.default], block: block)
++        CFRunLoopWakeUp(runLoop.getCFRunLoop())
++    }
++}
++
++/// What one run of the loop measured over a window.
++nonisolated struct S10Stats {
++    var callbacks = 0
++    var lastCallback: Double?
++    var callbackIntervals: [Double] = []
++    var rendered = 0
++    var drawableMisses = 0
++    var presented = 0
++    var notPresented = 0
++    var presentIntervals: [Double] = []
++    var lateness: [Double] = []
++    var gpu: [Double] = []
++    var encode: [Double] = []
++    var errors = 0
++
++    mutating func resetWindow() {
++        let keep = lastCallback
++        self = S10Stats()
++        lastCallback = keep
++    }
++}
++
++nonisolated final class S10Run: @unchecked Sendable {
++    let number: Int
++    let mode: S10Mode
++    let started = CACurrentMediaTime()
++    let active = Atomic<Bool>(true)
++    let stats = Mutex(S10Stats())
++    let lastPresented = Mutex<Double?>(nil)
++    var metalLink: CAMetalDisplayLink?
++    var cvLink: CVDisplayLink?
++    var timer: DispatchSourceTimer?
++    var reporter: DispatchSourceTimer?
++    /// CVDisplayLink ticks, for running below the display's rate.
++    var ticks = 0
++    var divisor = 1
++    var firstCallbackLogged = false
++    let firstPresentedLogged = Atomic<Bool>(false)
++
++    init(number: Int, mode: S10Mode) {
++        self.number = number
++        self.mode = mode
++    }
++}
++
++/// Drives one surface's Metal layer with the link the mode names, and logs what it measured every
++/// `S10Loop.window`: link callbacks, frames rendered and presented, the interval between presented
++/// frames (from each drawable's presented time), how late each was against the link's target, and
++/// the GPU time of each frame (from the command buffer's GPU timestamps).
++nonisolated final class S10Loop: NSObject, CAMetalDisplayLinkDelegate, @unchecked Sendable {
++    static let window: Double = 5
++
++    private let layer: CAMetalLayer
++    private let gpu: S10GPU
++    private let surface: SurfaceID
++    private let statsQueue = DispatchQueue(label: "app.livepaper.s10.stats", qos: .utility)
++    private let timerQueue = DispatchQueue(label: "app.livepaper.s10.timer", qos: .userInteractive)
++    private let current = Mutex<S10Run?>(nil)
++    private let targetsLock = Mutex<S10Targets?>(nil)
++    private var runs = 0
++
++    init(layer: CAMetalLayer, gpu: S10GPU, surface: SurfaceID) {
++        self.layer = layer
++        self.gpu = gpu
++        self.surface = surface
++    }
++
++    // MARK: Start and stop, from the main thread
++
++    func start(_ mode: S10Mode, reason: String) {
++        if current.withLock({ $0 != nil }) { stop(reason: "restart", release: false) }
++        runs += 1
++        let run = S10Run(number: runs, mode: mode)
++        current.withLock { $0 = run }
++        S10Log.notice("loop start run=\(run.number) reason=\(reason) surface=\(surface) \(mode) drawable=\(layer.drawableSize)")
++        switch mode.link {
++        case .metalDisplayLink:
++            S10RenderThread.shared.perform { [self] in
++                guard run.active.load(ordering: .acquiring) else { return }
++                let runLoop = RunLoop.current
++                let link = CAMetalDisplayLink(metalLayer: layer)
++                link.delegate = self
++                let rate = Float(mode.fps)
++                link.preferredFrameRateRange = CAFrameRateRange(minimum: rate, maximum: rate, preferred: rate)
++                link.preferredFrameLatency = 2
++                link.add(to: runLoop, forMode: .default)
++                run.metalLink = link
++            }
++        case .cvDisplayLink:
++            var link: CVDisplayLink?
++            CVDisplayLinkCreateWithCGDisplay(CGMainDisplayID(), &link)
++            guard let link else {
++                S10Log.error("no CVDisplayLink run=\(run.number)")
++                return
++            }
++            let period = CVDisplayLinkGetNominalOutputVideoRefreshPeriod(link)
++            let refresh = period.timeValue > 0 ? Double(period.timeScale) / Double(period.timeValue) : 60
++            run.divisor = max(1, Int((refresh / Double(mode.fps)).rounded()))
++            S10Log.notice("cvdisplaylink refresh=\(String(format: "%.2f", refresh)) Hz divisor=\(run.divisor)")
++            CVDisplayLinkSetOutputHandler(link) { [self] _, now, _, _, _ in
++                cvTick(run, now: now.pointee)
++                return kCVReturnSuccess
++            }
++            run.cvLink = link
++            CVDisplayLinkStart(link)
++        case .timer:
++            let timer = DispatchSource.makeTimerSource(flags: .strict, queue: timerQueue)
++            timer.schedule(deadline: .now(), repeating: 1 / Double(mode.fps), leeway: .nanoseconds(0))
++            timer.setEventHandler { [self] in drawWithNextDrawable(run, callbackTime: CACurrentMediaTime(), target: nil) }
++            run.timer = timer
++            timer.resume()
++        }
++        let reporter = DispatchSource.makeTimerSource(queue: statsQueue)
++        reporter.schedule(deadline: .now() + Self.window, repeating: Self.window)
++        reporter.setEventHandler { [self] in report(run) }
++        run.reporter = reporter
++        reporter.resume()
++        statsQueue.asyncAfter(deadline: .now() + 2) {
++            let callbacks = run.stats.withLock { $0.callbacks }
++            if run.active.load(ordering: .acquiring), callbacks == 0, !run.firstCallbackLogged {
++                S10Log.error("link silent run=\(run.number) link=\(mode.link) 2 s after start")
++            }
++        }
++    }
++
++    func stop(reason: String, release: Bool) {
++        guard let run = current.withLock({ run in defer { run = nil }; return run }) else {
++            if release { releaseTargets() }
++            return
++        }
++        run.active.store(false, ordering: .releasing)
++        run.reporter?.cancel()
++        report(run, final: true)
++        if let link = run.cvLink { CVDisplayLinkStop(link) }
++        run.timer?.cancel()
++        S10RenderThread.shared.perform {
++            run.metalLink?.invalidate()
++            run.metalLink = nil
++        }
++        if release { releaseTargets() }
++        S10Log.notice("loop stop run=\(run.number) reason=\(reason) surface=\(surface) release=\(release) after=\(String(format: "%.1f", CACurrentMediaTime() - run.started)) s")
++    }
++
++    private func releaseTargets() {
++        targetsLock.withLock { $0?.releaseWork() }
++    }
++
++    // MARK: The callbacks
++
++    func metalDisplayLink(_ link: CAMetalDisplayLink, needsUpdate update: CAMetalDisplayLink.Update) {
++        guard let run = current.withLock({ $0 }), run.active.load(ordering: .acquiring), run.metalLink === link else { return }
++        let now = CACurrentMediaTime()
++        noteCallback(run, at: now)
++        draw(run, drawable: update.drawable, callbackTime: now, target: update.targetPresentationTimestamp)
++    }
++
++    private func cvTick(_ run: S10Run, now: CVTimeStamp) {
++        guard run.active.load(ordering: .acquiring) else { return }
++        run.ticks += 1
++        guard run.ticks % run.divisor == 0 else { return }
++        drawWithNextDrawable(run, callbackTime: CACurrentMediaTime(), target: nil)
++    }
++
++    private func drawWithNextDrawable(_ run: S10Run, callbackTime: Double, target: Double?) {
++        guard run.active.load(ordering: .acquiring) else { return }
++        noteCallback(run, at: callbackTime)
++        guard let drawable = layer.nextDrawable() else {
++            run.stats.withLock { $0.drawableMisses += 1 }
++            return
++        }
++        draw(run, drawable: drawable, callbackTime: callbackTime, target: target)
++    }
++
++    private func noteCallback(_ run: S10Run, at now: Double) {
++        if !run.firstCallbackLogged {
++            run.firstCallbackLogged = true
++            S10Log.notice("first callback run=\(run.number) link=\(run.mode.link) after=\(ms(now - run.started)) ms")
++        }
++        run.stats.withLock { stats in
++            stats.callbacks += 1
++            if let last = stats.lastCallback { stats.callbackIntervals.append((now - last) * 1000) }
++            stats.lastCallback = now
++        }
++    }
++
++    private func draw(_ run: S10Run, drawable: CAMetalDrawable, callbackTime: Double, target: Double?) {
++        let size = CGSize(width: drawable.texture.width, height: drawable.texture.height)
++        let targets = targetsLock.withLock { targets -> S10Targets? in
++            if let existing = targets, existing.size == size { return existing }
++            targets = S10Targets(gpu: gpu, size: size)
++            return targets
++        }
++        guard let targets, let buffer = gpu.queue.makeCommandBuffer() else {
++            run.stats.withLock { $0.errors += 1 }
++            return
++        }
++        buffer.label = "s10 run \(run.number)"
++        S10Frame.encode(run.mode.load, buffer, gpu, targets: targets, drawable: drawable.texture, time: Float(callbackTime - run.started))
++        drawable.addPresentedHandler { [weak self] presented in
++            self?.presented(run, at: presented.presentedTime, target: target)
++        }
++        buffer.addCompletedHandler { completed in
++            run.stats.withLock { stats in
++                if completed.error != nil {
++                    stats.errors += 1
++                } else if completed.gpuEndTime > completed.gpuStartTime {
++                    stats.gpu.append((completed.gpuEndTime - completed.gpuStartTime) * 1000)
++                }
++            }
++        }
++        buffer.present(drawable)
++        buffer.commit()
++        let encoded = CACurrentMediaTime() - callbackTime
++        run.stats.withLock { stats in
++            stats.rendered += 1
++            stats.encode.append(encoded * 1000)
++        }
++    }
++
++    private func presented(_ run: S10Run, at time: Double, target: Double?) {
++        guard time > 0 else {
++            run.stats.withLock { $0.notPresented += 1 }
++            return
++        }
++        if !run.firstPresentedLogged.exchange(true, ordering: .relaxed) {
++            S10Log.notice("first presented run=\(run.number) after=\(ms(time - run.started)) ms")
++        }
++        let previous = run.lastPresented.withLock { last -> Double? in
++            defer { last = time }
++            return last
++        }
++        run.stats.withLock { stats in
++            stats.presented += 1
++            if let previous, time > previous { stats.presentIntervals.append((time - previous) * 1000) }
++            if let target { stats.lateness.append((time - target) * 1000) }
++        }
++    }
++
++    // MARK: The line
++
++    private func report(_ run: S10Run, final: Bool = false) {
++        let stats = run.stats.withLock { stats in
++            defer { stats.resetWindow() }
++            return stats
++        }
++        guard stats.callbacks > 0 || stats.presented > 0 || !final else { return }
++        let frame = 1000 / Double(run.mode.fps)
++        let over = stats.presentIntervals.filter { $0 > 1.5 * frame }.count
++        S10Log.notice(
++            "stats run=\(run.number) surface=\(surface) \(run.mode) passes=\(S10Frame.passes(run.mode.load)) final=\(final) "
++                + "callbacks=\(stats.callbacks) rendered=\(stats.rendered) misses=\(stats.drawableMisses) "
++                + "presented=\(stats.presented) notPresented=\(stats.notPresented) errors=\(stats.errors) "
++                + "presentInterval[\(summary(stats.presentIntervals))] over1.5=\(over) "
++                + "callbackInterval[\(summary(stats.callbackIntervals))] "
++                + "lateness[\(summary(stats.lateness))] gpu[\(summary(stats.gpu))] encode[\(summary(stats.encode))]"
++        )
++    }
++}
++
++nonisolated private func ms(_ seconds: Double) -> String {
++    String(format: "%.1f", seconds * 1000)
++}
++
++/// `n mean p50 p95 max`, in milliseconds.
++nonisolated private func summary(_ values: [Double]) -> String {
++    guard !values.isEmpty else { return "n=0" }
++    let sorted = values.sorted()
++    let mean = values.reduce(0, +) / Double(values.count)
++    func quantile(_ q: Double) -> Double { sorted[min(sorted.count - 1, Int((Double(sorted.count - 1) * q).rounded()))] }
++    return String(
++        format: "n=%d mean=%.2f p50=%.2f p95=%.2f max=%.2f", values.count, mean, quantile(0.5), quantile(0.95), sorted.last ?? 0
++    )
++}
++
++// MARK: The shaders
++
++nonisolated private let s10Shaders = """
++#include <metal_stdlib>
++using namespace metal;
++
++struct Uniforms { float time; float pad; float2 resolution; float2 direction; float2 light; float threshold; float strength; };
++struct VOut { float4 position [[position]]; float2 uv; };
++
++vertex VOut s10_vertex(uint vid [[vertex_id]]) {
++    float2 p = float2(float((vid << 1) & 2), float(vid & 2));
++    VOut out;
++    out.position = float4(p * 2.0 - 1.0, 0.0, 1.0);
++    out.uv = float2(p.x, 1.0 - p.y);
++    return out;
++}
++
++static float hash21(float2 p) {
++    p = fract(p * float2(123.34, 456.21));
++    p += dot(p, p + 45.32);
++    return fract(p.x * p.y);
++}
++
++static float valueNoise(float2 p) {
++    float2 i = floor(p);
++    float2 f = fract(p);
++    float a = hash21(i), b = hash21(i + float2(1, 0)), c = hash21(i + float2(0, 1)), d = hash21(i + float2(1, 1));
++    float2 u = f * f * (3.0 - 2.0 * f);
++    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
++}
++
++// The picture the ripple distorts, drawn once per surface size, as a scene's image is loaded once.
++fragment float4 s10_base(VOut in [[stage_in]], constant Uniforms& u [[buffer(0)]]) {
++    float2 uv = in.uv;
++    float2 p = uv * float2(u.resolution.x / u.resolution.y, 1.0);
++    float n = 0.0, amp = 0.5, freq = 4.0;
++    for (int i = 0; i < 5; i++) { n += amp * valueNoise(p * freq); amp *= 0.5; freq *= 2.0; }
++    float3 c = mix(float3(0.02, 0.16, 0.30), float3(0.10, 0.55, 0.60), smoothstep(0.1, 0.9, uv.y + 0.3 * n));
++    c = mix(c, float3(0.78, 0.70, 0.50), smoothstep(0.62, 0.75, n) * 0.6);
++    float2 cell = floor(p * 18.0);
++    float2 f = fract(p * 18.0) - 0.5;
++    float r = 0.18 + 0.2 * hash21(cell);
++    float pebble = (1.0 - smoothstep(r - 0.03, r, length(f))) * step(0.72, hash21(cell + 7.7));
++    c = mix(c, float3(0.35, 0.33, 0.30) * (0.7 + 0.6 * hash21(cell + 3.1)), pebble);
++    return float4(c, 1.0);
++}
++
++fragment float4 s10_ripple(VOut in [[stage_in]], constant Uniforms& u [[buffer(0)]],
++                           texture2d<float> base [[texture(0)]], sampler s [[sampler(0)]]) {
++    float2 uv = in.uv;
++    float2 aspect = float2(u.resolution.x / u.resolution.y, 1.0);
++    float2 offset = float2(0.0);
++    float height = 0.0;
++    for (int i = 0; i < 6; i++) {
++        float fi = float(i);
++        float2 centre = float2(0.15 + 0.14 * fi, 0.3 + 0.4 * fract(fi * 0.618))
++            + 0.08 * float2(sin(u.time * 0.21 + fi * 1.3), cos(u.time * 0.17 + fi * 2.1));
++        float2 d = (uv - centre) * aspect;
++        float r = length(d) + 1e-4;
++        float wave = sin(r * 70.0 - u.time * (3.0 + 0.3 * fi)) * exp(-r * 4.0);
++        height += wave;
++        offset += (d / r) * wave * 0.0035;
++    }
++    float caustic = sin(uv.x * 30.0 + u.time * 1.1) * sin(uv.y * 24.0 - u.time * 0.9);
++    offset += float2(caustic, -caustic) * 0.0008;
++    float3 c = base.sample(s, uv + offset).rgb;
++    c += 0.22 * pow(saturate(0.5 + 0.5 * height), 6.0);
++    c += 0.04 * caustic;
++    return float4(c, 1.0);
++}
++
++// A 13-tap Gaussian from 7 bilinear fetches, along `direction` (in texels).
++fragment float4 s10_blur(VOut in [[stage_in]], constant Uniforms& u [[buffer(0)]],
++                         texture2d<float> src [[texture(0)]], sampler s [[sampler(0)]]) {
++    float2 texel = u.direction / u.resolution;
++    const float w[4] = { 0.1964825501511404, 0.2969069646728344, 0.09447039785044732, 0.010381362401148057 };
++    const float o[4] = { 0.0, 1.411764705882353, 3.2941176470588234, 5.176470588235294 };
++    float3 c = src.sample(s, in.uv).rgb * w[0];
++    for (int i = 1; i < 4; i++) {
++        c += src.sample(s, in.uv + texel * o[i]).rgb * w[i];
++        c += src.sample(s, in.uv - texel * o[i]).rgb * w[i];
++    }
++    return float4(c, 1.0);
++}
++
++fragment float4 s10_godrays(VOut in [[stage_in]], constant Uniforms& u [[buffer(0)]],
++                            texture2d<float> src [[texture(0)]], sampler s [[sampler(0)]]) {
++    const int samples = 64;
++    float2 delta = (in.uv - u.light) * (0.85 / float(samples));
++    float2 p = in.uv;
++    float decay = 1.0;
++    float3 rays = float3(0.0);
++    for (int i = 0; i < samples; i++) {
++        p -= delta;
++        float3 smp = src.sample(s, p).rgb;
++        float lum = dot(smp, float3(0.299, 0.587, 0.114));
++        rays += smp * smoothstep(0.45, 0.8, lum) * decay;
++        decay *= 0.965;
++    }
++    return float4(src.sample(s, in.uv).rgb + rays * (u.strength * 4.0 / float(samples)), 1.0);
++}
++
++fragment float4 s10_threshold(VOut in [[stage_in]], constant Uniforms& u [[buffer(0)]],
++                              texture2d<float> src [[texture(0)]], sampler s [[sampler(0)]]) {
++    float3 c = src.sample(s, in.uv).rgb;
++    float lum = dot(c, float3(0.2126, 0.7152, 0.0722));
++    return float4(c * smoothstep(u.threshold, u.threshold + 0.1, lum), 1.0);
++}
++
++fragment float4 s10_combine(VOut in [[stage_in]], constant Uniforms& u [[buffer(0)]],
++                            texture2d<float> scene [[texture(0)]], texture2d<float> bloom [[texture(1)]],
++                            texture2d<float> blurred [[texture(2)]], sampler s [[sampler(0)]]) {
++    float focus = smoothstep(0.15, 0.45, abs(in.uv.y - 0.55));
++    float3 c = mix(scene.sample(s, in.uv).rgb, blurred.sample(s, in.uv).rgb, focus);
++    return float4(c + bloom.sample(s, in.uv).rgb * u.strength, 1.0);
++}
++
++fragment float4 s10_aberration(VOut in [[stage_in]], constant Uniforms& u [[buffer(0)]],
++                               texture2d<float> src [[texture(0)]], sampler s [[sampler(0)]]) {
++    float2 d = (in.uv - 0.5) * 0.004;
++    return float4(src.sample(s, in.uv + d).r, src.sample(s, in.uv).g, src.sample(s, in.uv - d).b, 1.0);
++}
++
++fragment float4 s10_grade(VOut in [[stage_in]], constant Uniforms& u [[buffer(0)]],
++                          texture2d<float> src [[texture(0)]], sampler s [[sampler(0)]]) {
++    float3 c = src.sample(s, in.uv).rgb;
++    c = c / (1.0 + c * 0.25);
++    float2 v = in.uv - 0.5;
++    c *= 1.0 - dot(v, v) * 0.6;
++    return float4(c, 1.0);
++}
++"""
++
++#endif
