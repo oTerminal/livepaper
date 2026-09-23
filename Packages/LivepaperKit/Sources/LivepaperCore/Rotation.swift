@@ -19,6 +19,13 @@ public struct Playlist: Equatable, Identifiable, Sendable {
         self.interval = interval
         self.shuffle = shuffle
     }
+
+    /// What the inspector offers: 5, 15 and 30 minutes, an hour, 3 hours and a
+    /// day, and the playlist's own interval among them, in order, when it is none of those.
+    public static func intervalChoices(including current: Duration) -> [Duration] {
+        let choices: [Duration] = [5, 15, 30, 60, 180, 1440].map { .seconds($0 * 60) }
+        return choices.contains(current) ? choices : (choices + [current]).sorted()
+    }
 }
 
 /// Where one display is in its playlist.

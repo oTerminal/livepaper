@@ -52,15 +52,22 @@ extension AppModel {
         if let pending = pendingDeletion {
             finishDeletion(ifStill: pending.toast)
         }
-        let gridBefore = grid.map(\.id)
         let deletion: Deletion
         do {
             deletion = try LivepaperCore.deleteWallpaper(id, library: library, state: state)
-            try change(library: deletion.library, state: deletion.state)
         } catch {
             return
         }
-        selection.deleted(id, from: gridBefore)
+        // The selection moves on before the grid changes: once the wallpaper has
+        // left the grid, the grid's change would clear it instead.
+        let selectionBefore = selection
+        selection.deleted(id, from: grid.map(\.id))
+        do {
+            try change(library: deletion.library, state: deletion.state)
+        } catch {
+            selection = selectionBefore
+            return
+        }
         drafts[id] = nil
         settling.removeValue(forKey: id)?.cancel()
 

@@ -45,7 +45,10 @@ extension AppModel {
         }
     }
 
-    /// The Open panel, for the Import button and Command-O: files and folders, several at once.
+    /// The Open panel, for the Import button and Command-O: files and folders,
+    /// several at once. A sheet on the library window when that window is in
+    /// front, since what is chosen goes into it; a panel of its own otherwise
+    /// (Command-O from Settings).
     func chooseFilesToImport() {
         guard canImport else { return }
         let panel = NSOpenPanel()
@@ -55,15 +58,22 @@ extension AppModel {
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = true
         panel.allowedContentTypes = [.movie, .gif, .folder] + importableExtensions.sorted().compactMap { UTType(filenameExtension: $0) }
-        NSApp.activate()
-        panel.begin { [weak self] response in
+        let chosen: (NSApplication.ModalResponse) -> Void = { [weak self] response in
             guard response == .OK else { return }
             self?.importItems(at: panel.urls)
+        }
+        if let window = NSApp.keyWindow, window.isLibraryWindow, window.attachedSheet == nil {
+            panel.beginSheetModal(for: window, completionHandler: chosen)
+            AppLog.logger.notice("\(AppLog.choosingFiles(asSheet: true), privacy: .public)")
+        } else {
+            NSApp.activate()
+            panel.begin(completionHandler: chosen)
+            AppLog.logger.notice("\(AppLog.choosingFiles(asSheet: false), privacy: .public)")
         }
     }
 
     /// A row's cancel: a running import's stream is dropped, which stops it; a
-    /// waiting row is taken away, and so is a failed one.
+    /// waiting row is taken away, and so is a failed one ("Remove from List").
     func cancelImport(_ row: ImportList.Row.ID) {
         perform(importList.cancel(row))
     }
@@ -144,7 +154,7 @@ extension AppModel {
         return true
     }
 
-    /// Finished rows leave `ImportList.finishedLifetime` after they finished.
+    /// Finished rows, and failed rows Retry cannot help, leave `ImportList.finishedLifetime` after they ended.
     private func scheduleImportTick() {
         importTick?.cancel()
         importTick = nil

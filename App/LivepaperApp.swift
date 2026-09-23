@@ -12,11 +12,12 @@ struct LivepaperApp: App {
 
     var body: some Scene {
         Window("Library", id: AppWindows.libraryID) {
-            LibraryPlaceholder()
+            LibraryWindow()
                 .environment(delegate.model)
                 .libraryWindow(delegate.windows)
                 .launchOptions(delegate.options)
         }
+        .defaultSize(width: 1180, height: 760)
         // An agent opens no window at launch, and none comes back from the last run.
         .defaultLaunchBehavior(.suppressed)
         .restorationBehavior(.disabled)
@@ -93,7 +94,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let menu = fakes.menu(model: model) { [weak self] in self?.menuBarItem?.openPopover(animated: true) }
             if !menu.performItem(titled: title) { AppLog.logger.notice("fakes: no menu item \(title, privacy: .public)") }
         case ("quit", _): NSApp.terminate(nil)
-        default: AppLog.logger.notice("fakes: unknown command \(verb, privacy: .public) \(rest, privacy: .public)")
+        default:
+            guard !model.performLibraryCommand(verb, rest) else { return }
+            AppLog.logger.notice("fakes: unknown command \(verb, privacy: .public) \(rest, privacy: .public)")
         }
     }
 

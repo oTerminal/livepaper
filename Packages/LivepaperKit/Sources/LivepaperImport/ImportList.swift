@@ -22,8 +22,8 @@ public struct ImportList: Equatable, Sendable {
         case finished(Wallpaper, at: Date)
         /// Nothing was imported: it is already in the library as this wallpaper.
         case duplicate(of: Wallpaper, at: Date)
-        /// Why, in words, and whether Retry can help.
-        case failed(reason: String, canRetry: Bool)
+        /// Why, in words, whether Retry can help, and when it failed.
+        case failed(reason: String, canRetry: Bool, at: Date)
     }
 
     public enum Effect: Equatable, Sendable {
@@ -78,14 +78,15 @@ public struct ImportList: Equatable, Sendable {
     }
 
     /// The running row's stream threw. A cancel is not a failure: the row goes. A failed
-    /// row stays until Retry or `cancel`, so the time it failed is not kept.
-    public mutating func failed(_ id: UUID, error: any Error, at _: Date) -> [Effect] {
+    /// row that Retry can help stays until Retry or `cancel`; one it cannot help leaves
+    /// as a finished row does (`tick`), since its toast has said why.
+    public mutating func failed(_ id: UUID, error: any Error, at date: Date) -> [Effect] {
         guard let index = rows.firstIndex(where: { $0.id == id }), rows[index].isRunning else { return [] }
         if error is CancellationError {
             rows.remove(at: index)
         } else {
             let words = importFailureWords(error)
-            rows[index].state = .failed(reason: words.reason, canRetry: words.canRetry)
+            rows[index].state = .failed(reason: words.reason, canRetry: words.canRetry, at: date)
             done += 1
         }
         return startNext()
@@ -105,7 +106,8 @@ public struct ImportList: Equatable, Sendable {
         return startNext()
     }
 
-    /// Finished and duplicate rows leave `finishedLifetime` after they finished. A failed row stays for its Retry.
+    /// Finished and duplicate rows leave `finishedLifetime` after they finished, and so
+    /// does a failed row that Retry cannot help. One that Retry can help stays for it.
     public mutating func tick(at date: Date) -> [Effect] {
         rows.removeAll { $0.leavesAt.map { $0 <= date } ?? false }
         return []
@@ -135,8 +137,9 @@ extension ImportList.Row {
 
     fileprivate var leavesAt: Date? {
         switch state {
-        case .finished(_, let date), .duplicate(_, let date): date.addingTimeInterval(ImportList.finishedLifetime / .seconds(1))
-        case .waiting, .running, .failed: nil
+        case .finished(_, let date), .duplicate(_, let date), .failed(_, canRetry: false, let date):
+            date.addingTimeInterval(ImportList.finishedLifetime / .seconds(1))
+        case .waiting, .running, .failed(_, canRetry: true, _): nil
         }
     }
 }

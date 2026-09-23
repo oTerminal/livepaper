@@ -1,3 +1,5 @@
+import Foundation
+
 /// A row of the library window's sidebar.
 public enum LibrarySection: Hashable, Sendable {
     case all
@@ -54,6 +56,47 @@ public func libraryGrid(library: Library, state: AppState, section: LibrarySecti
         case .playlist(let id)?: return inOrder(state[playlist: id]?.wallpapers ?? [])
         case nil: return []
         }
+    }
+}
+
+extension LibrarySection {
+    /// Whether the grid follows the sort order: a playlist keeps the user's
+    /// order, and so does a display showing one.
+    public var followsSortOrder: Bool {
+        switch self {
+        case .all, .favourites: true
+        case .playlist, .nowPlaying: false
+        }
+    }
+}
+
+/// Why the grid shows nothing, for the window's empty state.
+public enum EmptyGrid: Equatable, Sendable {
+    /// The library has none, whatever the section: Import is the way on.
+    case noWallpapers
+    case noFavourites
+    /// The playlist has no wallpaper the library still has.
+    case emptyPlaylist(PlaylistID)
+    /// The display shows nothing: it has no assignment, or what it has is lost or empty.
+    case nothingOnDisplay(DisplayIdentity)
+    /// The section has wallpapers and none matches the search, as typed without
+    /// the spaces around it. A section that is empty anyway says so instead,
+    /// since clearing the search would not help.
+    case noResults(search: String)
+}
+
+/// Nil while the grid (`libraryGrid`) shows a wallpaper.
+public func emptyGrid(library: Library, state: AppState, section: LibrarySection, search: String) -> EmptyGrid? {
+    guard !library.wallpapers.isEmpty else { return .noWallpapers }
+    guard libraryGrid(library: library, state: state, section: section, search: search).isEmpty else { return nil }
+    guard libraryGrid(library: library, state: state, section: section, search: "").isEmpty else {
+        return .noResults(search: search.trimmingCharacters(in: .whitespacesAndNewlines))
+    }
+    return switch section {
+    case .all: .noWallpapers
+    case .favourites: .noFavourites
+    case .playlist(let id): .emptyPlaylist(id)
+    case .nowPlaying(let display): .nothingOnDisplay(display)
     }
 }
 

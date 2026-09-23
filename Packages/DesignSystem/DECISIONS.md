@@ -120,6 +120,7 @@ Where a component's own action can arrive from a focused button (Space or Return
 - Outline symbol by default, `.fill` plus accent when selected, in a fixed 20 pt slot so titles line up. Badge digits are monospaced.
 - Hit area 40 pt tall; the visible fill is inset 2 pt top and bottom so stacked rows' targets meet without overlapping. Stack rows with spacing 0. The focus ring follows the fill.
 - `PressButtonStyle(isStatic: true)`: a full-width row that shrinks on every click distracts, so it dims instead.
+- `SidebarRowGroup` takes a context menu per row (M6: the library's playlist rows, Rename… and Delete), set on each row rather than on the group, so a secondary click acts on the row under the pointer and not on the selected one. A group without one is the `EmptyView` case and shows no menu.
 
 ### FitModePicker
 - One glass capsule (`inspectorControl`); the selection pill is a plain `primary` fill at 14% (30% under Increase Contrast), so no glass on glass. Capsule in capsule with a 4 pt inset is concentric by construction.
