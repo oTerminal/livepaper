@@ -9,7 +9,9 @@ import Synchronization
 /// without a line ending, so it is driven through a pty rather than pipes.
 /// Echo is switched off before it starts, so nothing typed, the password
 /// included, ever comes back as output. It starts in a session of its own and
-/// inherits no other descriptor, and stopping it stops its process group.
+/// inherits no other descriptor, and stopping it stops its process group, but
+/// only until it has been reaped: after that its number, and its group's, may
+/// be another process's.
 final class PseudoTerminalProcess: Sendable {
     enum Event: Sendable {
         case output(Data)
@@ -26,9 +28,11 @@ final class PseudoTerminalProcess: Sendable {
     let pid: pid_t
     let events: AsyncStream<Event>
     private let controller: Controller
+    private let child: Child
 
-    private init(pid: pid_t, controller: Controller, events: AsyncStream<Event>) {
-        self.pid = pid
+    private init(child: Child, controller: Controller, events: AsyncStream<Event>) {
+        pid = child.pid
+        self.child = child
         self.controller = controller
         self.events = events
     }
@@ -58,8 +62,9 @@ final class PseudoTerminalProcess: Sendable {
             throw error
         }
         let (events, continuation) = AsyncStream.makeStream(of: Event.self, bufferingPolicy: .unbounded)
-        follow(pid: pid, controller: owner, into: continuation)
-        return PseudoTerminalProcess(pid: pid, controller: owner, events: events)
+        let child = Child(pid)
+        follow(child, controller: owner, into: continuation)
+        return PseudoTerminalProcess(child: child, controller: owner, events: events)
     }
 
     /// Types text into its terminal.
@@ -67,17 +72,21 @@ final class PseudoTerminalProcess: Sendable {
         controller.write(text)
     }
 
-    /// Asks it to go, then insists two seconds later.
-    func terminate() {
-        killpg(pid, SIGTERM)
-        DispatchQueue.global().asyncAfter(deadline: .now() + 2) { [pid] in
-            killpg(pid, SIGKILL)
+    /// Asks it to go, then insists two seconds later if it is still there.
+    /// Answers whether it was still there to ask.
+    @discardableResult
+    func terminate() -> Bool {
+        guard child.signal(SIGTERM) else { return false }
+        DispatchQueue.global().asyncAfter(deadline: .now() + 2) { [child] in
+            child.signal(SIGKILL)
         }
+        return true
     }
 
-    /// Ends it, and anything it started, at once.
-    func kill() {
-        killpg(pid, SIGKILL)
+    /// Ends it, and anything it started, at once. Answers whether it was still there to end.
+    @discardableResult
+    func kill() -> Bool {
+        child.signal(SIGKILL)
     }
 
     // MARK: Starting
@@ -122,7 +131,7 @@ final class PseudoTerminalProcess: Sendable {
     /// Reads its output on a thread of its own, and waits for it on another:
     /// both block, and Swift's own threads are not for blocking on. Its exit is
     /// the last event, after everything it printed.
-    private static func follow(pid: pid_t, controller: Controller, into continuation: AsyncStream<Event>.Continuation) {
+    private static func follow(_ child: Child, controller: Controller, into continuation: AsyncStream<Event>.Continuation) {
         let readingDone = DispatchSemaphore(value: 0)
         Thread.detachNewThread {
             var buffer = [UInt8](repeating: 0, count: 16_384)
@@ -141,8 +150,7 @@ final class PseudoTerminalProcess: Sendable {
             readingDone.signal()
         }
         Thread.detachNewThread {
-            var status: Int32 = 0
-            while waitpid(pid, &status, 0) < 0, errno == EINTR {}
+            let status = child.waitAndReap()
             // What it printed last arrives first. Something it started may still hold the terminal: not for long.
             _ = readingDone.wait(timeout: .now() + 1)
             continuation.yield(.exited(exitStatus(status)))
@@ -154,6 +162,43 @@ final class PseudoTerminalProcess: Sendable {
     private static func exitStatus(_ status: Int32) -> Int32 {
         let signal = status & 0x7F
         return signal == 0 ? (status >> 8) & 0xFF : 128 + signal
+    }
+}
+
+/// The process started, and whether it has been reaped. A signal is sent to its
+/// group only while it has not: until then the system keeps its number, and so
+/// its group's, from any other process.
+private final class Child: Sendable {
+    let pid: pid_t
+    private let reaped = Mutex(false)
+
+    init(_ pid: pid_t) {
+        self.pid = pid
+    }
+
+    /// Sends the signal to its process group unless it has been reaped. Answers whether it was sent.
+    @discardableResult
+    func signal(_ signal: Int32) -> Bool {
+        reaped.withLock { reaped in
+            guard !reaped else { return false }
+            killpg(pid, signal)
+            return true
+        }
+    }
+
+    /// Blocks until it exits, then reaps it under the lock `signal` takes, so
+    /// that no signal can go out between the reaping and its being known.
+    /// Answers its wait status.
+    func waitAndReap() -> Int32 {
+        // Waiting without reaping leaves its number held while the lock is taken.
+        var info = siginfo_t()
+        while waitid(P_PID, id_t(pid), &info, WEXITED | WNOWAIT) < 0, errno == EINTR {}
+        return reaped.withLock { reaped in
+            var status: Int32 = 0
+            while waitpid(pid, &status, 0) < 0, errno == EINTR {}
+            reaped = true
+            return status
+        }
     }
 }
 

@@ -58,21 +58,51 @@ public func isRosettaInstalled() -> Bool {
     FileManager.default.fileExists(atPath: "/Library/Apple/usr/libexec/oah/libRosettaRuntime")
 }
 
-/// The check an executable must pass before it is run: signed, unaltered, and
-/// by the signer the requirement names.
+/// Whether a file starts as a Mach-O file does, thin or universal, of either byte order.
+func isMachO(_ header: Data) -> Bool {
+    let magic = header.prefix(4).reduce(UInt32(0)) { $0 << 8 | UInt32($1) }
+    return header.count >= 4 && [0xCFFA_EDFE, 0xCEFA_EDFE, 0xFEED_FACF, 0xFEED_FACE, 0xCAFE_BABE, 0xCAFE_BABF].contains(magic)
+}
+
+extension MachOArchitecture {
+    /// The processor type in the header, as the Security framework takes it.
+    var cpuType: Int32 {
+        switch self {
+        case .appleSilicon: 0x0100_000C
+        case .intel: 0x0100_0007
+        case .other(let type): type
+        }
+    }
+}
+
+/// The check a Mach-O file must pass before it is run or loaded: signed,
+/// unaltered, and by the signer the requirement names.
 public enum CodeSignature {
     /// Valve's Developer ID (team MXGJJ98X76), under Apple's root. Both the
     /// steamcmd in Valve's archive and the one it updates itself to carry it
     /// (checked on 2026-09-23).
     public static let valve = #"anchor apple generic and certificate leaf[subject.OU] = "MXGJJ98X76""#
 
-    public static func satisfies(_ executable: URL, requirement: String) -> Bool {
-        var code: SecStaticCode?
-        guard SecStaticCodeCreateWithPath(executable as CFURL, [], &code) == errSecSuccess, let code else { return false }
+    /// Every processor's code in the file is checked on its own: Valve's
+    /// universal `steamclient.dylib` passes for each and fails as a whole with
+    /// "an internal error" (2026-09-23). A bundle's resources are not checked,
+    /// since nothing loads them as code, and Valve's Breakpad framework carries
+    /// a header changed after it was signed. With no requirement, any valid
+    /// signature passes, an ad hoc one included.
+    public static func satisfies(_ file: URL, requirement: String?) -> Bool {
+        let header = (try? FileHandle(forReadingFrom: file)).flatMap { try? $0.read(upToCount: 4_096) } ?? Data()
+        guard let architectures = machOArchitectures(of: header), !architectures.isEmpty else { return false }
         var parsed: SecRequirement?
-        guard SecRequirementCreateWithString(requirement as CFString, [], &parsed) == errSecSuccess, let parsed else { return false }
-        let flags = SecCSFlags(rawValue: SecCSFlags.RawValue(kSecCSCheckAllArchitectures) | SecCSFlags.RawValue(kSecCSStrictValidate))
-        return SecStaticCodeCheckValidity(code, flags, parsed) == errSecSuccess
+        if let requirement {
+            guard SecRequirementCreateWithString(requirement as CFString, [], &parsed) == errSecSuccess, parsed != nil else { return false }
+        }
+        let flags = SecCSFlags(rawValue: SecCSFlags.RawValue(kSecCSStrictValidate) | SecCSFlags.RawValue(kSecCSDoNotValidateResources))
+        return architectures.allSatisfy { architecture in
+            var code: SecStaticCode?
+            let slice = [kSecCodeAttributeArchitecture as String: NSNumber(value: architecture.cpuType)] as CFDictionary
+            guard SecStaticCodeCreateWithPathAndAttributes(file as CFURL, [], slice, &code) == errSecSuccess, let code else { return false }
+            return SecStaticCodeCheckValidity(code, flags, parsed) == errSecSuccess
+        }
     }
 }
 
@@ -80,13 +110,20 @@ public enum CodeSignature {
 /// (`steamcmd/`), fetched from Valve on first use and never bundled (record 0009).
 ///
 /// What Valve's archive holds is checked before anything in it runs, and again
-/// before each run, since steamcmd updates itself: the executable must carry
-/// Valve's signature (`CodeSignature.valve`). Valve publishes no checksum, and
-/// a checksum of the archive would say nothing of the steamcmd that replaces it
-/// minutes later.
+/// before each start of steamcmd, since it updates itself: the executable, and
+/// every program and library in its folder, which it loads from there, must
+/// carry Valve's signature (`CodeSignature.valve`). Valve publishes no checksum,
+/// and a checksum of the archive would say nothing of the steamcmd that
+/// replaces it minutes later.
 public struct SteamCmdTool: Sendable {
     /// Valve's macOS steamcmd. Unchanged since 2 April 2020 (its Last-Modified on 2026-09-23).
     public static let archive = URL(string: "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_osx.tar.gz")!
+
+    /// The one library Valve's update puts in the folder signed ad hoc, not
+    /// with its Developer ID (seen 2026-09-23). No Valve program names it, so
+    /// nothing loads it; it has only to be unaltered, and only under this name,
+    /// in the folder itself.
+    public static let signedAdHocByValve: Set<String> = ["libsteaminput.dylib"]
 
     public let folder: URL
     /// The signature steamcmd must carry. Valve's, but for tests.
@@ -108,13 +145,41 @@ public struct SteamCmdTool: Sendable {
         FileManager.default.isExecutableFile(atPath: executable.path)
     }
 
-    /// Checks steamcmd can and may run here: Valve's signature, and Rosetta if it has only Intel code.
+    /// Checks steamcmd can and may run here: Valve's signature on it and on
+    /// everything in its folder it could load, and Rosetta if it has only Intel code.
     public func check(rosettaInstalled: Bool = isRosettaInstalled()) throws(WorkshopError) {
         guard CodeSignature.satisfies(executable, requirement: requirement) else { throw .toolUntrusted }
+        try checkFolder()
         let header = (try? FileHandle(forReadingFrom: executable)).flatMap { try? $0.read(upToCount: 4_096) } ?? Data()
         guard let architectures = machOArchitectures(of: header) else { throw .toolUntrusted }
         if let problem = rosettaProblem(architectures: architectures, onAppleSilicon: isAppleSilicon, rosettaInstalled: rosettaInstalled) {
             throw problem
+        }
+    }
+
+    /// steamcmd starts with its folder as `DYLD_LIBRARY_PATH` and
+    /// `DYLD_FRAMEWORK_PATH`, as `steamcmd.sh` starts it, so a library there by
+    /// the name of any it loads, the system's included, would be loaded instead.
+    /// Every Mach-O file anywhere in the folder must carry the signature, and a
+    /// symbolic link must not lead out of it.
+    private func checkFolder() throws(WorkshopError) {
+        let root = folder.resolvingSymlinksInPath().standardizedFileURL.path
+        let keys: Set<URLResourceKey> = [.isRegularFileKey, .isSymbolicLinkKey]
+        guard let items = FileManager.default.enumerator(at: folder, includingPropertiesForKeys: Array(keys)) else { throw .toolUntrusted }
+        for case let item as URL in items {
+            let values = try? item.resourceValues(forKeys: keys)
+            if values?.isSymbolicLink == true {
+                let target = item.resolvingSymlinksInPath().standardizedFileURL.path
+                guard target == root || target.hasPrefix(root + "/") else { throw .toolUntrusted }
+                // What it leads to is in the folder, and is checked there.
+                continue
+            }
+            guard values?.isRegularFile == true else { continue }
+            let header = (try? FileHandle(forReadingFrom: item)).flatMap { try? $0.read(upToCount: 4) } ?? Data()
+            guard isMachO(header) else { continue }
+            let isValvesAdHoc = Self.signedAdHocByValve.contains(item.lastPathComponent)
+                && item.deletingLastPathComponent().resolvingSymlinksInPath().standardizedFileURL.path == root
+            guard CodeSignature.satisfies(item, requirement: isValvesAdHoc ? nil : requirement) else { throw .toolUntrusted }
         }
     }
 

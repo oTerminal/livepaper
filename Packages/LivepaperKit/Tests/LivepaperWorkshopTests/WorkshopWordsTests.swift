@@ -26,6 +26,11 @@ struct WorkshopWordsTests {
             )
         ),
         Row("an item Steam does not have", .itemNotFound, .final("Steam has no such Workshop item. It may have been taken down")),
+        Row(
+            "a sign-out that did not take",
+            .stillSignedIn,
+            .retryable("Steam still signed in without a password, so the saved login was not taken back")
+        ),
         Row("anything else Steam says, in its words", .steamSaid("Account Disabled"), .retryable("Steam answered “Account Disabled”")),
         Row(
             "a name no Steam account could have",

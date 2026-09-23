@@ -49,8 +49,23 @@ struct FakeSteam {
     }
 
     /// steamcmd on the fake, with its behaviour set by `settings` (the script's FAKE_ variables).
-    func steamcmd(_ settings: [String: String] = [:], limits: SteamCmd.Limits = SteamCmd.Limits()) -> SteamCmd {
-        SteamCmd(executable: executable, home: home, extra: settings, limits: limits)
+    /// The fake carries no signature, so the check before each start is the test's own.
+    func steamcmd(
+        _ settings: [String: String] = [:], limits: SteamCmd.Limits = SteamCmd.Limits(),
+        check: @escaping @Sendable () throws(WorkshopError) -> Void = {}
+    ) -> SteamCmd {
+        SteamCmd(executable: executable, home: home, check: check, extra: settings, limits: limits)
+    }
+
+    /// The program a silent fake waits on, once it has started it.
+    var sleeper: pid_t? {
+        (try? String(contentsOf: home.appending(path: "fake-steam/sleeper"), encoding: .utf8))
+            .flatMap { pid_t($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
+    }
+
+    /// How many times the fake was started.
+    var starts: Int {
+        ((try? String(contentsOf: home.appending(path: "fake-steam/starts"), encoding: .utf8)) ?? "").split(separator: "\n").count
     }
 
     /// A saved login for the account, as a sign-in would have left it.
@@ -66,6 +81,22 @@ struct FakeSteam {
     /// The arguments the fake was last started with, one per line.
     var arguments: String {
         (try? String(contentsOf: home.appending(path: "fake-steam/arguments"), encoding: .utf8)) ?? ""
+    }
+}
+
+/// A number that callbacks on any thread add to.
+final class Tally: Sendable {
+    private let count = Mutex(0)
+
+    var value: Int { count.withLock { $0 } }
+
+    /// Adds one, and answers the new count.
+    @discardableResult
+    func add() -> Int {
+        count.withLock { count in
+            count += 1
+            return count
+        }
     }
 }
 

@@ -167,6 +167,72 @@ struct SteamCmdToolTests {
         #expect(throws: WorkshopError.toolUntrusted) { try tool.check() }
     }
 
+    // MARK: What steamcmd loads from its folder
+
+    /// A steamcmd folder whose `steamcmd` passes ("anchor apple": a copy of `/bin/ls`).
+    static func signedTool(in folder: TemporaryFolder) throws -> SteamCmdTool {
+        let tool = SteamCmdTool(folder: folder.folder("steamcmd"), requirement: "anchor apple")
+        try FileManager.default.createDirectory(at: tool.folder.appending(path: "Frameworks"), withIntermediateDirectories: true)
+        try FileManager.default.copyItem(at: URL(filePath: "/bin/ls"), to: tool.executable)
+        FileManager.default.createFile(atPath: tool.folder.appending(path: "steamcmd.sh").path, contents: Data("#!/bin/bash\n".utf8))
+        return tool
+    }
+
+    /// A copy of `/bin/ls` signed again by nobody in particular (ad hoc), as `codesign -s -` signs.
+    static func adHocProgram(at url: URL) throws {
+        try FileManager.default.copyItem(at: URL(filePath: "/bin/ls"), to: url)
+        let codesign = Process()
+        codesign.executableURL = URL(filePath: "/usr/bin/codesign")
+        codesign.arguments = ["--force", "--sign", "-", url.path]
+        codesign.standardError = FileHandle.nullDevice
+        try codesign.run()
+        codesign.waitUntilExit()
+        #expect(codesign.terminationStatus == 0)
+    }
+
+    @Test func `a library beside steamcmd, which it loads from there, must carry the signature too`() throws {
+        let folder = try TemporaryFolder()
+        let tool = try Self.signedTool(in: folder)
+        try FileManager.default.copyItem(at: URL(filePath: "/bin/ls"), to: tool.folder.appending(path: "libtier0_s.dylib"))
+        try tool.check(rosettaInstalled: false)
+
+        try Self.adHocProgram(at: tool.folder.appending(path: "Frameworks/libz.1.dylib"))
+        #expect(throws: WorkshopError.toolUntrusted) { try tool.check(rosettaInstalled: false) }
+    }
+
+    @Test func `an altered library beside steamcmd is refused`() throws {
+        let folder = try TemporaryFolder()
+        let tool = try Self.signedTool(in: folder)
+        var bytes = try Data(contentsOf: URL(filePath: "/bin/ls"))
+        bytes[bytes.count / 2] ^= 0xFF
+        try bytes.write(to: tool.folder.appending(path: "steamclient.dylib"))
+        #expect(throws: WorkshopError.toolUntrusted) { try tool.check(rosettaInstalled: false) }
+    }
+
+    @Test func `a link out of steamcmd's folder is refused, even to a signed program`() throws {
+        let folder = try TemporaryFolder()
+        let tool = try Self.signedTool(in: folder)
+        try FileManager.default.createSymbolicLink(at: tool.folder.appending(path: "Frameworks/Current"), withDestinationURL: tool.folder)
+        try tool.check(rosettaInstalled: false)
+
+        try FileManager.default.createSymbolicLink(
+            at: tool.folder.appending(path: "libiconv.2.dylib"), withDestinationURL: URL(filePath: "/bin/ls")
+        )
+        #expect(throws: WorkshopError.toolUntrusted) { try tool.check(rosettaInstalled: false) }
+    }
+
+    @Test func `the ad hoc libsteaminput Valve ships is let through, and the same bytes under another name are not`() throws {
+        let folder = try TemporaryFolder()
+        let tool = try Self.signedTool(in: folder)
+        try Self.adHocProgram(at: tool.folder.appending(path: "libsteaminput.dylib"))
+        try tool.check(rosettaInstalled: false)
+
+        try FileManager.default.copyItem(
+            at: tool.folder.appending(path: "libsteaminput.dylib"), to: tool.folder.appending(path: "libsteamclient.dylib")
+        )
+        #expect(throws: WorkshopError.toolUntrusted) { try tool.check(rosettaInstalled: false) }
+    }
+
     @Test func `the archive is fetched from Valve over https only`() async {
         await #expect(throws: URLError.self) { _ = try await SteamCmdTool.download(URL(string: "http://steamcdn-a.akamaihd.net/x")!) }
         #expect(SteamCmdTool.archive.scheme == "https")

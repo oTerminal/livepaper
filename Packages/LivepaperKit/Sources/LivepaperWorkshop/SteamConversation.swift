@@ -69,7 +69,10 @@ public struct SteamConversation: Equatable, Sendable {
         case signingIn(passwordTyped: Bool, codesAsked: Int, approvalSaid: Bool)
         case signedIn
         case downloading
+        /// `logout` typed.
         case signingOut
+        /// `login` typed again after `logout`: only the saved login seen to be gone is a sign-out.
+        case confirmingSignOut
         /// Finished: `quit` goes at the next prompt.
         case closing
         case quitting
@@ -97,7 +100,8 @@ public struct SteamConversation: Equatable, Sendable {
         case .signingIn: return signingIn(line)
         case .signedIn: return signedIn(line)
         case .downloading: return downloading(line)
-        case .signingOut: return line == .console ? finish(.success(.signedOut), then: .type("quit")) : []
+        case .signingOut: return signingOut(line)
+        case .confirmingSignOut: return confirmingSignOut(line)
         case .closing:
             guard line == .console else { return [] }
             phase = .quitting
@@ -194,6 +198,29 @@ public struct SteamConversation: Equatable, Sendable {
         case .signOut:
             phase = .signingOut
             return [.type("logout")]
+        }
+    }
+
+    /// Back at the prompt after `logout` says nothing of whether it worked, so
+    /// the login is tried again: steamcmd asking for the password is the proof.
+    private mutating func signingOut(_ line: SteamLine) -> [Effect] {
+        guard line == .console, case .signOut(let account) = job else { return [] }
+        phase = .confirmingSignOut
+        return [.type("login \(account)")]
+    }
+
+    private mutating func confirmingSignOut(_ line: SteamLine) -> [Effect] {
+        switch line {
+        case .noSavedLogin, .passwordPrompt, .codePrompt:
+            return finish(.success(.signedOut), then: .stop)
+        case .savedLogin, .signedIn:
+            return finish(.failure(.stillSignedIn), then: nil)
+        case .signInFailed(let result):
+            return finish(.failure(WorkshopError(signInResult: result)), then: nil)
+        case .console:
+            return finish(.failure(.noAnswer), then: .type("quit"))
+        default:
+            return []
         }
     }
 

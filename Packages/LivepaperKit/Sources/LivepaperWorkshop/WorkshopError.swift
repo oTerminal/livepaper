@@ -21,6 +21,8 @@ public enum WorkshopError: Error, Equatable, Sendable {
     case notOwned
     /// Steam has no item of that number, or no longer has it.
     case itemNotFound
+    /// steamcmd's `logout` did not take the saved login back: signing in again needed no password.
+    case stillSignedIn
     /// Any other result, in Steam's words.
     case steamSaid(String)
 
@@ -95,18 +97,26 @@ public struct WorkshopFailureWords: Equatable, Sendable {
 }
 
 public func workshopFailureWords(_ error: WorkshopError) -> WorkshopFailureWords {
-    steamWords(error) ?? toolWords(error)
+    accountWords(error) ?? steamWords(error) ?? toolWords(error)
 }
 
-/// Steam's answers.
-private func steamWords(_ error: WorkshopError) -> WorkshopFailureWords? {
+/// Steam's answers about the account: signing in and out.
+private func accountWords(_ error: WorkshopError) -> WorkshopFailureWords? {
     switch error {
     case .wrongPassword: .signIn("Steam did not accept that account name and password")
     case .wrongCode: .signIn("Steam did not accept that code. Codes last a short while, so use the newest one")
     case .rateLimited: .retryable("Steam has had too many sign-ins from this Mac. Wait a while, then try again")
+    case .signInNeeded: .signIn("Livepaper is not signed in to Steam")
+    case .stillSignedIn: .retryable("Steam still signed in without a password, so the saved login was not taken back")
+    default: nil
+    }
+}
+
+/// Steam's other answers.
+private func steamWords(_ error: WorkshopError) -> WorkshopFailureWords? {
+    switch error {
     case .timedOut: .retryable("Steam did not answer in time")
     case .noConnection: .retryable("Steam could not be reached. Check the Mac is online")
-    case .signInNeeded: .signIn("Livepaper is not signed in to Steam")
     case .notOwned:
         .final(
             "Steam would not give it to this account. "

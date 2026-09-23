@@ -118,12 +118,49 @@ struct SteamCmdTests {
         #expect(!steam.hasSavedLogin(for: "someone"))
     }
 
+    @Test func `a logout that keeps the saved login is not a sign-out`() async throws {
+        let steam = try FakeSteam()
+        try steam.saveLogin(for: "someone")
+        await #expect(throws: WorkshopError.stillSignedIn) {
+            try await steam.steamcmd(["FAKE_KEEP_LOGIN": "1"]).run(.signOut(account: "someone"))
+        }
+        #expect(steam.hasSavedLogin(for: "someone"))
+    }
+
     @Test func `the first run updates itself, restarts, then does the job`() async throws {
         let steam = try FakeSteam()
         let heard = Heard()
         let outcome = try await steam.steamcmd(["FAKE_UPDATE": "1"]).run(.update, progress: heard.progress)
         #expect(outcome == .updated)
         #expect(Array(heard.progress.prefix(3)) == [.updating(percent: 0), .updating(percent: 50), .updating(percent: 100)])
+    }
+
+    @Test func `steamcmd is checked before every start, the one after it updated itself included`() async throws {
+        let steam = try FakeSteam()
+        let checks = Tally()
+        let outcome = try await steam.steamcmd(["FAKE_UPDATE": "1"], check: { checks.add() }).run(.update)
+        #expect(outcome == .updated)
+        #expect(steam.starts == 2)
+        #expect(checks.value == 2)
+    }
+
+    @Test func `a steamcmd that fails the check after updating itself is not started again`() async throws {
+        let steam = try FakeSteam()
+        let checks = Tally()
+        await #expect(throws: WorkshopError.toolUntrusted) {
+            try await steam.steamcmd(["FAKE_UPDATE": "1"], check: { () throws(WorkshopError) in
+                if checks.add() > 1 { throw .toolUntrusted }
+            }).run(.update)
+        }
+        #expect(steam.starts == 1)
+    }
+
+    @Test func `a steamcmd that fails the check is never started`() async throws {
+        let steam = try FakeSteam()
+        await #expect(throws: WorkshopError.toolUntrusted) {
+            try await steam.steamcmd(check: { () throws(WorkshopError) in throw .toolUntrusted }).run(.update)
+        }
+        #expect(steam.starts == 0)
     }
 
     @Test func `steamcmd dying on its own is a failure`() async throws {
@@ -141,14 +178,28 @@ struct SteamCmdTests {
         }
     }
 
-    @Test func `cancelling stops steamcmd`() async throws {
+    @Test func `cancelling stops steamcmd, and what it started, at once`() async throws {
         let steam = try FakeSteam()
         let running = Task {
             try await steam.steamcmd(["FAKE_SILENT": "1"]).run(.update)
         }
-        try await Task.sleep(for: .milliseconds(300))
+        let clock = ContinuousClock()
+        let deadline = clock.now + .seconds(10)
+        while steam.sleeper == nil, clock.now < deadline {
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        let sleeper = try #require(steam.sleeper)
+
+        let cancelled = clock.now
         running.cancel()
         await #expect(throws: CancellationError.self) { try await running.value }
+        // Left alone, the fake would have gone by itself after 30 s.
+        #expect(clock.now - cancelled < .seconds(5))
+        // The program it started is gone too: a zombie for a moment, until launchd reaps it.
+        while Darwin.kill(sleeper, 0) == 0, clock.now - cancelled < .seconds(5) {
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        #expect(Darwin.kill(sleeper, 0) == -1 && errno == ESRCH)
     }
 
     @Test func `a program the system will not start is said so`() async throws {
@@ -156,7 +207,7 @@ struct SteamCmdTests {
         let executable = folder.file("steamcmd")
         FileManager.default.createFile(atPath: executable.path, contents: Data("not a program".utf8))
         await #expect(throws: WorkshopError.toolNotStarted) {
-            try await SteamCmd(executable: executable, home: folder.url).run(.update)
+            try await SteamCmd(executable: executable, home: folder.url, check: {}).run(.update)
         }
     }
 

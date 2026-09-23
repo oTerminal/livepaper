@@ -32,7 +32,8 @@ final class WorkshopModel {
     private(set) var signOutProblem: String?
     /// Items handed to the import this session: the Get button says done.
     private(set) var handedOver: Set<WorkshopItemID> = []
-    /// Each row's preview, fetched from its page, as a file.
+    /// Each row's preview, fetched from its page, as a temporary file: deleted
+    /// when its row goes, and at Quit.
     private(set) var previews: [WorkshopItemID: URL] = [:]
 
     @ObservationIgnored let services: WorkshopServices
@@ -40,8 +41,9 @@ final class WorkshopModel {
     @ObservationIgnored private let library: AppModel
     /// Brings the Workshop window forward, to show a sign-in a download asked for.
     @ObservationIgnored var showWorkshop: () -> Void = {}
-    @ObservationIgnored private var running: (item: WorkshopItemID, task: Task<Void, Never>)?
+    @ObservationIgnored private var running: RunningDownload?
     @ObservationIgnored private var signingIn: Task<Void, Never>?
+    @ObservationIgnored private var signingOut: Task<Void, Never>?
     @ObservationIgnored private var codeAnswer: CheckedContinuation<SteamSecret?, Never>?
     /// steamcmd runs one job at a time: two would both write Steam's folder.
     @ObservationIgnored private var isSteamBusy = false
@@ -60,7 +62,13 @@ final class WorkshopModel {
         WorkshopLog.logger.notice("\(WorkshopLog.getting(item), privacy: .public)")
         if let preview = page?.preview, previews[item] == nil {
             Task {
-                if let file = await services.picture(preview) { previews[item] = file }
+                guard let file = await services.picture(preview) else { return }
+                // Its row may have gone, or another fetch of it come first, while this one was on its way.
+                if previews[item] == nil, downloads.rows.contains(where: { $0.item == item }) {
+                    previews[item] = file
+                } else {
+                    try? FileManager.default.removeItem(at: file)
+                }
             }
         }
         perform(downloads.get(item, title: page?.title, refusal: page?.refusal))
@@ -167,10 +175,11 @@ final class WorkshopModel {
         guard let account, !isSigningOut else { return }
         isSigningOut = true
         signOutProblem = nil
-        Task {
+        signingOut = Task {
             await takeSteam()
             defer { releaseSteam() }
             do {
+                try Task.checkCancellation()
                 // With no steamcmd there is no saved login to take back.
                 if services.isInstalled() {
                     _ = try await services.run(.signOut(account: account), nil, { _, _ in nil }, { _ in })
@@ -178,23 +187,33 @@ final class WorkshopModel {
                 self.account = nil
                 services.saveAccount(nil)
                 WorkshopLog.logger.notice("\(WorkshopLog.signedOut, privacy: .public)")
+            } catch is CancellationError {
+                // Stopped by Quit: the account is kept, as steamcmd's saved login may be.
             } catch {
                 signOutProblem = problemWords(error)
                 WorkshopLog.logger.error("\(WorkshopLog.signOutFailed(error), privacy: .public)")
             }
             isSigningOut = false
+            signingOut = nil
         }
     }
 
-    /// Stops whatever steamcmd is doing, for Quit: it runs in a session of its own and would outlive the app.
+    /// Stops whatever steamcmd is doing, or waits to do, for Quit: it runs in a
+    /// session of its own and would outlive the app. The previews go too.
     func stopAll() {
         cancelSignIn()
+        signingOut?.cancel()
         running?.task.cancel()
+        for file in previews.values {
+            try? FileManager.default.removeItem(at: file)
+        }
+        previews = [:]
     }
 
     // MARK: Running the list
 
     private func perform(_ effects: [WorkshopDownloads.Effect]) {
+        forgetPreviewsOfGoneRows()
         for effect in effects {
             switch effect {
             case .start(let item):
@@ -220,6 +239,7 @@ final class WorkshopModel {
             perform(downloads.failed(item, .signInNeeded))
             return
         }
+        let id = UUID()
         let task = Task {
             await takeSteam()
             defer { releaseSteam() }
@@ -240,9 +260,10 @@ final class WorkshopModel {
                 WorkshopLog.logger.error("\(WorkshopLog.notGot(item, error), privacy: .public)")
                 perform(downloads.failed(item, error as? WorkshopError ?? .noAnswer))
             }
-            if running?.item == item { running = nil }
+            // Only this task's own handle: a Get of the same item after a cancel has one of its own.
+            if running?.id == id { running = nil }
         }
-        running = (item, task)
+        running = RunningDownload(id: id, item: item, task: task)
     }
 
     /// Reads the downloaded folder as a drop of it would be read; discovery reads the disk, so off the main actor.
@@ -263,6 +284,16 @@ final class WorkshopModel {
     @concurrent
     private nonisolated static func discovered(in folder: URL) async -> DiscoveredItem {
         (try? discoverSources(at: folder)).map(DiscoveredItem.init) ?? .nothing
+    }
+
+    /// A row's preview is shown nowhere once the row has gone: its item was
+    /// handed to the import, which shows its own, or taken off the list.
+    private func forgetPreviewsOfGoneRows() {
+        let shown = Set(downloads.rows.map(\.item))
+        for (item, file) in previews where !shown.contains(item) {
+            try? FileManager.default.removeItem(at: file)
+            previews[item] = nil
+        }
     }
 
     // MARK: Sign-in steps
@@ -299,6 +330,13 @@ final class WorkshopModel {
             codeAnswer = continuation
         }
     }
+}
+
+/// The download running, told from a later one of the same item by its own `id`.
+private struct RunningDownload {
+    let id: UUID
+    let item: WorkshopItemID
+    let task: Task<Void, Never>
 }
 
 // Here, beside the class, since only this file may set what the class keeps.

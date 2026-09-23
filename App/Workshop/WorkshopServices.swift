@@ -33,7 +33,8 @@ nonisolated extension WorkshopServices {
     static func wired() -> WorkshopServices {
         let home = FileManager.default.homeDirectoryForCurrentUser
         let tool = SteamCmdTool(home: home)
-        let steamcmd = SteamCmd(executable: tool.executable, home: home)
+        // Checked by `tool` before every start of steamcmd, the one after it updates itself included.
+        let steamcmd = SteamCmd(tool: tool, home: home)
         return WorkshopServices(
             isFakes: false,
             loadAccount: { UserDefaults.standard.string(forKey: accountKey) },
@@ -42,12 +43,10 @@ nonisolated extension WorkshopServices {
             install: { progress in
                 try FileManager.default.createDirectory(at: tool.folder.deletingLastPathComponent(), withIntermediateDirectories: true)
                 try await tool.install()
-                try tool.check()
                 _ = try await steamcmd.run(.update, progress: progress, line: WorkshopLog.steamcmd)
             },
             run: { job, password, code, progress in
-                try tool.check()
-                return try await steamcmd.run(job, password: password, code: code, progress: progress, line: WorkshopLog.steamcmd)
+                try await steamcmd.run(job, password: password, code: code, progress: progress, line: WorkshopLog.steamcmd)
             },
             page: { item in
                 var request = URLRequest(url: WorkshopLink.page(of: item))

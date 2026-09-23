@@ -68,11 +68,23 @@ public struct SteamCmd: Sendable {
     public let executable: URL
     public let environment: [String: String]
     public var limits: Limits
+    /// Whether steamcmd may run, asked before every start of it, the one after
+    /// it updated itself included: `SteamCmdTool.check`, Valve's signature on it
+    /// and on everything in its folder.
+    public let check: @Sendable () throws(WorkshopError) -> Void
+
+    /// Valve's steamcmd where `tool` keeps it, checked by `tool` before every start.
+    public init(tool: SteamCmdTool, home: URL, limits: Limits = Limits()) {
+        self.init(executable: tool.executable, home: home, check: { () throws(WorkshopError) in try tool.check() }, limits: limits)
+    }
 
     /// `home` is where steamcmd keeps its login and puts what it downloads
     /// (`Library/Application Support/Steam` inside it). `extra` is added to the
     /// environment, for tests.
-    public init(executable: URL, home: URL, extra: [String: String] = [:], limits: Limits = Limits()) {
+    public init(
+        executable: URL, home: URL, check: @escaping @Sendable () throws(WorkshopError) -> Void,
+        extra: [String: String] = [:], limits: Limits = Limits()
+    ) {
         let folder = executable.deletingLastPathComponent().path
         let inherited = ProcessInfo.processInfo.environment
         var environment = [
@@ -88,6 +100,7 @@ public struct SteamCmd: Sendable {
         self.executable = executable
         self.environment = environment.merging(extra) { _, new in new }
         self.limits = limits
+        self.check = check
     }
 
     /// Runs one job to its end. A download and a sign-out use the saved login
@@ -104,6 +117,8 @@ public struct SteamCmd: Sendable {
     ) async throws -> SteamOutcome {
         var conversation = SteamConversation(job: job)
         while true {
+            // Before every start: steamcmd that has just updated itself is a different program.
+            try check()
             let process: PseudoTerminalProcess
             do {
                 process = try PseudoTerminalProcess.start(
