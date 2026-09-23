@@ -28,6 +28,22 @@ public final class PreviewPlayer: NSView {
     /// What the view plays, or will once it can be seen.
     public private(set) var url: URL?
 
+    /// Black, as on a display: the default background.
+    public static let defaultBackgroundColor = CGColor(srgbRed: 0, green: 0, blue: 0, alpha: 1)
+
+    /// Shown wherever there is no picture: before the first frame, for a video it cannot play,
+    /// and as Fit's bars. Clear lets what is behind the view show instead, as a tile's poster
+    /// does until its preview has a frame: a black background fading in with the tile's
+    /// crossfade darkened the tile before the picture came.
+    public var backgroundColor: CGColor {
+        didSet {
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            layer?.backgroundColor = backgroundColor
+            CATransaction.commit()
+        }
+    }
+
     private let videoLayer: AVSampleBufferDisplayLayer
     private let engine: LoopEngine
     private var videoSize: Size?
@@ -46,11 +62,12 @@ public final class PreviewPlayer: NSView {
         videoLayer.opacity = 0
         self.videoLayer = videoLayer
         self.presentation = presentation
+        backgroundColor = Self.defaultBackgroundColor
         engine = LoopEngine(feed: VideoLayerFeed(layer: videoLayer), logger: logger)
         super.init(frame: .zero)
 
         let host = CALayer()
-        host.backgroundColor = CGColor(srgbRed: 0, green: 0, blue: 0, alpha: 1)
+        host.backgroundColor = backgroundColor
         host.masksToBounds = true
         host.addSublayer(videoLayer)
         layer = host

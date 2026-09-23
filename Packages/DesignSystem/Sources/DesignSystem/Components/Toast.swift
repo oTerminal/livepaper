@@ -25,7 +25,8 @@ public struct Toast: View {
                 .lineLimit(2)
             if let undoTitle = item.undoTitle {
                 // Tinted text on the toast's glass, never glass on glass.
-                Button(action: onUndo) {
+                // Space on the focused button is a key press: the toast leaves without animating.
+                Button { withoutAnimationIfKeyPress(onUndo) } label: {
                     Text(undoTitle)
                         .fontWeight(.semibold)
                         .foregroundStyle(.tint)
@@ -36,7 +37,7 @@ public struct Toast: View {
                 }
                 .buttonStyle(.press)
             }
-            Button(action: onDismiss) {
+            Button { withoutAnimationIfKeyPress(onDismiss) } label: {
                 Image(systemName: "xmark")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)

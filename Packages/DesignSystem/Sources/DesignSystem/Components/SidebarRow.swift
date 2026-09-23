@@ -68,6 +68,10 @@ public struct SidebarRow: View {
         // "Playlists, 3", not "3, Playlists": VoiceOver speaks a value before the label.
         .accessibilityLabel(Text(verbatim: badge.map { "\(title), \($0)" } ?? title))
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+        // The element made above is not the button's, so it has no press of its own.
+        .accessibilityAction {
+            if isEnabled { action() }
+        }
     }
 
     private var fills: some View {
@@ -109,15 +113,24 @@ extension SidebarRowItem: Sendable where ID: Sendable {}
 
 /// A column of sidebar rows with one selection. It is a single tab stop, like a
 /// native list: the up and down arrows move the selection, without animation.
-public struct SidebarRowGroup<ID: Hashable>: View {
+/// Each row can have a context menu of its own, for the row under the pointer.
+public struct SidebarRowGroup<ID: Hashable, RowMenu: View>: View {
     @Binding private var selection: ID
     private let label: String
     private let items: [SidebarRowItem<ID>]
+    private let rowMenu: (ID) -> RowMenu
 
-    /// `label` names the group for VoiceOver, such as "Library".
-    public init(_ label: String, selection: Binding<ID>, items: [SidebarRowItem<ID>]) {
+    /// `label` names the group for VoiceOver, such as "Library". `contextMenu`
+    /// is a row's menu, given the row's identifier.
+    public init(
+        _ label: String,
+        selection: Binding<ID>,
+        items: [SidebarRowItem<ID>],
+        @ViewBuilder contextMenu: @escaping (ID) -> RowMenu
+    ) {
         self.label = label
         self.items = items
+        rowMenu = contextMenu
         _selection = selection
     }
 
@@ -134,6 +147,7 @@ public struct SidebarRowGroup<ID: Hashable>: View {
                     selection = item.id
                 }
                 .focusable(false)
+                .contextMenu { rowMenu(item.id) }
             }
         }
         .background {
@@ -160,6 +174,13 @@ public struct SidebarRowGroup<ID: Hashable>: View {
         }
         guard items.indices.contains(next) else { return }
         withoutAnimation { selection = items[next].id }
+    }
+}
+
+extension SidebarRowGroup where RowMenu == EmptyView {
+    /// A group whose rows have no context menu.
+    public init(_ label: String, selection: Binding<ID>, items: [SidebarRowItem<ID>]) {
+        self.init(label, selection: selection, items: items) { _ in EmptyView() }
     }
 }
 

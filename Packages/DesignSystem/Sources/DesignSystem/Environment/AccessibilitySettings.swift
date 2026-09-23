@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 /// The accessibility settings a component adapts to. Components read these
@@ -56,6 +57,38 @@ public nonisolated struct AccessibilitySettings: Equatable, Sendable {
     }
 }
 
+extension AccessibilitySettings {
+    /// The system's settings with `overrides` on top: an override given on or
+    /// off wins either way, one not given follows the system. The one place that
+    /// rule lives: `@Accessibility` and `system(overriding:)` both come here.
+    public nonisolated init(
+        overrides: AccessibilityOverrides,
+        systemReduceMotion: Bool,
+        systemReduceTransparency: Bool,
+        systemIncreaseContrast: Bool
+    ) {
+        self.init(
+            reduceMotion: overrides.reduceMotion ?? systemReduceMotion,
+            reduceTransparency: overrides.reduceTransparency ?? systemReduceTransparency,
+            increaseContrast: overrides.increaseContrast ?? systemIncreaseContrast,
+            motionSpeed: overrides.motionSpeed ?? 1
+        )
+    }
+
+    /// What `@Accessibility` gives a view under `overrides`, for AppKit code that
+    /// starts a change the design system animates before any view has read it:
+    /// System Settings as `NSWorkspace` has them, the overrides on top.
+    public static func system(overriding overrides: AccessibilityOverrides) -> AccessibilitySettings {
+        let workspace = NSWorkspace.shared
+        return AccessibilitySettings(
+            overrides: overrides,
+            systemReduceMotion: workspace.accessibilityDisplayShouldReduceMotion,
+            systemReduceTransparency: workspace.accessibilityDisplayShouldReduceTransparency,
+            systemIncreaseContrast: workspace.accessibilityDisplayShouldIncreaseContrast
+        )
+    }
+}
+
 /// Replaces individual system settings for a subtree. `nil` follows the system.
 public nonisolated struct AccessibilityOverrides: Equatable, Sendable {
     public var reduceMotion: Bool?
@@ -93,10 +126,10 @@ public struct Accessibility: DynamicProperty {
 
     public var wrappedValue: AccessibilitySettings {
         AccessibilitySettings(
-            reduceMotion: overrides.reduceMotion ?? reduceMotion,
-            reduceTransparency: overrides.reduceTransparency ?? reduceTransparency,
-            increaseContrast: overrides.increaseContrast ?? (contrast == .increased),
-            motionSpeed: overrides.motionSpeed ?? 1
+            overrides: overrides,
+            systemReduceMotion: reduceMotion,
+            systemReduceTransparency: reduceTransparency,
+            systemIncreaseContrast: contrast == .increased
         )
     }
 }

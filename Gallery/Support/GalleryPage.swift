@@ -13,10 +13,12 @@ struct GalleryPage: Identifiable {
         self.content = { AnyView(content()) }
     }
 
-    /// One page per component, in the order of docs/specs/M3-design-system.md.
+    /// One page per component, in the order of docs/specs/M3-design-system.md; M6's
+    /// additions sit beside the component they were made next to.
     static let all: [GalleryPage] = [
         GalleryPage("SidebarRow", systemImage: "sidebar.left") { SidebarRowPage() },
         GalleryPage("WallpaperTile", systemImage: "photo.on.rectangle") { WallpaperTilePage() },
+        GalleryPage("FavouriteToggle", systemImage: "heart") { FavouriteTogglePage() },
         GalleryPage("FitModePicker", systemImage: "rectangle.split.3x1") { FitModePickerPage() },
         GalleryPage("VolumeSlider", systemImage: "speaker.wave.2") { VolumeSliderPage() },
         GalleryPage("FocalPointEditor", systemImage: "scope") { FocalPointEditorPage() },
@@ -26,6 +28,7 @@ struct GalleryPage: Identifiable {
         GalleryPage("GlassPopover", systemImage: "bubble.middle.top") { GlassPopoverPage() },
         GalleryPage("DisplayNowPlayingCard", systemImage: "play.display") { DisplayNowPlayingCardPage() },
         GalleryPage("TransportCluster", systemImage: "playpause") { TransportClusterPage() },
+        GalleryPage("LabelButton, LabelToggle and SymbolButton", systemImage: "button.horizontal") { LabelButtonPage() },
         GalleryPage("PlaylistPicker", systemImage: "rectangle.stack") { PlaylistPickerPage() },
         GalleryPage("RecentsStrip", systemImage: "clock.arrow.circlepath") { RecentsStripPage() },
         GalleryPage("DropZoneOverlay", systemImage: "square.and.arrow.down") { DropZoneOverlayPage() },

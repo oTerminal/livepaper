@@ -57,6 +57,19 @@ struct LibraryTests {
 
     // MARK: Rename
 
+    static let typedNames: [Row<String, String?>] = [
+        Row("a name is kept", "Ocean at dusk", "Ocean at dusk"),
+        Row("spaces and line breaks around it are dropped", " \tOcean \n", "Ocean"),
+        Row("spaces inside it are kept", "Ocean  at dusk", "Ocean  at dusk"),
+        Row("an empty name is none", "", nil),
+        Row("a name of spaces and line breaks is none", " \n\t ", nil),
+    ]
+
+    @Test(arguments: typedNames)
+    func `a typed name is the name kept, or none`(row: Row<String, String?>) {
+        #expect(acceptedName(row.input) == row.expected)
+    }
+
     static let renames: [Row<String, String?>] = [
         Row("a new name", "Ocean at dusk", "Ocean at dusk"),
         Row("spaces around the name are dropped", "  Ocean \n", "Ocean"),
@@ -90,6 +103,36 @@ struct LibraryTests {
         #expect(marked.favourites.map(\.id) == [.numbered(2)])
         #expect(library.favourites.isEmpty)
         #expect(unmarked == library)
+    }
+
+    // MARK: Presentation and volume
+
+    @Test func `sets a wallpaper's presentation`() throws {
+        let library = try Library.of(.numbered(1), .numbered(2))
+        let framed = Presentation(fit: .fit, focalPoint: Point(x: 0.2, y: 0.8), zoom: 2, pan: Point(x: -0.1, y: 0.05))
+
+        let changed = try library.settingPresentation(framed, for: .numbered(2))
+
+        #expect(changed[.numbered(2)]?.presentation == framed)
+        #expect(changed[.numbered(1)] == .numbered(1))
+        #expect(library[.numbered(2)]?.presentation == Presentation())
+    }
+
+    static let volumes: [Row<Double, Double>] = [
+        Row("a volume between silent and full", 0.35, 0.35),
+        Row("silent", 0, 0),
+        Row("full", 1, 1),
+        Row("above full is full", 1.5, 1),
+        Row("below silent is silent", -0.2, 0),
+        Row("not a number is silent", .nan, 0),
+        Row("infinity is silent", .infinity, 0),
+    ]
+
+    @Test(arguments: volumes)
+    func `sets a wallpaper's volume, kept between silent and full`(row: Row<Double, Double>) throws {
+        let library = try Library.of(.numbered(1))
+
+        #expect(try library.settingVolume(row.input, for: .numbered(1))[.numbered(1)]?.volume == row.expected)
     }
 
     // MARK: Delete and restore
@@ -140,6 +183,8 @@ struct LibraryTests {
 
         #expect(throws: missing) { try library.renaming(.numbered(9), to: "Ocean") }
         #expect(throws: missing) { try library.settingFavourite(true, for: .numbered(9)) }
+        #expect(throws: missing) { try library.settingPresentation(Presentation(), for: .numbered(9)) }
+        #expect(throws: missing) { try library.settingVolume(0.5, for: .numbered(9)) }
         #expect(throws: missing) { try library.deleting(.numbered(9)) }
     }
 

@@ -43,6 +43,10 @@ struct LibraryLocationTests {
         #expect(Self.location.renderState.path == Self.root + "/render-state.json")
     }
 
+    @Test func `the app state is beside the manifest`() {
+        #expect(Self.location.appState.path == Self.root + "/app-state.json")
+    }
+
     static let accepted: [Row<String, String>] = [
         Row("a file at the root", "library.json", root + "/library.json"),
         Row(

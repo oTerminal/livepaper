@@ -168,6 +168,27 @@ struct ImporterTests {
         #expect(bench.stagingResidue.isEmpty)
     }
 
+    @Test func `a file already in the library is found by its fingerprint before its turn, and nothing is written`() async throws {
+        let importer = bench.importer()
+        let copy = bench.home.file("Downloads/Holiday (copy 2).mov")
+        try FileManager.default.createDirectory(at: copy.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try FileManager.default.copyItem(at: Fixture.url("plain-h264.mp4"), to: copy)
+        let holiday = ImportCandidate(source: try Fixture.url("plain-h264.mp4"), name: "Holiday")
+        guard case .imported(let first, _) = try await importer.run(holiday) else {
+            Issue.record("the first import failed")
+            return
+        }
+
+        let again = try await importer.existingWallpaper(for: ImportCandidate(source: copy, name: "Holiday again"))
+        let other = try await importer.existingWallpaper(for: ImportCandidate(source: try Fixture.url("rotated.mov"), name: "Turned"))
+
+        #expect(again == first)
+        #expect(other == nil, "a file the library does not have")
+        #expect(bench.wallpaperFolders == [first.id.description])
+        #expect(bench.stagingResidue.isEmpty)
+        #expect(try bench.savedLibrary().wallpapers == [first])
+    }
+
     @Test func `a file that is no video is rejected with a reason, and leaves nothing`() async throws {
         let file = try bench.home.write("Just some text, long enough to be sniffed at.", to: "holiday.mp4")
 

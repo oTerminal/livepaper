@@ -295,4 +295,29 @@ struct ExtensionHostClientTests {
         #expect(notifier.posts(of: HostNotification.playbackMetrics).last?.state == 0)
         #expect(!client.isPlaybackMetricsOn)
     }
+
+    @Test func `the probe lasts the session: activating again after Pause All switches it back on`() async throws {
+        try await client.activate()
+        client.setPlaybackMetrics(true)
+
+        await client.deactivate()
+        let whilePaused = client.isPlaybackMetricsOn
+        try await client.activate()
+
+        #expect(!whilePaused, "off while the extension holds its stills, as the menu's checkmark says")
+        #expect(client.isPlaybackMetricsOn)
+        #expect(notifier.posts(of: HostNotification.playbackMetrics).last?.state == 1)
+    }
+
+    @Test func `a probe switched off before Pause All stays off after it`() async throws {
+        try await client.activate()
+        client.setPlaybackMetrics(true)
+        client.setPlaybackMetrics(false)
+
+        await client.deactivate()
+        try await client.activate()
+
+        #expect(!client.isPlaybackMetricsOn)
+        #expect(notifier.posts(of: HostNotification.playbackMetrics).last?.state == 0)
+    }
 }

@@ -2,6 +2,12 @@ import Foundation
 
 /// An ordered set of wallpapers that a display rotates through.
 public struct Playlist: Equatable, Identifiable, Sendable {
+    /// What a new playlist waits between rotations.
+    public static let defaultInterval: Duration = .seconds(30 * 60)
+    /// A second to a year: what `app-state.json` may say, since it can be edited
+    /// by hand. Nothing shorter rotates, and a number too large for a `Duration` traps.
+    public static let intervalLimits: ClosedRange<Duration> = .seconds(1) ... .seconds(365 * 24 * 60 * 60)
+
     public let id: PlaylistID
     public var name: String
     public var wallpapers: [WallpaperID]
@@ -15,6 +21,13 @@ public struct Playlist: Equatable, Identifiable, Sendable {
         self.wallpapers = wallpapers
         self.interval = interval
         self.shuffle = shuffle
+    }
+
+    /// What the inspector offers: 5, 15 and 30 minutes, an hour, 3 hours and a
+    /// day, and the playlist's own interval among them, in order, when it is none of those.
+    public static func intervalChoices(including current: Duration) -> [Duration] {
+        let choices: [Duration] = [5, 15, 30, 60, 180, 1440].map { .seconds($0 * 60) }
+        return choices.contains(current) ? choices : (choices + [current]).sorted()
     }
 }
 
@@ -43,10 +56,13 @@ public enum RotationEvent: Equatable, Sendable {
     case tick(at: Date)
     case wake(at: Date)
     case login(at: Date)
+    /// The user asked for the next wallpaper. On a playlist that has not
+    /// started, that is its first: in order, the first in the list.
+    case next(at: Date)
 
     var date: Date {
         switch self {
-        case .tick(let date), .wake(let date), .login(let date): date
+        case .tick(let date), .wake(let date), .login(let date), .next(let date): date
         }
     }
 }
@@ -78,6 +94,26 @@ public func nextRotation(
 }
 
 extension RotationState {
+    /// What a display showing this playlist shows: `current` while the playlist
+    /// has it, else the entry now at `position` (the one that followed a deleted
+    /// `current`), else the first, passing over any `isAvailable` refuses.
+    func showing(in playlist: Playlist, where isAvailable: (WallpaperID) -> Bool = { _ in true }) -> WallpaperID? {
+        let wallpapers = playlist.wallpapers
+        let start = current.flatMap(wallpapers.firstIndex(of:)) ?? position ?? 0
+        return wallpapers.indices.lazy.map { wallpapers[(start + $0) % wallpapers.count] }.first(where: isAvailable)
+    }
+
+    /// The state as the display shows it, so that a rotation moves on from what
+    /// is on screen rather than from a wallpaper that has gone.
+    func settled(in playlist: Playlist) -> RotationState {
+        guard let shown = showing(in: playlist), shown != current else { return self }
+        var settled = self
+        settled.current = shown
+        settled.position = playlist.wallpapers.firstIndex(of: shown)
+        settled.upcoming.removeAll { $0 == shown }
+        return settled
+    }
+
     /// In order: the wallpaper after the current one, wrapping. When the current
     /// one has been deleted, its old position now holds the one that followed it.
     fileprivate func following(in playlist: Playlist) -> WallpaperID? {
@@ -116,4 +152,63 @@ private func shuffled(_ wallpapers: [WallpaperID], rng: inout some RandomNumberG
 
 private func index(below bound: Int, rng: inout some RandomNumberGenerator) -> Int {
     Int(rng.next() % UInt64(bound))
+}
+
+// MARK: - Codec
+
+extension Playlist: Codable {
+    private enum CodingKeys: String, CodingKey {
+        case id, name, wallpapers, interval, shuffle
+    }
+
+    // The interval is written in seconds, a plain number anyone can read and edit,
+    // and is checked against `intervalLimits` before it becomes a `Duration`.
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(PlaylistID.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        wallpapers = try container.decode([WallpaperID].self, forKey: .wallpapers)
+        let seconds = try container.decode(Double.self, forKey: .interval)
+        let limits = Self.intervalLimits
+        guard seconds.isFinite, seconds >= limits.lowerBound / .seconds(1), seconds <= limits.upperBound / .seconds(1) else {
+            throw DecodingError.dataCorruptedError(
+                forKey: .interval, in: container, debugDescription: "an interval of \(seconds) s is outside \(limits)"
+            )
+        }
+        interval = .seconds(seconds)
+        shuffle = try container.decode(Bool.self, forKey: .shuffle)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encode(wallpapers, forKey: .wallpapers)
+        try container.encode(interval / .seconds(1), forKey: .interval)
+        try container.encode(shuffle, forKey: .shuffle)
+    }
+}
+
+// A rotation that has not started has no current, position or last rotation,
+// and those keys are left out.
+extension RotationState: Codable {
+    private enum CodingKeys: String, CodingKey {
+        case current, position, upcoming, lastRotation
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        current = try container.decodeIfPresent(WallpaperID.self, forKey: .current)
+        position = try container.decodeIfPresent(Int.self, forKey: .position)
+        upcoming = try container.decodeIfPresent([WallpaperID].self, forKey: .upcoming) ?? []
+        lastRotation = try container.decodeIfPresent(Date.self, forKey: .lastRotation)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(current, forKey: .current)
+        try container.encodeIfPresent(position, forKey: .position)
+        try container.encode(upcoming, forKey: .upcoming)
+        try container.encodeIfPresent(lastRotation, forKey: .lastRotation)
+    }
 }

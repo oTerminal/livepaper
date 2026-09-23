@@ -59,8 +59,11 @@ public struct SetOnDisplayButton: View {
         GlassEffectContainer(spacing: Spacing.hairline) {
             HStack(spacing: Spacing.hairline) {
                 Button {
-                    if let first = targets.first {
-                        action(first.id)
+                    // A key press on the focused button must not animate the state it starts.
+                    withoutAnimationIfKeyPress {
+                        if let first = targets.first {
+                            action(first.id)
+                        }
                     }
                 } label: {
                     label(for: targets.first)
@@ -70,7 +73,7 @@ public struct SetOnDisplayButton: View {
                     Menu {
                         ForEach(targets) { target in
                             Button {
-                                action(target.id)
+                                withoutAnimationIfKeyPress { action(target.id) }
                             } label: {
                                 if target.isCurrent {
                                     Label(target.name, systemImage: "checkmark")
@@ -81,7 +84,7 @@ public struct SetOnDisplayButton: View {
                         }
                         Divider()
                         Button {
-                            action(SetOnDisplayTarget.allID)
+                            withoutAnimationIfKeyPress { action(SetOnDisplayTarget.allID) }
                         } label: {
                             Text("All Displays", bundle: .module)
                         }

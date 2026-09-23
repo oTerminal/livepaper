@@ -1,8 +1,11 @@
 #!/bin/zsh
-# usage: record.sh <name> <seconds> [crop x y w h] [app name | --desktop [n]]
+# usage: record.sh <name> <seconds> [crop x y w h] [app name [layer] | --desktop [n]]
 # Records the app's main window (default: Livepaper Gallery) for <seconds> and writes <name>.mp4 and
 # <name>.gif beside each other. The crop is in window pixels (2x on a Retina display) and should
-# frame the control that moves: a whole-window GIF is unreadable in a PR.
+# frame the control that moves: a whole-window GIF is unreadable in a PR. The layer picks a window
+# above the normal level (default 0), as in shot.sh: 101 is Livepaper's menu-bar popover. Once it
+# has been open, its closed panel is found too, so start the recording and then open the popover
+# within 5 s: the recording begins with the panel's first frame, which is the opening's.
 # --desktop records the nth display's wallpaper window (default 1), which is what the wallpaper
 # extension draws into. The recording is of that one window's content (recordwindow.swift), so
 # windows in front of it are not in it; it needs Screen Recording for the terminal.

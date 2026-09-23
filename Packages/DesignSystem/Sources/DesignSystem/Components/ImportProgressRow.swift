@@ -65,6 +65,9 @@ public struct ImportProgressRow: View {
             ProgressView(value: fraction)
                 .progressViewStyle(.linear)
                 .labelsHidden()
+                // A new bar when it learns or loses its length: switched in place, AppKit's
+                // indeterminate sweep ran on for seconds into Finished.
+                .id(fraction == nil)
             HStack(spacing: Spacing.small) {
                 Text(detail)
                     .lineLimit(1)

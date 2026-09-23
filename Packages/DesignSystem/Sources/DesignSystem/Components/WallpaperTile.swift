@@ -69,6 +69,8 @@ public struct WallpaperTile<ID: Hashable, LivePreview: View>: View {
         .accessibilityLabel(title)
         .accessibilityValue(isFavourite ? Text("Favourite", bundle: .module) : Text(verbatim: ""))
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+        // The element made above is not the button's, so it has no press of its own.
+        .accessibilityAction { action() }
     }
 
     private var picture: some View {

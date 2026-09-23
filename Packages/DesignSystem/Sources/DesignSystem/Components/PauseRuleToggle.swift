@@ -1,9 +1,10 @@
 import SwiftUI
 
 /// One pause rule in Settings: a symbol, a title, what the rule does, and a
-/// switch. The whole row is the switch's label, so clicking the words flips it
-/// and VoiceOver reads "title, detail, switch, on". A rule that is not available
-/// shows as off and disabled without changing the stored value.
+/// switch. The whole row is the switch's label, so clicking the words flips it,
+/// and VoiceOver reads "title, on, switch" with the detail and note as its hint.
+/// A rule that is not available shows as off and disabled without changing the
+/// stored value.
 public struct PauseRuleToggle: View {
     @Accessibility private var accessibility
     private let title: String
@@ -60,9 +61,15 @@ public struct PauseRuleToggle: View {
             .onTapGesture {
                 withAnimation(accessibility.animation(Motion.Spring.ui)) { isOn.toggle() }
             }
+            // The switch says all of it; read here too, the words would come twice.
+            .accessibilityHidden(true)
         }
         .toggleStyle(.switch)
         .disabled(!isAvailable)
+        // Named here: from this label the switch took no name at all. Settings'
+        // accessibility tree found the four by role alone; Open at Login's, named so, had one.
+        .accessibilityLabel(Text(verbatim: title))
+        .accessibilityHint(Text(verbatim: [detail, note].compactMap { $0 }.joined(separator: "\n")))
     }
 }
 

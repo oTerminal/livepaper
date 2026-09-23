@@ -33,7 +33,10 @@ struct HotkeyRecorderPage: View {
 
         StateSection(
             title: "Conflict",
-            note: "Held in the conflict phase: a symbol and words in red, on the caption line that is always there. Recording continues."
+            note: """
+            Held in the conflict phase: a symbol and words in red, on the caption line that is always there. Too wide \
+            for the recorder, the words hang from the field's trailing edge, so the field stays put. Recording continues.
+            """
         ) {
             LabeledContent("Next wallpaper") {
                 HotkeyRecorder(

@@ -118,7 +118,7 @@ public struct FitModePicker<Value: Hashable>: View {
     }
 
     private var pillFill: Color {
-        Color.primary.opacity(accessibility.increaseContrast ? 0.3 : 0.14)
+        Pill.fill(increaseContrast: accessibility.increaseContrast)
     }
 
     private func move(_ direction: MoveCommandDirection) {

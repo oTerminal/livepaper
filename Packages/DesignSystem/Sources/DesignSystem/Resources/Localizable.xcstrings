@@ -96,6 +96,12 @@
     "None" : {
 
     },
+    "Off" : {
+
+    },
+    "On" : {
+
+    },
     "Open System Settings…" : {
 
     },
@@ -161,6 +167,9 @@
       }
     },
     "Type shortcut" : {
+
+    },
+    "Unfavourite" : {
 
     },
     "Unmute" : {

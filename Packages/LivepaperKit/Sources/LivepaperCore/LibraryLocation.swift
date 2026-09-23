@@ -72,6 +72,9 @@ public struct LibraryLocation: Equatable, Sendable {
     /// What the extension is to show, replaced atomically by the app.
     public var renderState: URL { root.appending(path: "render-state.json", directoryHint: .notDirectory) }
 
+    /// Assignments, playlists and the rest of what the user chose, written by the app only.
+    public var appState: URL { root.appending(path: "app-state.json", directoryHint: .notDirectory) }
+
     /// One folder per wallpaper, named by its identifier.
     public var wallpapers: URL { root.appending(path: "wallpapers", directoryHint: .isDirectory) }
 
