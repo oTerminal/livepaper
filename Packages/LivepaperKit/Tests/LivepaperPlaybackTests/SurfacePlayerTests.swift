@@ -12,12 +12,22 @@ import Testing
 final class CountedDrawing: SceneDrawing {
     static let made = Mutex<[URL: Int]>([:])
     static let alive = Mutex<[URL: Int]>([:])
+    /// The next load of each folder here waits at its gate.
+    static let gates = Mutex<[URL: LoadGate]>([:])
     let folder: URL
 
     required init(folder: URL, device: any MTLDevice) throws {
+        if let gate = Self.gates.withLock({ $0.removeValue(forKey: folder) }) { gate.hold() }
         self.folder = folder
         Self.made.withLock { $0[folder, default: 0] += 1 }
         Self.alive.withLock { $0[folder, default: 0] += 1 }
+    }
+
+    /// Holds the next load of `wallpaper`'s scene until the gate is opened, so that a request can come while it loads.
+    static func holdNextLoad(of wallpaper: SurfaceWallpaper) -> LoadGate {
+        let gate = LoadGate()
+        gates.withLock { $0[wallpaper.scene?.folder ?? URL(filePath: "/")] = gate }
+        return gate
     }
 
     deinit {
@@ -26,6 +36,26 @@ final class CountedDrawing: SceneDrawing {
 
     func draw(into texture: any MTLTexture, on commandBuffer: any MTLCommandBuffer, at time: Double) {}
     func resize(width: Int, height: Int) {}
+}
+
+/// Where a scene's load waits: on the load queue, until the test opens it. Opening it twice does no harm.
+final class LoadGate: Sendable {
+    private let arrived = Atomic(false)
+    private let opened = Atomic(false)
+    private let door = DispatchSemaphore(value: 0)
+
+    /// The load is at the gate.
+    var hasArrived: Bool { arrived.load(ordering: .acquiring) }
+
+    func hold() {
+        arrived.store(true, ordering: .releasing)
+        door.wait()
+    }
+
+    func open() {
+        guard opened.compareExchange(expected: false, desired: true, ordering: .acquiringAndReleasing).exchanged else { return }
+        door.signal()
+    }
 }
 
 /// A drawing that refuses every scene.
@@ -120,10 +150,69 @@ struct SurfacePlayerTests {
         let player = player()
         await player.show(scene(), crossfade: false)
 
-        let count = try #require(await player.displayedPictures(over: .milliseconds(100)))
-        #expect(count.expected == 3)
+        let count = try #require(await player.displayedPictures(over: .milliseconds(300)))
+        #expect(count.expected == 9)
+        #expect(count.displayed > 0 && count.fed > 0 && (count.asked ?? 0) > 0, "the scene's pictures are drawn and counted: \(count)")
         await player.pause()
         #expect(await player.displayedPictures(over: .milliseconds(100)) == nil)
+    }
+
+    @Test func `a scene still loading is not counted, so a slow load never climbs the ladder`() async throws {
+        let player = player()
+        let scene = scene()
+        let gate = CountedDrawing.holdNextLoad(of: scene)
+        defer { gate.open() }
+
+        let showing = Task { await player.show(scene, crossfade: false) }
+        #expect(await eventually { gate.hasArrived })
+        #expect(player.state == .playing, "asked to play, as the supervisor sees it")
+        #expect(await player.displayedPictures(over: .milliseconds(100)) == nil)
+        gate.open()
+        await showing.value
+
+        let count = try #require(await player.displayedPictures(over: .milliseconds(300)))
+        #expect(count.displayed > 0)
+    }
+
+    @Test func `a video asked for while a scene loads again leaves nothing loaded or drawing in the hidden slot`() async {
+        let player = player()
+        let scene = scene()
+        await player.show(scene, crossfade: false)
+        let gate = CountedDrawing.holdNextLoad(of: scene)
+        defer { gate.open() }
+
+        let reloading = Task { await player.recover(.rebuildPipeline) }
+        #expect(await eventually { gate.hasArrived })
+        await player.show(.numbered(1), crossfade: false)
+        gate.open()
+        await reloading.value
+
+        #expect(player.wallpaper?.scene == nil)
+        #expect(player.layers.tree.scene.opacity == 0)
+        #expect(!player.engine.isLoaded, "the scene loaded for nobody is let go")
+        #expect(await eventually { alive(scene) == 0 })
+        #expect(await player.engine.displayedPictures(over: .milliseconds(200)).asked == 0, "no display link draws it")
+    }
+
+    @Test func `a pause while a scene loads again leaves it paused, its link not started`() async {
+        let player = player()
+        let scene = scene()
+        await player.show(scene, crossfade: false)
+        let gate = CountedDrawing.holdNextLoad(of: scene)
+        defer { gate.open() }
+
+        let reloading = Task { await player.recover(.rebuildPipeline) }
+        #expect(await eventually { gate.hasArrived })
+        await player.pause()
+        gate.open()
+        await reloading.value
+
+        #expect(player.state == .paused)
+        #expect(await player.engine.displayedPictures(over: .milliseconds(200)).asked == 0, "no display link draws it")
+        await player.resume()
+        #expect(player.state == .playing)
+        #expect(player.layers.tree.scene.opacity == 1)
+        #expect(await player.engine.displayedPictures(over: .milliseconds(200)).asked ?? 0 > 0)
     }
 
     @Test func `a still, nothing, or a video after a scene hides the slot and lets the scene go`() async {

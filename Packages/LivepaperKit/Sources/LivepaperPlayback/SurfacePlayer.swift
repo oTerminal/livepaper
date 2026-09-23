@@ -22,6 +22,12 @@ public final class SurfacePlayer: SurfacePlayback {
     private let logger: Logger
     /// The scene up, and what it is doing; nil while the layers play a video or hold a still.
     private var scene: (wallpaper: SurfaceWallpaper, state: SurfacePlaybackState)?
+    /// Counts the requests that change what the scene engine does. Work that waited, on a load,
+    /// a poster or a first picture, goes on only if none came meanwhile: a later request for
+    /// this surface has the last word, and has set the engine and the scene as it wants them.
+    private var epoch = 0
+    /// The scene whose picture the Metal slot shows over the layers; nil while it is hidden.
+    private var slotScene: SurfaceScene?
 
     /// `drawingType` is what draws a scene (`WallpaperEngineScene` in the extension); `pointer`
     /// where the pointer is over the surface's display, for a scene that follows it.
@@ -48,30 +54,31 @@ public final class SurfacePlayer: SurfacePlayback {
             // The same scene: its presentation and volume change in place, and it plays on.
             scene?.wallpaper = wallpaper
             layOutScene()
-            if current.state == .suspended, await !engine.load(drawn.folder) {
-                await cannotDraw(wallpaper)
-                return
-            }
-            if current.state != .playing { engine.start() }
+            guard current.state != .playing else { return }
             scene?.state = .playing
+            await startDrawing()
             return
         }
         await startScene(wallpaper, drawn)
     }
 
     public func holdStill(poster wallpaper: SurfaceWallpaper) async {
+        let run = leaveScene()
         await layers.holdStill(poster: wallpaper)
-        leaveScene()
+        // The slot goes once the poster is under it, unless a scene has come back meanwhile.
+        if run == epoch { hideSlot() }
     }
 
     public func showNothing() async {
+        let run = leaveScene()
         await layers.showNothing()
-        leaveScene()
+        if run == epoch { hideSlot() }
     }
 
     public func pause() async {
         guard let current = scene else { return await layers.pause() }
         guard current.state == .playing else { return }
+        epoch += 1
         engine.pause()
         scene?.state = .paused
     }
@@ -79,31 +86,27 @@ public final class SurfacePlayer: SurfacePlayback {
     public func resume() async {
         guard let current = scene else { return await layers.resume() }
         guard current.state == .paused || current.state == .suspended else { return }
-        if current.state == .suspended, let drawn = current.wallpaper.scene, await !engine.load(drawn.folder) {
-            await cannotDraw(current.wallpaper)
-            return
-        }
-        engine.start()
         scene?.state = .playing
+        await startDrawing()
     }
 
     public func suspend() async {
         guard let current = scene else { return await layers.suspend() }
         guard current.state == .playing || current.state == .paused else { return }
+        epoch += 1
         engine.suspend()
         scene?.state = .suspended
     }
 
     public func recover(_ level: RecoveryLevel) async {
         guard let current = scene else { return await layers.recover(level) }
-        guard current.state == .playing, let drawn = current.wallpaper.scene else { return }
+        guard current.state == .playing else { return }
         switch level {
         case .flush, .rebuildSurface:
             engine.restart()
         case .rebuildPipeline:
             engine.stop()
-            guard await engine.load(drawn.folder) else { return await cannotDraw(current.wallpaper) }
-            engine.start()
+            await startDrawing()
         case .restartAgent:
             // The app's, never the surface's.
             return
@@ -112,7 +115,8 @@ public final class SurfacePlayer: SurfacePlayback {
 
     public func displayedPictures(over window: Duration) async -> PictureCount? {
         guard let current = scene else { return await layers.displayedPictures(over: window) }
-        guard current.state == .playing else { return nil }
+        // A scene counts once it draws, not while it loads: a slow load is no stall.
+        guard current.state == .playing, engine.isRunning else { return nil }
         return await engine.displayedPictures(over: window)
     }
 
@@ -126,18 +130,38 @@ public final class SurfacePlayer: SurfacePlayback {
     /// From a video, a still, nothing or another scene: the poster goes up under the Metal
     /// slot, the scene loads and starts, and the slot is shown once it has a picture.
     private func startScene(_ wallpaper: SurfaceWallpaper, _ drawn: SurfaceScene) async {
+        epoch += 1
+        let run = epoch
         scene = (wallpaper, .playing)
-        // Whatever the slot showed stays up until the poster is under it.
-        await layers.holdStill(poster: wallpaper)
         engine.stop()
-        layers.tree.transaction { layers.tree.showScene(false) }
+        // Whatever the slot showed stays up, still, until the poster is under it.
+        await layers.holdStill(poster: wallpaper)
+        // The poster is under the slot now. Unless another wallpaper has taken the surface
+        // meanwhile, the slot goes until this scene has a picture on it.
+        let isStillThisScene = run == epoch || scene?.wallpaper.scene == drawn
+        if isStillThisScene, slotScene != drawn { hideSlot() }
+        guard run == epoch else { return }
         layOutScene()
-        guard await engine.load(drawn.folder) else { return await cannotDraw(wallpaper) }
-        // A later request for this surface has the last word.
-        guard scene?.wallpaper == wallpaper else { return }
+        await startDrawing()
+    }
+
+    /// Draws the scene up: loads it first when the engine does not hold it, starts it, and
+    /// shows the slot once it has a picture, if the slot is not up already.
+    private func startDrawing() async {
+        guard let drawn = scene?.wallpaper.scene else { return }
+        epoch += 1
+        let run = epoch
+        if !engine.holds(drawn.folder) {
+            let loaded = await engine.load(drawn.folder)
+            // A later request for this surface has the last word.
+            guard run == epoch, let wallpaper = scene?.wallpaper else { return }
+            guard loaded else { return await cannotDraw(wallpaper) }
+        }
         engine.start()
+        guard slotScene != drawn else { return }
         let drew = await engine.waitForFirstPicture()
-        guard scene?.wallpaper == wallpaper, scene?.state == .playing else { return }
+        guard run == epoch else { return }
+        slotScene = drawn
         layers.tree.transaction { layers.tree.showScene(true) }
         logger.notice("\(EngineLog.sceneShown(self.layers.id, drawn.folder, waited: drew), privacy: .public)")
     }
@@ -145,6 +169,7 @@ public final class SurfacePlayer: SurfacePlayback {
     /// A scene that cannot be drawn holds its poster, as a video that cannot be played does.
     private func cannotDraw(_ wallpaper: SurfaceWallpaper) async {
         leaveScene()
+        hideSlot()
         await layers.holdStill(poster: wallpaper)
     }
 
@@ -152,17 +177,24 @@ public final class SurfacePlayer: SurfacePlayback {
     /// has one of its own, then the slot goes.
     private func showVideo(_ wallpaper: SurfaceWallpaper, crossfade: Bool) async {
         guard scene != nil else { return await layers.show(wallpaper, crossfade: crossfade) }
-        engine.pause()
-        scene = nil
+        let run = leaveScene()
         await layers.show(wallpaper, crossfade: false)
-        leaveScene()
+        if run == epoch { hideSlot() }
     }
 
-    /// The slot hidden and the scene let go, once something else is up.
-    private func leaveScene() {
+    /// The scene let go at once, and anything that waited for it with it; its last picture
+    /// stays on the slot until the caller hides it, once something else is up.
+    @discardableResult
+    private func leaveScene() -> Int {
+        epoch += 1
         scene = nil
-        layers.tree.transaction { layers.tree.showScene(false) }
         engine.stop()
+        return epoch
+    }
+
+    private func hideSlot() {
+        slotScene = nil
+        layers.tree.transaction { layers.tree.showScene(false) }
     }
 
     private func layOutScene() {

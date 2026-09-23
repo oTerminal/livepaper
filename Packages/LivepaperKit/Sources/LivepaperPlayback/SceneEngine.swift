@@ -37,6 +37,10 @@ public final class SceneEngine: @unchecked Sendable {
         var tally = SceneTally()
         /// Counts starts and stops: a link of an earlier run draws nothing.
         var run = 0
+        /// Counts loads, stops and suspends: a load that finishes after a later one of them is let go.
+        var loads = 0
+        /// Started with a scene loaded, and not paused since: the watchdog may count it.
+        var running = false
         var link: LinkBox?
         var drawnSize: SIMD2<Int>?
         var startedAt: ContinuousClock.Instant?
@@ -70,17 +74,29 @@ public final class SceneEngine: @unchecked Sendable {
 
     var isLoaded: Bool { shared.withLock { $0.drawing != nil } }
 
+    /// The scene in `folder` is the one loaded.
+    func holds(_ folder: URL) -> Bool { shared.withLock { $0.folder == folder && $0.drawing != nil } }
+
+    /// Drawing: started with a scene loaded and not paused since, so its pictures are the watchdog's to count.
+    var isRunning: Bool { shared.withLock(\.running) }
+
     // MARK: Loading
 
     /// Loads the scene in `folder`, unless it is the one loaded already. False
-    /// when it cannot be drawn: no GPU, or a scene the drawing refuses.
+    /// when it cannot be drawn: no GPU, or a scene the drawing refuses; and
+    /// when a stop, a suspend or another load came while it loaded, which have
+    /// the last word, so that what it made is let go and never drawn.
     func load(_ folder: URL) async -> Bool {
-        if shared.withLock({ $0.folder == folder && $0.drawing != nil }) { return true }
+        if holds(folder) { return true }
         guard let gpu = SceneGPU.shared else {
             logger.error("\(EngineLog.noMetalDevice(self.surface), privacy: .public)")
             return false
         }
         layer.device = gpu.device
+        let load = shared.withLock { shared -> Int in
+            shared.loads += 1
+            return shared.loads
+        }
         let type = drawingType
         let clock = ContinuousClock()
         let started = clock.now
@@ -94,11 +110,14 @@ public final class SceneEngine: @unchecked Sendable {
         }
         switch made {
         case .success(let drawing):
-            shared.withLock { shared in
+            let isWanted = shared.withLock { shared -> Bool in
+                guard shared.loads == load else { return false }
                 shared.drawing = drawing
                 shared.folder = folder
                 shared.drawnSize = nil
+                return true
             }
+            guard isWanted else { return false }
             soundtrack?.stop()
             soundtrack = drawing.soundtrack
             soundtrack?.setVolume(volume)
@@ -120,6 +139,7 @@ public final class SceneEngine: @unchecked Sendable {
         let run = shared.withLock { shared -> Int? in
             guard shared.drawing != nil else { return nil }
             shared.run += 1
+            shared.running = true
             shared.clock.start()
             shared.startedAt = ContinuousClock.now
             shared.firstPictureDrawn = false
@@ -137,8 +157,16 @@ public final class SceneEngine: @unchecked Sendable {
             let rate = Float(LivepaperScene.framesPerSecond)
             link.preferredFrameRateRange = CAFrameRateRange(minimum: rate, maximum: rate, preferred: rate)
             link.preferredFrameLatency = 2
+            // Checked and stored under one lock: a pause between the two would find no link to stop,
+            // and the link stored after it would draw on. A later pause stops it on this thread, after this block.
+            let (isCurrent, replaced) = shared.withLock { shared -> (Bool, LinkBox?) in
+                guard shared.run == run else { return (false, nil) }
+                defer { shared.link = LinkBox(link) }
+                return (true, shared.link)
+            }
+            replaced?.link.invalidate()
+            guard isCurrent else { return link.invalidate() }
             link.add(to: .current, forMode: .default)
-            shared.withLock { $0.link = LinkBox(link) }
         }
     }
 
@@ -147,6 +175,7 @@ public final class SceneEngine: @unchecked Sendable {
         soundtrack?.pause()
         let link = shared.withLock { shared -> LinkBox? in
             shared.run += 1
+            shared.running = false
             shared.clock.stop()
             defer { shared.link = nil }
             return shared.link
@@ -161,7 +190,10 @@ public final class SceneEngine: @unchecked Sendable {
         pause("suspend")
         soundtrack?.stop()
         soundtrack = nil
-        shared.withLock { $0.drawing = nil }
+        shared.withLock { shared in
+            shared.drawing = nil
+            shared.loads += 1
+        }
     }
 
     /// Stops drawing and forgets the scene and its time.
@@ -172,6 +204,7 @@ public final class SceneEngine: @unchecked Sendable {
         shared.withLock { shared in
             shared.drawing = nil
             shared.folder = nil
+            shared.loads += 1
             shared.clock.reset()
         }
     }
