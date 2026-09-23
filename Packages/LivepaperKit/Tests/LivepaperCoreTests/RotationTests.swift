@@ -40,6 +40,8 @@ struct RotationTests {
         Row("a tick with no rotation on record rotates", Step(lastRotation: nil, event: .tick(at: Moment.launch)), two),
         Row("wake rotates without waiting for the interval", Step(lastRotation: Moment.launch, event: .wake(at: Moment.after(5))), two),
         Row("login rotates without waiting for the interval", Step(lastRotation: Moment.launch, event: .login(at: Moment.after(5))), two),
+        Row("Next rotates at once", Step(lastRotation: Moment.launch, event: .next(at: Moment.after(5))), two),
+        Row("Next with no rotation on record rotates", Step(lastRotation: nil, event: .next(at: Moment.launch)), two),
     ]
 
     @Test(arguments: eventRows)
@@ -62,6 +64,44 @@ struct RotationTests {
         let (_, shown) = nextRotation(playlist, afterWake, .tick(at: Moment.after(600)), rng: &rng)
 
         #expect(shown == nil)
+    }
+
+    // MARK: Next
+
+    @Test func `after Next, the interval starts again from it`() {
+        var rng = SeededGenerator(seed: 1)
+        let playlist = Self.playlist([Self.one, Self.two, Self.three])
+        let showingOne = RotationState(current: Self.one, lastRotation: Moment.launch)
+
+        let (afterNext, _) = nextRotation(playlist, showingOne, .next(at: Moment.after(590)), rng: &rng)
+        let (_, early) = nextRotation(playlist, afterNext, .tick(at: Moment.after(600)), rng: &rng)
+        let (_, onTime) = nextRotation(playlist, afterNext, .tick(at: Moment.after(1190)), rng: &rng)
+
+        #expect(afterNext.lastRotation == Moment.after(590))
+        #expect(early == nil)
+        #expect(onTime == Self.three)
+    }
+
+    @Test func `on a new playlist in order, Next picks its first wallpaper`() {
+        var rng = SeededGenerator(seed: 1)
+        let playlist = Self.playlist([Self.two, Self.one, Self.three])
+
+        let (state, shown) = nextRotation(playlist, RotationState(), .next(at: Moment.launch), rng: &rng)
+
+        #expect(shown == Self.two)
+        #expect(state == RotationState(current: Self.two, position: 0, lastRotation: Moment.launch))
+    }
+
+    @Test func `on a new shuffled playlist, Next picks the first of the shuffled pass`() {
+        var rng = SeededGenerator(seed: 42)
+        let playlist = Self.playlist((1...5).map(WallpaperID.numbered), shuffle: true)
+
+        let (state, shown) = nextRotation(playlist, RotationState(), .next(at: Moment.launch), rng: &rng)
+
+        // The pass pinned in `a seeded generator gives a fixed sequence`.
+        #expect(shown == .numbered(2))
+        #expect(state.upcoming == [3, 1, 5, 4].map(WallpaperID.numbered))
+        #expect(state.lastRotation == Moment.launch)
     }
 
     // MARK: In order

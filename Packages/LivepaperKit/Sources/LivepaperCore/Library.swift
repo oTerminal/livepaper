@@ -94,7 +94,8 @@ public struct Library: Equatable, Sendable {
 
     // MARK: Sort and search
 
-    public enum SortOrder: CaseIterable, Sendable {
+    /// Persisted by name, in the app state.
+    public enum SortOrder: String, CaseIterable, Codable, Sendable {
         case newestFirst
         case oldestFirst
         case name
