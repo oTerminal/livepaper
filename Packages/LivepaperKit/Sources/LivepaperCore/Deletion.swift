@@ -7,6 +7,9 @@ public struct DeletionRecord: Equatable, Sendable {
     public let priorState: AppState
 
     public var wallpaper: Wallpaper { removal.wallpaper }
+
+    /// The undo toast's message.
+    public var toastWords: String { "Deleted “\(wallpaper.name)”" }
 }
 
 /// A delete's outcome: the library and app state without the wallpaper, and the record undo takes.

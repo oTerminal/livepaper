@@ -82,6 +82,14 @@ struct DeletionTests {
         #expect(state == Self.state)
     }
 
+    @Test func `the undo toast names the wallpaper that was deleted`() throws {
+        let library = try Library.of(.numbered(1, name: "Harbour at Dusk"))
+
+        let deletion = try deleteWallpaper(.numbered(1), library: library, state: AppState())
+
+        #expect(deletion.record.toastWords == "Deleted “Harbour at Dusk”")
+    }
+
     @Test func `deleting a wallpaper that is not in the library is an error`() throws {
         #expect(throws: LibraryError.noSuchWallpaper(.numbered(9))) {
             try deleteWallpaper(.numbered(9), library: Self.library(), state: Self.state)

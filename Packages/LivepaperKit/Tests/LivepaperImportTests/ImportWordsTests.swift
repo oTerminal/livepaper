@@ -125,6 +125,29 @@ struct ImportWordsTests {
         #expect(skipWords(row.input) == row.expected)
     }
 
+    // MARK: Toasts
+
+    @Test func `a duplicate's toast names the wallpaper it already is`() {
+        #expect(duplicateToastWords(of: .numbered(1)) == "Already in the library as “Harbour 1”")
+    }
+
+    @Test func `a skipped source's toast names it and says why`() {
+        let skipped = SkippedSource(
+            url: URL(filePath: "/Users/tester/Workshop/2345678901"), reason: .wallpaperEngine(.unsupportedType("scene"))
+        )
+
+        #expect(
+            skippedToastWords(skipped)
+                == "“2345678901” was not imported. It is a Wallpaper Engine scene; only video items can be imported."
+        )
+    }
+
+    @Test func `a failure's toast names the file and says why`() {
+        let words = failedToastWords(name: "Harbour 1", error: ImportError.rejected(.protected))
+
+        #expect(words == "“Harbour 1” was not imported. It is copy-protected.")
+    }
+
     @Test func `a source file that has gone is found out as the importer finds it out`() async throws {
         let gone = URL(filePath: "/Volumes/Archive/Harbour.mov")
         let error = await #expect(throws: (any Error).self) { try await fingerprint(of: gone) }

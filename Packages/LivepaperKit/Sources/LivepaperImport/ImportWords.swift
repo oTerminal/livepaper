@@ -1,4 +1,5 @@
 import Foundation
+import LivepaperCore
 
 // What the import list and its toasts say, in English only for v1.0. The
 // toast names the file, so a reason speaks of it as "it".
@@ -47,6 +48,21 @@ public func skipWords(_ reason: SkipReason) -> String {
     case .wallpaperEngine(.escapesFolder): return "Its Wallpaper Engine project names a file outside its folder"
     case .missingFile(let file): return "Its Wallpaper Engine project names “\(file)”, which is not in its folder"
     }
+}
+
+/// The toast for a source file the library already has: nothing was imported.
+public func duplicateToastWords(of wallpaper: Wallpaper) -> String {
+    "Already in the library as “\(wallpaper.name)”"
+}
+
+/// The toast for a source that discovery passed over, named as the user dropped it.
+public func skippedToastWords(_ skipped: SkippedSource) -> String {
+    "“\(skipped.url.lastPathComponent)” was not imported. \(skipWords(skipped.reason))."
+}
+
+/// The toast for an import that failed. `name` is the candidate's.
+public func failedToastWords(name: String, error: any Error) -> String {
+    "“\(name)” was not imported. \(importFailureWords(error).reason)."
 }
 
 private func words(for error: ImportError) -> (reason: String, canRetry: Bool) {

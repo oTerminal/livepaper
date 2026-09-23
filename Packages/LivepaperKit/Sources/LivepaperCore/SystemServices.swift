@@ -60,6 +60,16 @@ public enum HotkeyAvailability: Equatable, Sendable {
     case usedBy(HotkeyAction)
     /// macOS or another app has it.
     case takenElsewhere
+
+    /// What already uses the combination, for the recorder's "⌃⌥N is already
+    /// used by …"; nil when it is free.
+    public var owner: String? {
+        switch self {
+        case .free: nil
+        case .usedBy(let action): action.title
+        case .takenElsewhere: "macOS or another app"
+        }
+    }
 }
 
 /// The login item, the hotkeys and leaving Livepaper: what Settings talks to.
