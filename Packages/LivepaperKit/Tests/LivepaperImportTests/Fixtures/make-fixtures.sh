@@ -19,6 +19,10 @@ TONE=(-f lavfi -i "sine=frequency=440:duration=2")
 "${FF[@]}" "${SRC[@]}" -f lavfi -i "sine=frequency=440:duration=2.4" \
   -c:v h264_videotoolbox -b:v 300k -bf 0 -g 30 -pix_fmt yuv420p -c:a aac -b:a 64k long-audio.mp4
 
+# Stereo noise at 100 kbit/s, which the audio encoder cannot spend less on: the copy's audio must come out no faster.
+"${FF[@]}" "${SRC[@]}" -f lavfi -i "aevalsrc=exprs=-1+2*random(0)|-1+2*random(1):s=48000:d=2" \
+  -c:v h264_videotoolbox -b:v 300k -bf 0 -g 30 -pix_fmt yuv420p -c:a aac -b:a 100k noisy-audio.mp4
+
 # B-frames and the edit list ffmpeg writes for them: the first frame is not at zero in media time.
 "${FF[@]}" "${SRC[@]}" -c:v libx264 -preset veryfast -b:v 300k -bf 2 -g 30 -pix_fmt yuv420p -an bframes-edit-list.mp4
 

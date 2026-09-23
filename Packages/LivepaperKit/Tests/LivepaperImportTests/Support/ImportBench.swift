@@ -104,3 +104,9 @@ func videoBitRate(of url: URL) async throws -> Double {
     let track = try #require(try await AVURLAsset(url: url).loadTracks(withMediaType: .video).first)
     return Double(try await track.load(.estimatedDataRate))
 }
+
+/// The same for the movie's audio.
+func audioBitRate(of url: URL) async throws -> Double {
+    let track = try #require(try await AVURLAsset(url: url).loadTracks(withMediaType: .audio).first)
+    return Double(try await track.load(.estimatedDataRate))
+}

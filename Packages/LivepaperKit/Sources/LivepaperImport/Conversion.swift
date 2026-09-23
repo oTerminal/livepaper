@@ -300,16 +300,19 @@ private struct AudioPlan: @unchecked Sendable {
     let timeRange: CMTimeRange
     let channels: Int
     let sampleRate: Double
+    let bitRate: Int
 
     /// Nil when the file has no audio.
     init?(of asset: AVAsset, within timeRange: CMTimeRange) async throws {
         guard let track = try await asset.loadTracks(withMediaType: .audio).first else { return nil }
-        let description = try await track.load(.formatDescriptions).first?.audioStreamBasicDescription
+        let (formats, sourceBitRate) = try await track.load(.formatDescriptions, .estimatedDataRate)
+        let description = formats.first?.audioStreamBasicDescription
         self.asset = asset
         self.track = track
         self.timeRange = timeRange
         channels = min(2, max(1, Int(description?.mChannelsPerFrame ?? 2)))
         sampleRate = description.map(\.mSampleRate).flatMap { [44100, 48000].contains($0) ? $0 : nil } ?? 48000
+        bitRate = copyAudioBitRate(channels: channels, source: Double(sourceBitRate))
     }
 }
 
@@ -342,7 +345,7 @@ private final class AudioCopy: @unchecked Sendable {
             AVFormatIDKey: kAudioFormatMPEG4AAC,
             AVSampleRateKey: plan.sampleRate,
             AVNumberOfChannelsKey: plan.channels,
-            AVEncoderBitRateKey: 96_000 * plan.channels,
+            AVEncoderBitRateKey: plan.bitRate,
         ])
         start = plan.timeRange.start
         try job.add(input)

@@ -39,6 +39,20 @@ func transcodeOptimisedCopy(
     }
 }
 
+/// AAC's rates at 44.1 and 48 kHz, in bits per second, up to the most a copy's audio is given.
+private let aacBitRates = [32_000, 40_000, 48_000, 56_000, 64_000, 72_000, 80_000, 96_000, 112_000, 128_000, 144_000, 160_000, 192_000]
+
+/// What an optimised copy's AAC audio is encoded at, in bits per second: 96
+/// kbit/s a channel, or the source's own audio rate where that is known and
+/// lower, since encoding it again cannot bring back what it left out. The
+/// highest of AAC's rates at or under that, and 32 kbit/s a channel at the least.
+func copyAudioBitRate(channels: Int, source: Double) -> Int {
+    let most = 96_000 * channels
+    let limit = source > 0 ? min(Double(most), source) : Double(most)
+    let least = 32_000 * channels
+    return aacBitRates.last { $0 >= least && Double($0) <= limit } ?? least
+}
+
 /// The average rate of a movie file's video samples, in bits per second.
 func videoBitRate(of url: URL) async throws -> Double {
     guard let track = try await AVURLAsset(url: url).loadTracks(withMediaType: .video).first else { throw MediaError.noVideoTrack }
