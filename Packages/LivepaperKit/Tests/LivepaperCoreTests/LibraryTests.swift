@@ -57,6 +57,19 @@ struct LibraryTests {
 
     // MARK: Rename
 
+    static let typedNames: [Row<String, String?>] = [
+        Row("a name is kept", "Ocean at dusk", "Ocean at dusk"),
+        Row("spaces and line breaks around it are dropped", " \tOcean \n", "Ocean"),
+        Row("spaces inside it are kept", "Ocean  at dusk", "Ocean  at dusk"),
+        Row("an empty name is none", "", nil),
+        Row("a name of spaces and line breaks is none", " \n\t ", nil),
+    ]
+
+    @Test(arguments: typedNames)
+    func `a typed name is the name kept, or none`(row: Row<String, String?>) {
+        #expect(acceptedName(row.input) == row.expected)
+    }
+
     static let renames: [Row<String, String?>] = [
         Row("a new name", "Ocean at dusk", "Ocean at dusk"),
         Row("spaces around the name are dropped", "  Ocean \n", "Ocean"),

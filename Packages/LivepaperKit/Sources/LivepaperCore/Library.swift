@@ -8,6 +8,14 @@ public enum LibraryError: Error, Equatable, Sendable {
     case emptyName
 }
 
+/// A name as typed, for a wallpaper or a playlist, as the library keeps it:
+/// without the spaces and line breaks around it. Nil when nothing is left, which
+/// every rename and a new playlist refuse, and a name prompt's button waits for.
+public func acceptedName(_ typed: String) -> String? {
+    let name = typed.trimmingCharacters(in: .whitespacesAndNewlines)
+    return name.isEmpty ? nil : name
+}
+
 /// The user's collection of wallpapers.
 ///
 /// A value: every operation returns a new library and leaves this one as it
@@ -50,8 +58,7 @@ public struct Library: Equatable, Sendable {
     }
 
     public func renaming(_ id: WallpaperID, to name: String) throws -> Library {
-        let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !name.isEmpty else { throw LibraryError.emptyName }
+        guard let name = acceptedName(name) else { throw LibraryError.emptyName }
         return try updating(id) { $0.name = name }
     }
 

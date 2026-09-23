@@ -174,8 +174,7 @@ public struct AppState: Equatable, Sendable {
     /// A new playlist, last in the user's order, rotating every
     /// `Playlist.defaultInterval` in order. Its name is taken as a rename takes one.
     public func creatingPlaylist(_ id: PlaylistID, named name: String, with wallpapers: [WallpaperID]) throws -> AppState {
-        let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !name.isEmpty else { throw LibraryError.emptyName }
+        guard let name = acceptedName(name) else { throw LibraryError.emptyName }
         return creatingPlaylist(Playlist(id: id, name: name, wallpapers: wallpapers, interval: Playlist.defaultInterval, shuffle: false))
     }
 
@@ -189,8 +188,7 @@ public struct AppState: Equatable, Sendable {
     }
 
     public func renamingPlaylist(_ id: PlaylistID, to name: String) throws -> AppState {
-        let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !name.isEmpty else { throw LibraryError.emptyName }
+        guard let name = acceptedName(name) else { throw LibraryError.emptyName }
         return updatingPlaylist(id) { $0.name = name }
     }
 
