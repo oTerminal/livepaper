@@ -1,4 +1,10 @@
 extension AppState {
+    /// How loud a wallpaper plays, on a display or in the inspector's preview:
+    /// mute is the app's, so muted it is silent whatever its own volume.
+    public func playbackVolume(of wallpaper: Wallpaper) -> Double {
+        isMuted ? 0 : wallpaper.volume
+    }
+
     /// The wallpaper a display shows: its assignment's, or its playlist's
     /// rotation. A wallpaper the library has lost counts as nothing.
     public func wallpaper(shownOn display: DisplayIdentity, in library: Library) -> Wallpaper? {
@@ -37,7 +43,7 @@ extension RenderState {
                 optimisedCopy: wallpaper.optimisedCopy,
                 poster: wallpaper.poster,
                 presentation: wallpaper.presentation,
-                volume: state.isMuted ? 0 : wallpaper.volume,
+                volume: state.playbackVolume(of: wallpaper),
                 userPaused: state.pausedDisplays.contains(identity)
             )
         }

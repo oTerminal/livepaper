@@ -131,6 +131,18 @@ struct RenderStateMakeTests {
         #expect(state.displays.map(\.volume) == [0, 0])
     }
 
+    static let volumes: [Row<Bool, Double>] = [
+        Row("unmuted, the wallpaper's own volume", false, 0.6),
+        Row("muted, silent whatever the wallpaper's volume", true, 0),
+    ]
+
+    @Test(arguments: volumes)
+    func `a wallpaper plays at its own volume unless muted, on a display and in a preview`(row: Row<Bool, Double>) throws {
+        let state = Self.state { $0.isMuted = row.input }
+
+        #expect(state.playbackVolume(of: try #require(try Self.library()[.numbered(1)])) == row.expected)
+    }
+
     @Test func `only connected displays are shown, in a fixed order`() throws {
         let state = try #require(try Self.make(
             Self.state {
