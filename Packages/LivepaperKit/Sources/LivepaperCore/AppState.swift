@@ -82,6 +82,25 @@ public struct AppState: Equatable, Sendable {
         return state.keepingRotations(after: self)
     }
 
+    /// The popover's playlist picker, for one display. A playlist starts on it,
+    /// unless it is the one the display already shows. No Playlist (nil) keeps
+    /// the wallpaper the display shows now as its own assignment, without
+    /// putting it in the recents, since the user chose no wallpaper; a playlist
+    /// with nothing to show leaves the display with no assignment of its own.
+    public func choosingPlaylist(
+        _ id: PlaylistID?, for display: DisplayIdentity, in library: Library, now: Date, rng: inout some RandomNumberGenerator
+    ) -> AppState {
+        if let id {
+            guard self[playlist: id] != nil, assignment(for: display) != .playlist(id) else { return self }
+            return assigning(.playlist(id), to: [display], now: now, rng: &rng)
+        }
+        guard case .playlist? = assignment(for: display) else { return self }
+        guard let shown = wallpaper(shownOn: display, in: library) else { return unassigning(display) }
+        var state = self
+        state.assignments[display] = .wallpaper(shown.id)
+        return state.keepingRotations(after: self)
+    }
+
     /// One display's pause. The decoder is kept, so resuming is instant.
     public func settingPaused(_ paused: Bool, for display: DisplayIdentity) -> AppState {
         var state = self
