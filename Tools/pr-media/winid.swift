@@ -1,7 +1,11 @@
 import CoreGraphics
 import Foundation
 
-// Prints "id x y w h" of the largest on-screen window owned by the app named in argv[1].
+// Prints "id x y w h" of the largest on-screen window owned by the app named in argv[1], at the
+// window layer in argv[2] (default 0, a normal window). Livepaper's menu-bar popover is a panel at
+// the pop-up menu level, layer 101: `winid Livepaper 101`. Above layer 0 a window that is off
+// screen counts when none is on screen: the popover's panel keeps its id while it is closed, so
+// a recording can start before it opens.
 //
 // With "--desktop [n]" it prints the desktop's wallpaper window instead, on the nth display
 // from the left (default 1). That window belongs to WindowManager one level below the desktop
@@ -42,13 +46,18 @@ if arguments.first == "--desktop" {
 }
 
 let name = arguments.first ?? "Livepaper Gallery"
-let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: Any]] ?? []
-var best: (Int, CGRect)?
+guard let layer = arguments.count > 1 ? Int(arguments[1]) : 0 else { fail("the layer is a number, such as 0 or 101") }
+let list = CGWindowListCopyWindowInfo([layer == 0 ? .optionOnScreenOnly : .optionAll], kCGNullWindowID) as? [[String: Any]] ?? []
+var best: (Int, CGRect, Bool)?
 for window in list where (window[kCGWindowOwnerName as String] as? String) == name {
-    guard (window[kCGWindowLayer as String] as? Int) == 0,
+    guard (window[kCGWindowLayer as String] as? Int) == layer,
           let frame = rect(of: window),
           let id = window[kCGWindowNumber as String] as? Int else { continue }
-    if best == nil || frame.width * frame.height > best!.1.width * best!.1.height { best = (id, frame) }
+    let isOnScreen = window[kCGWindowIsOnscreen as String] as? Bool ?? false
+    let isBetter = best.map { best in
+        isOnScreen != best.2 ? isOnScreen : frame.width * frame.height > best.1.width * best.1.height
+    } ?? true
+    if isBetter { best = (id, frame, isOnScreen) }
 }
-guard let (id, frame) = best else { fail("no window for \(name)") }
+guard let (id, frame, _) = best else { fail("no window for \(name) at layer \(layer)") }
 print(id, Int(frame.minX), Int(frame.minY), Int(frame.width), Int(frame.height))
