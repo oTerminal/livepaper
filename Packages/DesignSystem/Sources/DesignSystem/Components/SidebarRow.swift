@@ -68,6 +68,10 @@ public struct SidebarRow: View {
         // "Playlists, 3", not "3, Playlists": VoiceOver speaks a value before the label.
         .accessibilityLabel(Text(verbatim: badge.map { "\(title), \($0)" } ?? title))
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+        // The element made above is not the button's, so it has no press of its own.
+        .accessibilityAction {
+            if isEnabled { action() }
+        }
     }
 
     private var fills: some View {
