@@ -110,9 +110,21 @@ struct LibraryGridTests {
             .nothingOnDisplay(second)
         ),
         Row("nothing matches the search", Emptiness(section: .all, search: "desert"), .noResults(search: "desert")),
-        Row("the search as typed, without the spaces around it", Emptiness(section: .all, search: "  desert "), .noResults(search: "desert")),
-        Row("a playlist searched, nothing matching", Emptiness(section: .playlist(.numbered(1)), search: "aurora"), .noResults(search: "aurora")),
-        Row("a display searched, nothing matching", Emptiness(section: .nowPlaying(second), search: "forest"), .noResults(search: "forest")),
+        Row(
+            "the search as typed, without the spaces around it",
+            Emptiness(section: .all, search: "  desert "),
+            .noResults(search: "desert")
+        ),
+        Row(
+            "a playlist searched, nothing matching",
+            Emptiness(section: .playlist(.numbered(1)), search: "aurora"),
+            .noResults(search: "aurora")
+        ),
+        Row(
+            "a display searched, nothing matching",
+            Emptiness(section: .nowPlaying(second), search: "forest"),
+            .noResults(search: "forest")
+        ),
     ]
 
     @Test(arguments: emptiness)

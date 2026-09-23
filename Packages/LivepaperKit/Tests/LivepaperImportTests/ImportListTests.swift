@@ -243,7 +243,10 @@ struct ImportListTests {
         ),
         Row(
             "a retried row that fails again keeps the time of the second failure",
-            [.enqueue(1...1), .failed(1, unreadable, at: 10), .retry(1), .failed(1, ImportError.rejected(.protected), at: 20), .tick(at: 24)],
+            [
+                .enqueue(1...1), .failed(1, unreadable, at: 10), .retry(1),
+                .failed(1, ImportError.rejected(.protected), at: 20), .tick(at: 24),
+            ],
             Outcome(rows: [.failed(1, "It is copy-protected", canRetry: false, at: 20)], effects: [])
         ),
     ]
@@ -258,7 +261,10 @@ struct ImportListTests {
         #expect(Outcome(rows: shown, effects: effects) == row.expected)
         #expect(list.rows.map(\.candidate) == shown.map { .numbered($0.number) }, "each row shows its own candidate")
     }
+}
 
+// The status line's count, and when rows leave.
+extension ImportListTests {
     // As the Gallery's status line counts: "Importing 1 of 5", "2 of 5", "3 of 5".
     static let progress: [Row<[Step], [Int]?>] = [
         Row("nothing to do", [], nil),
