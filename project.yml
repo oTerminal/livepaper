@@ -51,6 +51,10 @@ targets:
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
         INFOPLIST_KEY_NSHumanReadableCopyright: "MIT License. Livepaper contributors."
         ENABLE_APP_SANDBOX: NO
+        # Off on purpose, whatever Xcode's default becomes: codesign writes a
+        # temporary file beside the helper it signs, which a sandboxed script
+        # may not (tried with it on: "Write permissions error").
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
     dependencies:
       - package: LivepaperKit
         product: LivepaperCore
@@ -60,9 +64,34 @@ targets:
         product: LivepaperPlayback
       - package: LivepaperKit
         product: LivepaperSystem
+      # The fakes run (-fakes YES) builds the screens on its fakes.
+      - package: LivepaperKit
+        product: LivepaperTestSupport
       - package: DesignSystem
       # Embedded in Contents/Extensions, where ExtensionKit finds it.
       - target: WallpaperExtension
+    postBuildScripts:
+      # The ffmpeg helper (record 0006) goes next to the app's executable, where
+      # Bundle.main.url(forAuxiliaryExecutable:) finds it, signed on its own before
+      # Xcode signs the app, which seals it. It is there when `make ffmpeg` built it
+      # or CI fetched it; without it the build goes on, and the files only ffmpeg can
+      # open fail to import with `helperMissing`. A helper that goes is taken out of
+      # the bundle at the next build.
+      - name: Bundle the ffmpeg helper
+        basedOnDependencyAnalysis: true
+        inputFiles:
+          - $(SRCROOT)/Helpers/ffmpeg/out/ffmpeg
+        outputFiles:
+          - $(TARGET_BUILD_DIR)/$(EXECUTABLE_FOLDER_PATH)/ffmpeg
+        script: |
+          set -eu
+          if [ -f "$SCRIPT_INPUT_FILE_0" ]; then
+            ditto "$SCRIPT_INPUT_FILE_0" "$SCRIPT_OUTPUT_FILE_0"
+            codesign --force --sign - --identifier "$PRODUCT_BUNDLE_IDENTIFIER.ffmpeg" --timestamp=none "$SCRIPT_OUTPUT_FILE_0"
+          else
+            rm -f "$SCRIPT_OUTPUT_FILE_0"
+            echo "note: no ffmpeg helper at $SCRIPT_INPUT_FILE_0; the app is built without it (make ffmpeg)"
+          fi
 
   Gallery:
     type: application
