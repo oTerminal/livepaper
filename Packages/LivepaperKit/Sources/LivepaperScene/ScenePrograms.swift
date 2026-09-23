@@ -172,6 +172,10 @@ public struct UniformLayout: Codable, Equatable, Sendable {
     public var members: [Member] = []
     public var size = 16
 
+    /// The most elements an array is laid out with. Wallpaper Engine's longest
+    /// are its audio spectra of 64, and the block is packed again for every draw.
+    public static let mostArrayElements = 1024
+
     public init() {}
 
     public static func std140(_ declarations: [Declaration]) -> UniformLayout {
@@ -179,15 +183,17 @@ public struct UniformLayout: Codable, Equatable, Sendable {
         var offset = 0
         for declaration in declarations {
             var (alignment, stride) = alignmentAndSize(declaration.type)
-            if declaration.count != nil {
+            // A shader's own count could be any number; multiplied out, a large one would overflow.
+            let count = declaration.count.map { min(max($0, 0), mostArrayElements) }
+            if count != nil {
                 alignment = 16
                 stride = (stride + 15) / 16 * 16
             }
             offset = (offset + alignment - 1) / alignment * alignment
             layout.members.append(
-                Member(name: declaration.name, type: declaration.type, arrayCount: declaration.count, offset: offset, stride: stride)
+                Member(name: declaration.name, type: declaration.type, arrayCount: count, offset: offset, stride: stride)
             )
-            offset += declaration.count.map { $0 * stride } ?? stride
+            offset += count.map { $0 * stride } ?? stride
         }
         layout.size = max(16, (offset + 15) / 16 * 16)
         return layout
@@ -290,7 +296,7 @@ private struct MemberPacking {
     /// Four bytes, little-endian, at `offset`, unless they would fall outside the block.
     private func put(_ number: Float, at offset: Int, into bytes: inout [UInt8]) {
         guard offset >= 0, offset + 4 <= bytes.count else { return }
-        let bits = isInteger ? UInt32(bitPattern: Int32(clamping: Int(number.isFinite ? number : 0))) : number.bitPattern
+        let bits = isInteger ? UInt32(bitPattern: Int32(clamping: Int(clamping: number))) : number.bitPattern
         for index in 0..<4 { bytes[offset + index] = UInt8((bits >> (8 * UInt32(index))) & 0xFF) }
     }
 }

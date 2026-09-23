@@ -123,8 +123,9 @@ private struct ParticleVertexStyle {
     /// The top left of a particle's frame of the sheet, in UV: the frames in
     /// turn over its life for a sequence, otherwise the one its seed picks.
     private func frameOrigin(of particle: ParticleSystem.Particle, through: Float) -> SIMD2<Float> {
+        // A multiplier from the file can be anything a Float holds; the frame stays one of the sheet's.
         let frame = sequence
-            ? Int(through * max(sequenceMultiplier, 1) * Float(frames)) % frames
+            ? (Int(clamping: through * max(sequenceMultiplier, 1) * Float(frames)) % frames + frames) % frames
             : min(frames - 1, Int(particle.seed * Float(frames)))
         return SIMD2(Float(frame % max(grid.columns, 1)), Float(frame / max(grid.columns, 1))) * frameSize
     }

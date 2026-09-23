@@ -48,7 +48,8 @@ final class ParticleSystem {
     /// Where particles died in the last step, for "eventspawn" children.
     private(set) var deaths: [SIMD3<Float>] = []
     private var toEmit: Float = 0
-    private var simulated: Float = -1
+    /// Where the steps have reached; nil before the first.
+    private var simulated: Float?
     private var random: SeededRandom
     private let initialSeed: UInt64
 
@@ -57,7 +58,8 @@ final class ParticleSystem {
         emits: Bool = true, seed: UInt64
     ) {
         self.definition = definition
-        self.maxCount = max(0, Int(Float(maxCount ?? definition.maxCount) * values.float(overrides["count"], 1)))
+        let asked = Int(clamping: Float(maxCount ?? definition.maxCount) * values.float(overrides["count"], 1))
+        self.maxCount = min(max(0, asked), ParticleDefinition.mostParticles)
         rateScale = values.float(overrides["rate"], 1)
         sizeScale = values.float(overrides["size"], 1) * scale
         alphaScale = values.float(overrides["alpha"], 1)
@@ -170,14 +172,18 @@ final class ParticleSystem {
         }
     }
 
+    /// The most particles a second an emitter makes: a whole system's worth each step.
+    private static let mostPerSecond = Float(ParticleDefinition.mostParticles) / tick
+
     private func step(_ seconds: Float) {
         deaths = []
         if emits, let emitter = definition.emitters.first {
-            toEmit += emitter.float("rate", 5) * rateScale * seconds
-            while toEmit >= 1 {
-                toEmit -= 1
-                spawn()
-            }
+            let rate = emitter.float("rate", 5) * rateScale
+            toEmit += rate.isNaN ? 0 : min(max(rate, 0), Self.mostPerSecond) * seconds
+            // Every particle due is spent, as before, but only those there is room for are made.
+            let due = Int(clamping: toEmit.rounded(.down))
+            toEmit -= Float(due)
+            for _ in 0..<min(due, max(0, maxCount - particles.count)) { spawn() }
         }
         let movement = definition.operator("movement")
         let gravity = movement?.vector("gravity", .zero) ?? .zero
@@ -188,7 +194,7 @@ final class ParticleSystem {
         // follows the pointer, which a wallpaper does not have.
         let attract = definition.operator("controlpointattract")
         let point = attract.flatMap { attract in
-            definition.controlPoints.first { $0.id == Int(attract.float("controlpoint", 0)) && $0.flags == 0 }?.offset
+            definition.controlPoints.first { $0.id == Int(clamping: attract.float("controlpoint", 0)) && $0.flags == 0 }?.offset
         }
         for index in particles.indices {
             var particle = particles[index]
@@ -222,35 +228,44 @@ final class ParticleSystem {
         particles.removeAll { $0.age >= $0.life }
     }
 
-    /// Simulates up to `time`, a thirtieth of a second at a time. On first
-    /// use, when time went back, or after a jump, it starts again: from the
-    /// preset's warm-up (`starttime`) before the scene's start, or from half a
-    /// minute before `time`, which is longer than any particle lives.
-    /// `afterStep` sees the system after each step, for bursts where particles died.
+    /// Simulates up to `time`, a thirtieth of a second at a time, counting the
+    /// steps from where it last started, so that a time gives the same
+    /// particles however it was reached. On first use, when time went back a
+    /// step or more, or after a jump, it starts again: from the preset's
+    /// warm-up (`starttime`) before the scene's start, or from half a minute
+    /// before `time`, which is longer than any particle lives. The steps are
+    /// counted rather than timed, since far into a long run a thirtieth of a
+    /// second no longer moves a `Float`'s time, and never number more than
+    /// that half minute's. `afterStep` sees the system after each step, for
+    /// bursts where particles died.
     func advance(to time: Float, afterStep: ((ParticleSystem) -> Void)? = nil) {
-        let tick: Float = 1 / 30
-        if simulated < 0 || time < simulated || time - simulated > 5 {
+        let tick = Self.tick
+        var from: Float
+        if let simulated, time > simulated - tick, time - simulated <= 5 {
+            from = simulated
+        } else {
             particles = []
             toEmit = 0
             random = SeededRandom(seed: initialSeed)
-            var at = max(-definition.startTime, time - 30)
-            while at < time {
-                step(tick)
-                afterStep?(self)
-                at += tick
-            }
-            simulated = time
-            return
+            let warmUp = definition.startTime.isNaN ? 0 : definition.startTime
+            from = max(-warmUp, time - Self.catchUp)
         }
-        var remaining = time - simulated
-        while remaining > 0 {
-            let seconds = min(remaining, tick)
-            step(seconds)
+        // To the nearest step: a frame's time is a step on from the last give or take a Float's
+        // rounding, which rounding up would make two steps, then none.
+        let steps = min(max(0, Int(clamping: ((time - from) / tick).rounded())), Self.mostSteps)
+        for _ in 0..<steps {
+            step(tick)
             afterStep?(self)
-            remaining -= seconds
         }
-        simulated = time
+        from += Float(steps) * tick
+        simulated = from
     }
+
+    /// The step, whatever the rate the scene is drawn at.
+    private static let tick: Float = 1 / 30
+    /// Half a minute, longer than any particle lives: the most simulated to catch up.
+    private static let catchUp: Float = 30
+    private static let mostSteps = Int((catchUp / tick).rounded()) + 1
 }
 
 /// xorshift64: the same particles on every run of a scene.

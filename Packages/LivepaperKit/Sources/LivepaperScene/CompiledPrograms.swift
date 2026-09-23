@@ -61,6 +61,8 @@ enum VertexLayout {
     /// Position, UV, bone indices (four floats) and bone weights (four): puppets.
     static let skinnedStride = 52
     static let bufferIndex = 16
+    /// The vertex attributes a pipeline has, at locations 0 to 30.
+    static let maxAttributes = 31
 
     static func stride(for attributes: [VertexAttribute]) -> Int {
         let names = Set(attributes.map(\.name))
@@ -71,7 +73,8 @@ enum VertexLayout {
 
     static func descriptor(for attributes: [VertexAttribute]) -> MTLVertexDescriptor {
         let descriptor = MTLVertexDescriptor()
-        for attribute in attributes {
+        // A location past the ones a pipeline has is out of the descriptor's range.
+        for attribute in attributes where (0..<maxAttributes).contains(attribute.location) {
             let (format, offset): (MTLVertexFormat, Int) = switch attribute.name {
             case "a_Position": (.float3, 0)
             case "a_TexCoord": (.float2, 12)

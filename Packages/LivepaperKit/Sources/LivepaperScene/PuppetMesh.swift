@@ -23,9 +23,12 @@ final class PuppetMesh {
         // Position, UV, bone indices, bone weights (`VertexLayout.skinnedStride`).
         var floats: [Float] = []
         floats.reserveCapacity(puppet.vertices.count * 13)
+        // A bone past the shader's last would be read from past the end of `g_Bones`.
+        let lastBone = UInt32(Self.maxBones - 1)
         for vertex in puppet.vertices {
+            let bones = SIMD4<Float>(pointwiseMin(vertex.bones, SIMD4(repeating: lastBone)))
             floats += [vertex.position.x, vertex.position.y, vertex.position.z, vertex.uv.x, vertex.uv.y]
-            floats += [Float(vertex.bones.x), Float(vertex.bones.y), Float(vertex.bones.z), Float(vertex.bones.w)]
+            floats += [bones.x, bones.y, bones.z, bones.w]
             floats += [vertex.weights.x, vertex.weights.y, vertex.weights.z, vertex.weights.w]
         }
         // The parts are drawn in the file's order: in the one sample the last part, the ponytail, lies over the helmet.
@@ -48,17 +51,18 @@ final class PuppetMesh {
     /// The bone matrices for `g_Bones` at `time`, taking the mesh's pixels to the layer's unit quad.
     func pose(at time: Float, halfSize: SIMD2<Float>) -> [Float] {
         var local = puppet.bones.map(\.bind)
-        if let animation = puppet.animations.first, animation.length > 0, animation.framesPerSecond > 0 {
+        // A rate from the file that has no end is no animation.
+        if let animation = puppet.animations.first, animation.length > 0,
+           animation.framesPerSecond.isFinite, animation.framesPerSecond > 0 {
             var frame = time * animation.framesPerSecond
             let length = Float(animation.length)
-            if animation.mode == "mirror" {
-                frame = frame.truncatingRemainder(dividingBy: 2 * length)
-                if frame > length { frame = 2 * length - frame }
-            } else {
-                frame = frame.truncatingRemainder(dividingBy: length)
-            }
+            let period = animation.mode == "mirror" ? 2 * length : length
+            frame = frame.truncatingRemainder(dividingBy: period)
+            // Before the start, the animation is where it would have been had it always played.
+            if frame < 0 { frame += period }
+            if animation.mode == "mirror", frame > length { frame = 2 * length - frame }
             for (bone, track) in animation.tracks.enumerated() where bone < local.count && !track.isEmpty {
-                let first = min(track.count - 1, Int(frame))
+                let first = min(max(Int(clamping: frame), 0), track.count - 1)
                 let second = min(track.count - 1, first + 1)
                 let between = frame - Float(first)
                 let (from, to) = (track[first], track[second])

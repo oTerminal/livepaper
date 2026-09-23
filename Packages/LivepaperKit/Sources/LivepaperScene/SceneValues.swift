@@ -28,15 +28,24 @@ struct SceneValues: Sendable {
 
     /// The plain value behind any wrapping; nil for JSON null or nothing.
     func unwrap(_ any: Any?) -> Any? {
+        unwrap(any, depth: 0)
+    }
+
+    /// As many wrappings as a value is unwrapped through. Wallpaper Engine's
+    /// own nest two or three deep; a property bound to itself would never end.
+    private static let deepestWrapping = 8
+
+    private func unwrap(_ any: Any?, depth: Int) -> Any? {
         guard let object = any as? [String: Any] else { return any is NSNull ? nil : any }
+        guard depth < Self.deepestWrapping else { return nil }
         if let user = object["user"] {
-            if let name = user as? String, let value = properties[name]?.value { return unwrap(value) }
+            if let name = user as? String, let value = properties[name]?.value { return unwrap(value, depth: depth + 1) }
             if let binding = user as? [String: Any], let name = binding["name"] as? String,
                let condition = binding["condition"], let value = properties[name]?.value {
                 return Self.text(of: value) == Self.text(of: condition)
             }
         }
-        return object["value"].flatMap(unwrap)
+        return object["value"].flatMap { unwrap($0, depth: depth + 1) }
     }
 
     func floats(_ any: Any?) -> [Float]? {

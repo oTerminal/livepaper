@@ -39,8 +39,9 @@ extension WallpaperEngineScene {
             return
         }
         // Effects run in the layer's own space, at the size it covers on the output.
-        let width = Int((abs(size.x * layer.transform.scale.x) * pixelsPerUnit).rounded())
-        let height = Int((abs(size.y * layer.transform.scale.y) * pixelsPerUnit).rounded())
+        // Sizes and scales come from the scene, so their product can be anything a Float holds; `target` bounds it.
+        let width = Int(clamping: (abs(size.x * layer.transform.scale.x) * pixelsPerUnit).rounded())
+        let height = Int(clamping: (abs(size.y * layer.transform.scale.y) * pixelsPerUnit).rounded())
         let key = "layer\(layer.id)"
         pass.target = target("\(key).a", width: width, height: height)
         pass.clearing = true
@@ -88,8 +89,8 @@ extension WallpaperEngineScene {
         let (right, bottom) = ((bottomRight.x + 1) / 2, (1 - bottomRight.y) / 2)
         let key = "layer\(layer.id)"
         let own = target(
-            "\(key).a", width: Int((abs(right - left) * Float(scene.width)).rounded()),
-            height: Int((abs(bottom - top) * Float(scene.height)).rounded())
+            "\(key).a", width: Int(clamping: (abs(right - left) * Float(scene.width)).rounded()),
+            height: Int(clamping: (abs(bottom - top) * Float(scene.height)).rounded())
         )
         let behind = BasePasses.Parameters.copy(rect: SIMD4(left, top, right - left, bottom - top))
         passes.draw(scene, into: own, on: commandBuffer, .init(load: .clear, blending: .normal, parameters: behind))

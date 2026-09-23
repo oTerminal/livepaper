@@ -32,6 +32,9 @@ public struct ParticleDefinition: @unchecked Sendable {
         public let offset: SIMD3<Float>
     }
 
+    /// The most particles a system keeps alive, whatever its file or its object asks for.
+    public static let mostParticles = 20_000
+
     public let file: String
     public let material: String
     public let maxCount: Int
@@ -54,7 +57,7 @@ public struct ParticleDefinition: @unchecked Sendable {
         self.file = file
         guard let material = json["material"] as? String else { throw .malformedScene }
         self.material = material
-        maxCount = min(values.int(json["maxcount"]) ?? 100, 20_000)
+        maxCount = min(values.int(json["maxcount"]) ?? 100, Self.mostParticles)
         startTime = values.float(json["starttime"], 0)
         func list(_ key: String) -> [Component] {
             (json[key] as? [[String: Any]] ?? []).map { Component(name: $0["name"] as? String ?? "", parameters: $0, values: values) }

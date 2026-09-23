@@ -182,14 +182,20 @@ public struct SpriteSheet: @unchecked Sendable {
 
     private static func picture(_ payload: Data, width: Int, height: Int, _ header: TextureHeader) throws -> CGImage {
         if header.fileFormat >= 0 {
+            // The file's own size is read before it is decoded, since it could say one past all memory.
             guard
                 let source = CGImageSourceCreateWithData(payload as CFData, nil),
+                let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
+                let fileWidth = properties[kCGImagePropertyPixelWidth] as? Int,
+                let fileHeight = properties[kCGImagePropertyPixelHeight] as? Int,
+                SceneTexture.fitsATexture(fileWidth, fileHeight),
                 let image = CGImageSourceCreateImageAtIndex(source, 0, [kCGImageSourceShouldCacheImmediately: true] as CFDictionary)
             else { throw SpriteSheetError.unreadable }
             return image
         }
         guard header.format == 0 else { throw SpriteSheetError.unsupported("texture format \(header.format)") }
-        guard width > 0, height > 0, payload.count == width * height * 4 else { throw SpriteSheetError.unreadable }
+        // The sides are checked before they are multiplied: two that a file makes up would overflow.
+        guard SceneTexture.fitsATexture(width, height), payload.count == width * height * 4 else { throw SpriteSheetError.unreadable }
         guard
             let space = CGColorSpace(name: CGColorSpace.sRGB),
             let provider = CGDataProvider(data: payload as CFData),

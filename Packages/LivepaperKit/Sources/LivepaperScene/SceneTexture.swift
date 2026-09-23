@@ -149,10 +149,19 @@ public struct SceneTexture: Sendable {
         case .rg88: 2
         case .r8: 1
         }
+        // The sides are checked before they are multiplied: two that a file makes up would overflow.
+        guard Self.fitsATexture(stored.width, stored.height) else { throw .malformedScene }
         let expected = stored.width * stored.height * bytesPerPixel
-        guard stored.width > 0, stored.height > 0, stored.width <= 16384, stored.height <= 16384 else { throw .malformedScene }
         guard raw.count >= expected else { throw .malformedScene }
         return Pixels(width: stored.width, height: stored.height, bytesPerPixel: bytesPerPixel, bytes: Data(raw.prefix(expected)))
+    }
+
+    /// The largest side a Metal texture has on the Macs Livepaper runs on.
+    static let largestSide = 16384
+
+    /// Both sides at least a pixel, and no longer than a texture's.
+    static func fitsATexture(_ width: Int, _ height: Int) -> Bool {
+        (1...largestSide).contains(width) && (1...largestSide).contains(height)
     }
 
     /// The first image's payload when it is a video (`isVideo`), as its file's bytes.
@@ -185,6 +194,8 @@ public struct SceneTexture: Sendable {
             let space = CGColorSpace(name: CGColorSpace.sRGB)
         else { throw .malformedScene }
         let (width, height) = (image.width, image.height)
+        // A file says what size it is, and could say one past all memory.
+        guard fitsATexture(width, height) else { throw .malformedScene }
         var bytes = Data(count: width * height * 4)
         let drawn = bytes.withUnsafeMutableBytes { buffer -> Bool in
             guard let context = CGContext(
