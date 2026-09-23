@@ -90,7 +90,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         case ("menu", let title):
             let menu = fakes.menu(model: model) { [weak self] in self?.menuBarItem?.openPopover(animated: true) }
             if !menu.performItem(titled: title) { AppLog.logger.notice("fakes: no menu item \(title, privacy: .public)") }
-        case ("quit", _): NSApp.terminate(nil)
+        // From the run loop: a command arrives in a main-queue block, which the quit's task would wait behind.
+        case ("quit", _): NSApp.perform(#selector(NSApplication.terminate(_:)), with: nil, afterDelay: 0)
         default: AppLog.logger.notice("fakes: unknown command \(verb, privacy: .public) \(rest, privacy: .public)")
         }
     }

@@ -10,24 +10,29 @@ import AppKit
 /// A command is words: a verb, then what it acts on. Unknown commands are logged and ignored.
 /// Two fakes runs at once keep apart by name: `-fakesRemote <name>` on the run,
 /// `LIVEPAPER_FAKES=<name>` for the script.
-final class FakesRemote {
+final class FakesRemote: NSObject {
     /// The distributed notification a command arrives by; its object is the command.
     static let notification = Notification.Name(
         "app.livepaper.fakes.command" + (LaunchOptions.current.fakesRemote.map { ".\($0)" } ?? "")
     )
 
-    /// Kept for the life of the run, as the remote is.
-    private var observer: (any NSObjectProtocol)?
+    private let perform: @MainActor (_ verb: String, _ rest: String) -> Void
 
     init(perform: @escaping @MainActor (_ verb: String, _ rest: String) -> Void) {
-        observer = DistributedNotificationCenter.default().addObserver(
-            forName: Self.notification, object: nil, queue: .main
-        ) { notification in
-            guard let command = notification.object as? String else { return }
-            let words = command.split(separator: " ", maxSplits: 1).map(String.init)
-            guard let verb = words.first else { return }
-            MainActor.assumeIsolated { perform(verb, words.count > 1 ? words[1] : "") }
-        }
+        self.perform = perform
+        super.init()
+        // At once, active or not: NSApplication holds distributed notifications back
+        // while the app is inactive, and an agent app mostly is.
+        DistributedNotificationCenter.default().addObserver(
+            self, selector: #selector(received(_:)), name: Self.notification, object: nil, suspensionBehavior: .deliverImmediately
+        )
+    }
+
+    @objc private func received(_ notification: Notification) {
+        guard let command = notification.object as? String else { return }
+        let words = command.split(separator: " ", maxSplits: 1).map(String.init)
+        guard let verb = words.first else { return }
+        perform(verb, words.count > 1 ? words[1] : "")
     }
 }
 
