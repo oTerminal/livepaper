@@ -61,6 +61,11 @@ enum EngineLog {
         "scene: surface \(surface) loaded \(folder.lastPathComponent) in \(Int(milliseconds.rounded())) ms, drawn by \(type)"
     }
 
+    /// What of the scene is not drawn as it asks, once, after it loads.
+    static func sceneNotes(_ surface: SurfaceID, _ folder: URL, _ notes: [String]) -> String {
+        "scene: surface \(surface) draws \(folder.lastPathComponent) without: \(notes.joined(separator: "; "))"
+    }
+
     static func sceneCannotLoad(_ surface: SurfaceID, _ folder: URL, _ error: any Error) -> String {
         "scene: surface \(surface) cannot load \(folder.lastPathComponent), holding the poster: \(describe(error))"
     }

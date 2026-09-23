@@ -87,11 +87,22 @@ public struct PictureCount: Equatable, Sendable {
     public var displayed: Int
     public var expected: Int
     public var fed: Int
+    /// A scene's: the frames its display link asked for over the window. Nil for a video.
+    public var asked: Int?
+    /// A scene's display link asked for too few frames while its engine stood
+    /// ready to draw them. The system does not ask for frames of a surface it
+    /// does not show, so this is a covered surface, never a stall.
+    public var withheld: Bool
+    /// A scene's: the pictures the window server presented, for the log. Nil for a video.
+    public var presented: Int?
 
-    public init(displayed: Int, expected: Int, fed: Int) {
+    public init(displayed: Int, expected: Int, fed: Int, asked: Int? = nil, withheld: Bool = false, presented: Int? = nil) {
         self.displayed = displayed
         self.expected = expected
         self.fed = fed
+        self.asked = asked
+        self.withheld = withheld
+        self.presented = presented
     }
 }
 

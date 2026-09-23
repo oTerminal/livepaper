@@ -2,8 +2,8 @@ import Foundation
 import Metal
 
 /// Draws a scene's pictures with Metal: the seam between the extension's scene
-/// engine and whatever reads and draws a Wallpaper Engine scene (record 0007).
-/// `PosterScene` stands in until spike S9's renderer is ported in behind it.
+/// engine and whatever reads and draws a Wallpaper Engine scene (record 0007):
+/// `WallpaperEngineScene`, or a test's stand-in.
 ///
 /// Made off the main thread, since loading can take a while, then used on the
 /// engine's render thread only, one call at a time.
@@ -21,6 +21,23 @@ public protocol SceneDrawing: AnyObject {
     /// The textures `draw` is given are this many pixels from now on. Called
     /// before the first `draw`, and whenever the surface's size changes.
     func resize(width: Int, height: Int)
+
+    /// What of the scene is not drawn as it asks, or is stood in for, for the log.
+    var notes: [String] { get }
+
+    /// The scene's sounds, made once after loading, on the loading queue, and
+    /// then played by the engine's owner, apart from drawing. Nil for none.
+    func makeSoundtrack() -> SceneSoundtrack?
+
+    /// Where the pointer is over the surface's display, 0 to 1 from the top
+    /// left, before a `draw`; for a scene that follows it (parallax).
+    func pointerMoved(to position: SIMD2<Float>)
+}
+
+extension SceneDrawing {
+    public var notes: [String] { [] }
+    public func makeSoundtrack() -> SceneSoundtrack? { nil }
+    public func pointerMoved(to position: SIMD2<Float>) {}
 }
 
 /// A scene wallpaper's folder in the library, as the import writes it and a

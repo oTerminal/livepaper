@@ -43,13 +43,29 @@ public final class SceneEngine: @unchecked Sendable {
         var firstPictureDrawn = false
     }
 
-    /// `layer` is the tree's Metal slot; `drawingType` what draws the scene (`PosterScene` until S9's renderer is ported in).
-    init(surface: SurfaceID, layer: CAMetalLayer, drawingType: any SceneDrawing.Type, logger: Logger) {
+    /// The scene's sounds, on the owner's actor, and the wallpaper's volume they play at.
+    private var soundtrack: SceneSoundtrack?
+    private var volume = 0.0
+    /// Where the pointer is over the surface's display, read on the render thread each frame.
+    private let pointer: (@Sendable () -> SIMD2<Float>?)?
+
+    /// `layer` is the tree's Metal slot; `drawingType` what draws the scene (`WallpaperEngineScene` in the extension).
+    init(
+        surface: SurfaceID, layer: CAMetalLayer, drawingType: any SceneDrawing.Type, logger: Logger,
+        pointer: (@Sendable () -> SIMD2<Float>?)? = nil
+    ) {
         self.surface = surface
         self.layer = layer
         self.drawingType = DrawingType(type: drawingType)
         self.logger = logger
+        self.pointer = pointer
         linkTarget.engine = self
+    }
+
+    /// The wallpaper's volume, 0 to 1, for the scene's sounds.
+    func setVolume(_ volume: Double) {
+        self.volume = volume
+        soundtrack?.setVolume(volume)
     }
 
     var isLoaded: Bool { shared.withLock { $0.drawing != nil } }
@@ -70,7 +86,10 @@ public final class SceneEngine: @unchecked Sendable {
         let started = clock.now
         let made: Result<DrawingBox, any Error> = await withCheckedContinuation { continuation in
             sceneLoadQueue.async {
-                continuation.resume(returning: Result { DrawingBox(try type.type.init(folder: folder, device: gpu.device)) })
+                continuation.resume(returning: Result {
+                    let drawing = try type.type.init(folder: folder, device: gpu.device)
+                    return DrawingBox(drawing, soundtrack: drawing.makeSoundtrack())
+                })
             }
         }
         switch made {
@@ -80,8 +99,13 @@ public final class SceneEngine: @unchecked Sendable {
                 shared.folder = folder
                 shared.drawnSize = nil
             }
+            soundtrack?.stop()
+            soundtrack = drawing.soundtrack
+            soundtrack?.setVolume(volume)
             let took = (clock.now - started) / .milliseconds(1)
             logger.notice("\(EngineLog.sceneLoaded(self.surface, folder, by: type.type, milliseconds: took), privacy: .public)")
+            let notes = drawing.drawing.notes
+            if !notes.isEmpty { logger.notice("\(EngineLog.sceneNotes(self.surface, folder, notes), privacy: .public)") }
             return true
         case .failure(let error):
             logger.error("\(EngineLog.sceneCannotLoad(self.surface, folder, error), privacy: .public)")
@@ -102,6 +126,7 @@ public final class SceneEngine: @unchecked Sendable {
             return shared.run
         }
         guard let run else { return }
+        soundtrack?.play()
         logger.notice("\(EngineLog.sceneDrawing(self.surface, from: self.shared.withLock(\.clock.latest)), privacy: .public)")
         let layer = LayerBox(layer: layer)
         let target = linkTarget
@@ -119,6 +144,7 @@ public final class SceneEngine: @unchecked Sendable {
 
     /// Stops drawing and scene time; the last picture stays on the layer.
     func pause(_ reason: String = "pause") {
+        soundtrack?.pause()
         let link = shared.withLock { shared -> LinkBox? in
             shared.run += 1
             shared.clock.stop()
@@ -133,12 +159,16 @@ public final class SceneEngine: @unchecked Sendable {
     /// Stops drawing and lets the scene go, textures and all. `start` after `load` goes on from the same scene time.
     func suspend() {
         pause("suspend")
+        soundtrack?.stop()
+        soundtrack = nil
         shared.withLock { $0.drawing = nil }
     }
 
     /// Stops drawing and forgets the scene and its time.
     func stop() {
         pause("stop")
+        soundtrack?.stop()
+        soundtrack = nil
         shared.withLock { shared in
             shared.drawing = nil
             shared.folder = nil
@@ -166,12 +196,16 @@ public final class SceneEngine: @unchecked Sendable {
         return true
     }
 
-    /// The pictures presented and the frames committed over `window`, for the watchdog.
+    /// The pictures presented, the frames committed and the frames the link
+    /// asked for over `window`, for the watchdog; and whether, at its end, the
+    /// engine stood ready to draw (its link up, its render thread answering).
     func displayedPictures(over window: Duration) async -> PictureCount {
         let before = shared.withLock(\.tally)
         try? await Task.sleep(for: window)
         let after = shared.withLock(\.tally)
-        return SceneTally.count(from: before, to: after, over: window, framesPerSecond: LivepaperScene.framesPerSecond)
+        let running = shared.withLock { $0.link != nil && $0.tally.isGPUKeepingUp }
+        let ready = running ? await SceneRenderThread.shared.answers(within: .milliseconds(250)) : false
+        return SceneTally.count(from: before, to: after, over: window, framesPerSecond: LivepaperScene.framesPerSecond, engineReady: ready)
     }
 
     // MARK: On the render thread
@@ -186,13 +220,16 @@ public final class SceneEngine: @unchecked Sendable {
         let texture = update.drawable.texture
         let size = SIMD2(texture.width, texture.height)
         let frame = shared.withLock { shared -> Frame? in
-            guard shared.link?.link === link, let drawing = shared.drawing else { return nil }
+            guard shared.link?.link === link else { return nil }
+            shared.tally.asked += 1
+            guard let drawing = shared.drawing else { return nil }
             let resize = shared.drawnSize == size ? nil : size
             shared.drawnSize = size
             return Frame(drawing: drawing, time: shared.clock.time(forFrameAt: update.targetPresentationTimestamp), resize: resize)
         }
         guard let frame, let buffer = SceneGPU.shared?.queue.makeCommandBuffer() else { return }
         if let resize = frame.resize { frame.drawing.drawing.resize(width: resize.x, height: resize.y) }
+        if let position = pointer?() { frame.drawing.drawing.pointerMoved(to: position) }
         buffer.label = "livepaper.scene"
         frame.drawing.drawing.draw(into: texture, on: buffer, at: frame.time)
         update.drawable.addPresentedHandler { [weak self] drawable in
@@ -200,8 +237,11 @@ public final class SceneEngine: @unchecked Sendable {
             self?.shared.withLock { $0.tally.presented += 1 }
         }
         buffer.addCompletedHandler { [weak self] buffer in
-            guard buffer.status == .completed else { return }
-            self?.firstPictureDrawn()
+            let completed = buffer.status == .completed
+            self?.shared.withLock { shared in
+                if completed { shared.tally.completed += 1 } else { shared.tally.failed += 1 }
+            }
+            if completed { self?.firstPictureDrawn() }
         }
         buffer.present(update.drawable)
         buffer.commit()
@@ -229,12 +269,15 @@ private final class LinkTarget: NSObject, CAMetalDisplayLinkDelegate, @unchecked
     }
 }
 
-/// A drawing, handed to the render thread and used there only, one call at a time (`SceneDrawing`).
+/// A drawing, handed to the render thread and used there only, one call at a time (`SceneDrawing`),
+/// and its sounds, handed to the engine's owner.
 private final class DrawingBox: @unchecked Sendable {
     let drawing: any SceneDrawing
+    let soundtrack: SceneSoundtrack?
 
-    init(_ drawing: any SceneDrawing) {
+    init(_ drawing: any SceneDrawing, soundtrack: SceneSoundtrack?) {
         self.drawing = drawing
+        self.soundtrack = soundtrack
     }
 }
 
@@ -302,5 +345,22 @@ final class SceneRenderThread: Thread, @unchecked Sendable {
         guard let runLoop else { return }
         runLoop.perform(inModes: [.default], block: block)
         CFRunLoopWakeUp(runLoop.getCFRunLoop())
+    }
+
+    /// Whether the thread runs a block within `limit`: false when a frame hangs it.
+    func answers(within limit: Duration) async -> Bool {
+        let answer = Answer()
+        perform { answer.given.store(true, ordering: .releasing) }
+        let clock = ContinuousClock()
+        let deadline = clock.now + limit
+        while clock.now < deadline {
+            if answer.given.load(ordering: .acquiring) { return true }
+            try? await Task.sleep(for: .milliseconds(5))
+        }
+        return answer.given.load(ordering: .acquiring)
+    }
+
+    private final class Answer: Sendable {
+        let given = Atomic(false)
     }
 }

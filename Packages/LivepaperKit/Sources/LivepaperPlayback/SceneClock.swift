@@ -42,18 +42,48 @@ struct SceneClock: Equatable, Sendable {
 }
 
 /// What the scene engine has done since it was made, for the watchdog's counts.
+///
+/// A scene's pictures are the ones its GPU finished and put on the Metal slot,
+/// as a video's are the ones its renderer put on its layer: what the engine
+/// itself did, whether or not the window server showed it. The window server's
+/// own presented times are kept beside them for the log. Under windows it
+/// presents the desktop a few times a second (M11, "As built"), so judged by
+/// them a covered scene could never be healthy while a covered video was.
 struct SceneTally: Equatable, Sendable {
+    /// Frames the display link asked for.
+    var asked = 0
     /// Frames encoded and handed to the GPU: what the engine fed.
     var committed = 0
-    /// Frames the window server showed, by their presented time: what was displayed.
+    /// Frames the GPU finished, onto the slot's drawable: what was displayed.
+    var completed = 0
+    /// Frames the GPU gave up on.
+    var failed = 0
+    /// Frames the window server showed, by their presented time. Logged, not judged.
     var presented = 0
 
-    /// The watchdog's count over a window between two tallies (`PictureCount`), at the scene's rate.
-    static func count(from before: SceneTally, to after: SceneTally, over window: Duration, framesPerSecond: Double) -> PictureCount {
-        PictureCount(
-            displayed: after.presented - before.presented,
-            expected: Int((window / .seconds(1) * framesPerSecond).rounded()),
-            fed: after.committed - before.committed
+    /// Frames the engine can have on the GPU at once without falling behind: its latency of two, and one more.
+    static let framesInFlight = 3
+
+    /// The GPU keeps up: no more frames are on it, unfinished, than the engine's latency allows.
+    var isGPUKeepingUp: Bool { committed - completed - failed <= Self.framesInFlight }
+
+    /// The watchdog's count over a window between two tallies (`PictureCount`),
+    /// at the scene's rate. `engineReady`: at the window's end the link was up,
+    /// the render thread answered at once and the GPU kept up, so a link that
+    /// asked for too few frames was not asked by the system, which is what a
+    /// covered surface looks like.
+    static func count(
+        from before: SceneTally, to after: SceneTally, over window: Duration, framesPerSecond: Double, engineReady: Bool
+    ) -> PictureCount {
+        let expected = Int((window / .seconds(1) * framesPerSecond).rounded())
+        let asked = after.asked - before.asked
+        return PictureCount(
+            displayed: after.completed - before.completed,
+            expected: expected,
+            fed: (after.committed - before.committed) - (after.failed - before.failed),
+            asked: asked,
+            withheld: engineReady && asked * 2 < expected,
+            presented: after.presented - before.presented
         )
     }
 }

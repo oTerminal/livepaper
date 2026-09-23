@@ -22,6 +22,13 @@ struct AppServices {
     var lastRenderState: () throws -> RenderState?
     /// Made once, at launch, on the model: the one writer of the library.
     var makeImporter: (any ImportLibrary) -> any ImportRunning
+    /// Prepares again, one at a time and off the main actor, the scenes whose
+    /// programs are missing or were written by an older translator
+    /// (`ScenePreparation.refresh`); `log` hears each outcome. Runs at launch,
+    /// after the sweep. Nothing in the fakes run.
+    var prepareScenes: (
+        _ wallpapers: [Wallpaper], _ log: @escaping @Sendable (Wallpaper, ScenePreparation.Outcome) async -> Void
+    ) async -> Void
     /// The sensors behind the pause rules and the connected displays.
     var makeSensing: (_ rules: PauseRules, _ onChange: @escaping @MainActor (SensedConditions) -> Void) -> ConditionsSensing
     var displayName: (ConnectedDisplay) -> String
@@ -42,6 +49,10 @@ extension AppServices {
         let replacement = UserDefaults.standard.string(forKey: "FFmpegReplacement").map {
             URL(filePath: ($0 as NSString).expandingTildeInPath)
         }
+        // glslang and SPIRV-Cross, next to the executable as ffmpeg is (record 0008). Without them scenes hold their posters.
+        let shaderTools = ShaderTools.locate(
+            bundled: Bundle.main.url(forAuxiliaryExecutable: "glslang"), Bundle.main.url(forAuxiliaryExecutable: "spirv-cross")
+        )
         return AppServices(
             isFakes: false,
             host: host,
@@ -63,8 +74,12 @@ extension AppServices {
                 Importer(
                     location: location,
                     library: library,
-                    ffmpeg: FFmpegTool.locate(replacement: replacement, bundled: Bundle.main.url(forAuxiliaryExecutable: "ffmpeg"))
+                    ffmpeg: FFmpegTool.locate(replacement: replacement, bundled: Bundle.main.url(forAuxiliaryExecutable: "ffmpeg")),
+                    shaderTools: shaderTools
                 )
+            },
+            prepareScenes: { wallpapers, log in
+                _ = await ScenePreparation.refresh(wallpapers, in: location, tools: shaderTools, log: log)
             },
             makeSensing: { rules, onChange in
                 ConditionsSensing(rules: rules, host: host.capabilities, onChange: onChange)

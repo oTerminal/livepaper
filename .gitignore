@@ -24,6 +24,9 @@ Package.resolved
 *.dmg
 .env
 
-# Built helper binaries (built from source by Helpers/ffmpeg/build.sh)
+# Built helper binaries (built from source by Helpers/ffmpeg/build.sh and
+# Helpers/shader-tools/build.sh)
 Helpers/ffmpeg/out/
 Helpers/ffmpeg/src/
+Helpers/shader-tools/out/
+Helpers/shader-tools/src/

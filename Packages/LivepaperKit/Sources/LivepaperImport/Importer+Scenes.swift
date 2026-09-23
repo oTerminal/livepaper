@@ -7,7 +7,7 @@ import LivepaperScene
 // Wallpaper Engine scenes (record 0007). A GIF scene's frames are an exact
 // loop, so they become a video and go the video's way. Any other scene is
 // kept as its own files, to be drawn live: fingerprint, probe (the package
-// read), prepare (the files copied in, then the renderer's hook), artefacts
+// read), prepare (the files copied in, then its shaders translated), artefacts
 // (the poster and the hover preview, from the item's preview), commit.
 
 extension Importer {
@@ -34,7 +34,8 @@ extension Importer {
         do {
             progress(ImportProgress(stage: .prepare))
             let packageName = try copySceneFiles(candidate, item, into: staging)
-            try await prepareScene(staging)
+            // A scene that is not prepared is kept all the same, holding its poster; the app prepares it again later.
+            let preparation = try await prepareScene(staging)
 
             try Task.checkCancellation()
             progress(ImportProgress(stage: .artefacts))
@@ -63,7 +64,7 @@ extension Importer {
             try Task.checkCancellation()
             progress(ImportProgress(stage: .commit))
             // From here the import runs to its end, as a video's does.
-            return try await commit(staging, as: wallpaper, report: nil)
+            return try await commit(staging, as: wallpaper, answering: .importedScene(wallpaper, preparation: preparation))
         } catch {
             try? FileManager.default.removeItem(at: staging)
             throw error
@@ -90,7 +91,7 @@ extension Importer {
 
             try Task.checkCancellation()
             progress(ImportProgress(stage: .commit))
-            return try await commit(staging, as: wallpaper, report: staged.report)
+            return try await commit(staging, as: wallpaper, answering: .imported(wallpaper, staged.report))
         } catch {
             try? FileManager.default.removeItem(at: staging)
             throw error

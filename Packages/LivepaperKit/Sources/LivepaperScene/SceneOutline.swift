@@ -27,7 +27,7 @@ public struct SceneOutline: Equatable, Sendable {
 /// moves, tints or fades it, one material pass with one texture. Whether that
 /// texture really is a sprite sheet is the texture's to say (`SpriteSheet`).
 public func readSceneOutline(of sceneFile: String, in package: ScenePackage) throws(SceneReadError) -> SceneOutline {
-    let scene = try json(package.require(sceneFile))
+    let scene = try sceneJSON(package.require(sceneFile))
     let general = scene["general"] as? [String: Any] ?? [:]
     let size = orthogonalSize(general["orthogonalprojection"])
     let clearColour = numbers(general["clearcolor"]).flatMap { $0.count == 3 ? $0 : nil } ?? [0, 0, 0]
@@ -45,9 +45,9 @@ private func spriteSheet(of scene: [String: Any], size: Size, in package: SceneP
 
     guard
         let modelPath = layer["image"] as? String,
-        let model = try? json(package.require(modelPath)), model["puppet"] == nil,
+        let model = try? sceneJSON(package.require(modelPath)), model["puppet"] == nil,
         let materialPath = model["material"] as? String,
-        let material = try? json(package.require(materialPath)),
+        let material = try? sceneJSON(package.require(materialPath)),
         let passes = material["passes"] as? [[String: Any]], passes.count == 1, let pass = passes.first,
         (pass["shader"] as? String)?.hasPrefix("genericimage") == true,
         let textures = pass["textures"] as? [Any], textures.count == 1, let texture = textures.first as? String
@@ -84,7 +84,7 @@ private func covers(_ layer: [String: Any], _ size: Size) -> Bool {
 // MARK: Reading JSON
 
 /// A JSON object, with or without the byte-order mark Windows programs put first.
-func json(_ data: Data) throws(SceneReadError) -> [String: Any] {
+func sceneJSON(_ data: Data) throws(SceneReadError) -> [String: Any] {
     let bom = Data([0xEF, 0xBB, 0xBF])
     let text = data.starts(with: bom) ? data.dropFirst(bom.count) : data
     guard let object = try? JSONSerialization.jsonObject(with: text) as? [String: Any] else { throw .malformedScene }

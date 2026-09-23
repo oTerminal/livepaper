@@ -274,7 +274,7 @@ struct ImporterTests {
 
     /// A validator that finds a seam in the first so many copies it is shown, then reads the rest for real.
     func importer(failingTheFirst failures: Int, validations: Recorder<String>) -> Importer {
-        Importer(location: bench.location, library: bench.library, ffmpeg: nil, validate: { copy in
+        Importer(location: bench.location, library: bench.library, ffmpeg: nil, shaderTools: nil, validate: { copy in
             validations.append(copy.lastPathComponent)
             let isOptimisedCopy = copy.lastPathComponent == "wallpaper.mov"
             let seen = validations.values.count { $0 == "wallpaper.mov" }

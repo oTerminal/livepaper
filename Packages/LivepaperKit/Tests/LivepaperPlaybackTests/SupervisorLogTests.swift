@@ -77,6 +77,16 @@ struct SupervisorLogTests {
             SupervisorLog.counted(surface, PictureCount(displayed: 3, expected: 60, fed: 57)),
             "check count \(fields) displayed=3 expected=60 fed=57"
         ),
+        Row(
+            "check count of a scene",
+            SupervisorLog.counted(surface, PictureCount(displayed: 60, expected: 60, fed: 60, asked: 60, presented: 6)),
+            "check count \(fields) displayed=60 expected=60 fed=60 asked=60 presented=6"
+        ),
+        Row(
+            "check count of a covered scene",
+            SupervisorLog.counted(surface, PictureCount(displayed: 0, expected: 60, fed: 0, asked: 0, withheld: true, presented: 0)),
+            "check count \(fields) displayed=0 expected=60 fed=0 asked=0 presented=0 withheld"
+        ),
         Row("verdict healthy", SupervisorLog.verdict(surface, .healthy, attempt: 0), "check verdict \(fields) verdict=healthy attempt=0"),
         Row(
             "verdict not composited",

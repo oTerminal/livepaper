@@ -23,11 +23,14 @@ public final class SurfacePlayer: SurfacePlayback {
     /// The scene up, and what it is doing; nil while the layers play a video or hold a still.
     private var scene: (wallpaper: SurfaceWallpaper, state: SurfacePlaybackState)?
 
-    /// `drawingType` is what draws a scene (`PosterScene` until spike S9's renderer is ported in).
-    public init(layers: SurfaceLayers, drawingType: any SceneDrawing.Type, logger: Logger) {
+    /// `drawingType` is what draws a scene (`WallpaperEngineScene` in the extension); `pointer`
+    /// where the pointer is over the surface's display, for a scene that follows it.
+    public init(
+        layers: SurfaceLayers, drawingType: any SceneDrawing.Type, logger: Logger, pointer: (@Sendable () -> SIMD2<Float>?)? = nil
+    ) {
         self.layers = layers
         self.logger = logger
-        engine = SceneEngine(surface: layers.id, layer: layers.tree.scene, drawingType: drawingType, logger: logger)
+        engine = SceneEngine(surface: layers.id, layer: layers.tree.scene, drawingType: drawingType, logger: logger, pointer: pointer)
     }
 
     public var state: SurfacePlaybackState { scene?.state ?? layers.state }
@@ -40,8 +43,9 @@ public final class SurfacePlayer: SurfacePlayback {
             await showVideo(wallpaper, crossfade: crossfade)
             return
         }
+        engine.setVolume(wallpaper.volume)
         if let current = scene, current.wallpaper.scene == drawn {
-            // The same scene: its presentation changes in place, and it plays on.
+            // The same scene: its presentation and volume change in place, and it plays on.
             scene?.wallpaper = wallpaper
             layOutScene()
             if current.state == .suspended, await !engine.load(drawn.folder) {

@@ -24,8 +24,11 @@ final class ImportBench: Sendable {
         library = try StoredLibrary(store: store)
     }
 
-    func importer(library: (any ImportLibrary)? = nil, ffmpeg: FFmpegTool? = nil) -> Importer {
-        Importer(location: location, library: library ?? self.library, ffmpeg: ffmpeg, makeID: { self.nextID() }, now: { Self.importedAt })
+    func importer(library: (any ImportLibrary)? = nil, ffmpeg: FFmpegTool? = nil, shaderTools: ShaderTools? = nil) -> Importer {
+        Importer(
+            location: location, library: library ?? self.library, ffmpeg: ffmpeg, shaderTools: shaderTools,
+            makeID: { self.nextID() }, now: { Self.importedAt }
+        )
     }
 
     private func nextID() -> WallpaperID {

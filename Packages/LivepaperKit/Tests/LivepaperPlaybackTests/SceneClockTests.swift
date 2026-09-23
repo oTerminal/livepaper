@@ -44,13 +44,47 @@ struct SceneClockTests {
         #expect(times == row.expected)
     }
 
-    @Test func `the watchdog's count is what was presented and committed over the window, against the scene's rate`() {
-        let before = SceneTally(committed: 10, presented: 9)
-        let after = SceneTally(committed: 70, presented: 12)
+    @Test func `a scene's pictures are the ones its GPU finished, as a video's are its renderer's, whatever the window server presented`() {
+        let before = SceneTally(asked: 10, committed: 10, completed: 9, presented: 9)
+        let after = SceneTally(asked: 70, committed: 70, completed: 69, presented: 12)
 
-        let count = SceneTally.count(from: before, to: after, over: .seconds(2), framesPerSecond: 30)
+        let count = SceneTally.count(from: before, to: after, over: .seconds(2), framesPerSecond: 30, engineReady: true)
 
-        // Fed but not shown: a covered display, which the watchdog calls not composited rather than stalled.
-        #expect(count == PictureCount(displayed: 3, expected: 60, fed: 60))
+        // Under the user's windows the window server presented 3 of 60 (M11's covered desktop): that is logged, not judged.
+        #expect(count == PictureCount(displayed: 60, expected: 60, fed: 60, asked: 60, presented: 3))
+    }
+
+    @Test func `frames the GPU failed are neither shown nor fed, so failing is a stall`() {
+        let before = SceneTally(asked: 0, committed: 0, completed: 0, failed: 0, presented: 0)
+        let after = SceneTally(asked: 60, committed: 60, completed: 10, failed: 50, presented: 10)
+
+        let count = SceneTally.count(from: before, to: after, over: .seconds(2), framesPerSecond: 30, engineReady: true)
+
+        #expect(count == PictureCount(displayed: 10, expected: 60, fed: 10, asked: 60, presented: 10))
+    }
+
+    static let silentLink: [Row<Bool, PictureCount>] = [
+        Row(
+            "a link that is not called while the engine stands ready: the system withholds the frames",
+            true, PictureCount(displayed: 0, expected: 60, fed: 0, asked: 0, withheld: true, presented: 0)
+        ),
+        Row(
+            "a link that is not called while the engine does not answer: a stall",
+            false, PictureCount(displayed: 0, expected: 60, fed: 0, asked: 0, withheld: false, presented: 0)
+        ),
+    ]
+
+    @Test(arguments: silentLink)
+    func `a silent display link is withheld only while the engine stands ready`(row: Row<Bool, PictureCount>) {
+        let tally = SceneTally(asked: 40, committed: 40, completed: 40, presented: 40)
+
+        let count = SceneTally.count(from: tally, to: tally, over: .seconds(2), framesPerSecond: 30, engineReady: row.input)
+
+        #expect(count == row.expected)
+    }
+
+    @Test func `the engine stands ready while its frames are on the GPU no more than its latency allows`() {
+        #expect(SceneTally(asked: 50, committed: 50, completed: 48).isGPUKeepingUp)
+        #expect(!SceneTally(asked: 50, committed: 50, completed: 40).isGPUKeepingUp)
     }
 }

@@ -1,5 +1,6 @@
 import Foundation
 import LivepaperCore
+import LivepaperImport
 import LivepaperSystem
 import os
 
@@ -86,6 +87,25 @@ enum AppLog {
 
     static func quit(lastGeneration: UInt64?) -> String {
         "app: quit, stopped after render state \(lastGeneration.map(String.init) ?? "none")"
+    }
+
+    static func scenePrepared(_ id: WallpaperID, programs: Int, failures: Int) -> String {
+        "scene: prepared \(id), \(programs) programs, \(failures) failed"
+    }
+
+    static func sceneNotPrepared(_ id: WallpaperID, reason: String) -> String {
+        "scene: \(id) not prepared: \(reason)"
+    }
+
+    /// A scene's preparation, at import or at launch: a notice when its programs
+    /// were written, an error when they were not and it holds its poster.
+    static func log(_ preparation: ScenePreparation.Outcome, of id: WallpaperID) {
+        switch preparation {
+        case .prepared(let programs, let failures):
+            logger.notice("\(scenePrepared(id, programs: programs, failures: failures), privacy: .public)")
+        case .notPrepared(let reason):
+            logger.error("\(sceneNotPrepared(id, reason: reason), privacy: .public)")
+        }
     }
 
     static func choosingFiles(asSheet: Bool) -> String {

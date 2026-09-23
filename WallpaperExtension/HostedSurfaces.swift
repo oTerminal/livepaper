@@ -68,8 +68,12 @@ final class HostedSurfaces {
             logger: .surface,
             prepareVideoLayer: WallpaperAgentBridge.disallowDisplayCompositing
         )
-        // What draws a scene. The poster, drifting, until spike S9's renderer is ported in behind `SceneDrawing`.
-        let player = SurfacePlayer(layers: layers, drawingType: PosterScene.self, logger: .surface)
+        // What draws a scene, and where the pointer is over its display for the scenes that follow it.
+        // A scene it cannot draw holds its poster, still.
+        let pointer = DisplayPointer(display: placement.display)
+        let player = SurfacePlayer(
+            layers: layers, drawingType: WallpaperEngineScene.self, logger: .surface, pointer: { pointer.position() }
+        )
         context.layer = layers.root
         CATransaction.flush()
         surfaces[surface] = HostedSurface(id: surface, context: context, player: player, placement: placement)

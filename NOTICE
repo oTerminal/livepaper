@@ -57,3 +57,23 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+
+Livepaper also bundles two command-line tools, built from source by
+Helpers/shader-tools/build.sh (decision record 0008). The importer runs them as
+separate processes to translate a scene's shaders to Metal. Neither is linked
+into the app.
+
+glslang 16.6.0
+  https://github.com/KhronosGroup/glslang
+    BSD-3-Clause, with BSD-2-Clause, Apache-2.0 and MIT-Khronos-old for some
+    files, and NVIDIA's licence (AML-glslang) for the preprocessor. Its
+    Bison-generated parser is GPL-3.0-or-later with the Bison exception 2.2.
+
+SPIRV-Cross vulkan-sdk-1.4.357.0
+  https://github.com/KhronosGroup/SPIRV-Cross
+    Apache-2.0. The SPIR-V headers it compiles in are MIT and Khronos's free-use
+    licence (LicenseRef-KhronosFreeUse).
+
+Their licence texts are in Helpers/shader-tools/licenses/ and ship with the
+binaries.

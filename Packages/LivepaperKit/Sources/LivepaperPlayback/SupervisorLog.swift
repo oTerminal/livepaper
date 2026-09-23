@@ -87,9 +87,14 @@ public enum SupervisorLog {
         "check started reason=\(trigger.rawValue) surfaces=\(count)"
     }
 
-    /// `fed` is the frames the engine fed the renderer over the same window.
+    /// `fed` is the frames the engine fed the renderer over the same window. A
+    /// scene's adds what its display link asked for, what the window server
+    /// presented, and `withheld` when the link asked for too few while the engine stood ready.
     public static func counted(_ surface: Surface, _ count: PictureCount) -> String {
-        "check count \(surface.fields) displayed=\(count.displayed) expected=\(count.expected) fed=\(count.fed)"
+        var scene = count.asked.map { " asked=\($0)" } ?? ""
+        scene += count.presented.map { " presented=\($0)" } ?? ""
+        if count.withheld { scene += " withheld" }
+        return "check count \(surface.fields) displayed=\(count.displayed) expected=\(count.expected) fed=\(count.fed)" + scene
     }
 
     /// `attempt` is how many recoveries had been tried on the surface before this verdict.

@@ -175,6 +175,60 @@ public enum SyntheticScene {
         return "{" + merged.keys.sorted().map { "\"\($0)\": \(merged[$0] ?? "null")" }.joined(separator: ", ") + "}"
     }
 
+    /// A scene drawn with two programs: an image layer whose material's shader
+    /// is `genericimage2`, which the package does not carry, and an effect on it,
+    /// `effects/tint`, whose two stages it does, in Wallpaper Engine's GLSL
+    /// dialect. `fragment` replaces the effect's fragment stage.
+    public static func sceneWithEffect(width: Int = 1920, height: Int = 1080, fragment: String = tintFragment) -> [Entry] {
+        let layer = imageLayer(width: width, height: height, fields: ["effects": #"[{"file": "effects/tint/effect.json"}]"#])
+        return [
+            Entry("scene.json", json: sceneJSON(width: width, height: height, layers: [layer])),
+            Entry("models/background.json", json: #"{"material": "materials/background.json"}"#),
+            Entry("materials/background.json", json: #"{"passes": [{"shader": "genericimage2", "textures": ["background"]}]}"#),
+            Entry("materials/background.tex", Data("TEXV0005".utf8)),
+            Entry("effects/tint/effect.json", json: #"{"name": "tint", "passes": [{"material": "materials/effects/tint.json"}]}"#),
+            Entry("materials/effects/tint.json", json: #"{"passes": [{"shader": "effects/tint", "combos": {"soft": 1}}]}"#),
+            Entry("shaders/effects/tint.vert", Data(tintVertex.utf8)),
+            Entry("shaders/effects/tint.frag", Data(fragment.utf8)),
+        ]
+    }
+
+    /// The tint effect's vertex stage: a combo, loose uniforms, attributes and a varying.
+    public static let tintVertex = """
+        // [COMBO] {"material":"Soft edges","combo":"SOFT","type":"options","default":0}
+
+        uniform mat4 g_ModelViewProjectionMatrix;
+
+        attribute vec3 a_Position;
+        attribute vec2 a_TexCoord;
+
+        varying vec2 v_TexCoord;
+
+        void main() {
+            gl_Position = mul(vec4(a_Position, 1.0), g_ModelViewProjectionMatrix);
+            v_TexCoord = a_TexCoord;
+        }
+        """
+
+    /// The tint effect's fragment stage: a texture, and uniforms with their material keys and defaults.
+    public static let tintFragment = """
+        #include "common.h"
+
+        uniform sampler2D g_Texture0; // {"hidden":true}
+        uniform vec3 g_TintColour; // {"material":"colour","default":"1 0.5 0.25"}
+        uniform float g_Strength; // {"material":"strength","default":0.5}
+
+        varying vec2 v_TexCoord;
+
+        void main() {
+            vec4 albedo = texSample2D(g_Texture0, v_TexCoord);
+        #if SOFT
+            albedo.a = smoothstep(0.0, 1.0, albedo.a);
+        #endif
+            gl_FragColor = vec4(lerp(albedo.rgb, albedo.rgb * g_TintColour, saturate(g_Strength)), albedo.a);
+        }
+        """
+
     // MARK: Helpers
 
     private static func tiles(_ colours: [Colour], tile: (width: Int, height: Int)) -> Data {

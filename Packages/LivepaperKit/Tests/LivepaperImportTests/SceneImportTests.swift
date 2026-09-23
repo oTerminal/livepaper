@@ -32,7 +32,7 @@ struct SceneImportTests {
 
         let outcome = try await bench.importer().run(try candidate(at: item))
 
-        guard case .importedScene(let wallpaper) = outcome else {
+        guard case .importedScene(let wallpaper, _) = outcome else {
             Issue.record("not imported as a scene: \(outcome)")
             return
         }
@@ -78,22 +78,24 @@ struct SceneImportTests {
         let item = try workshop.writeSceneItem("3000000001", entries: SyntheticScene.liveScene())
         let seen = Mutex<[(folder: String, names: [String])]>([])
         let importer = Importer(
-            location: bench.location, library: bench.library, ffmpeg: nil,
+            location: bench.location, library: bench.library, ffmpeg: nil, shaderTools: nil,
             prepareScene: { folder in
                 let names = (try? FileManager.default.contentsOfDirectory(atPath: folder.path).sorted()) ?? []
                 seen.withLock { $0.append((folder.deletingLastPathComponent().lastPathComponent, names)) }
                 try Data("prepared".utf8).write(to: folder.appending(path: "prepared.bin"))
+                return .prepared(programs: 3, failures: 1)
             }
         )
 
         let outcome = try await importer.run(try candidate(at: item))
 
-        guard case .importedScene(let wallpaper) = outcome else {
+        guard case .importedScene(let wallpaper, let preparation) = outcome else {
             Issue.record("not imported as a scene: \(outcome)")
             return
         }
         #expect(seen.withLock { $0.map(\.folder) } == [".staging"])
         #expect(seen.withLock { $0.first?.names } == ["preview.jpg", "project.json", "scene.pkg"])
+        #expect(preparation == .prepared(programs: 3, failures: 1), "the hook's outcome is the import's")
         // What the hook writes is committed with the scene.
         let kept = bench.location.url(for: wallpaper.optimisedCopy).deletingLastPathComponent()
         #expect(bench.names(in: kept).contains("prepared.bin"))
@@ -101,9 +103,53 @@ struct SceneImportTests {
 
     struct PrepareFailed: Error {}
 
-    @Test func `a prepare hook that fails leaves nothing behind`() async throws {
+    // MARK: Preparing a scene's shaders
+
+    static let unprepared: [Row<String, String>] = [
+        Row("with no shader tools", "none", "the shader tools are missing"),
+        Row("with tools that cannot be started", "gone", "glslang could not be started"),
+    ]
+
+    @Test(arguments: unprepared)
+    func `a scene that cannot be prepared is imported all the same, with its poster`(row: Row<String, String>) async throws {
+        let item = try workshop.writeSceneItem("3000000001", entries: SyntheticScene.sceneWithEffect())
+        let gone = ShaderTools(glslang: workshop.file("gone/glslang"), spirvCross: workshop.file("gone/spirv-cross"))
+
+        let outcome = try await bench.importer(shaderTools: row.input == "gone" ? gone : nil).run(try candidate(at: item))
+
+        guard case .importedScene(let wallpaper, .notPrepared(let reason)) = outcome else {
+            Issue.record("not imported as an unprepared scene: \(outcome)")
+            return
+        }
+        #expect(reason.hasPrefix(row.expected))
+        let kept = bench.location.url(for: wallpaper.optimisedCopy).deletingLastPathComponent()
+        #expect(bench.names(in: kept) == ["poster.heic", "preview.jpg", "project.json", "scene.pkg"])
+        #expect(try bench.savedLibrary()[wallpaper.id] == wallpaper)
+        #expect(bench.stagingResidue.isEmpty)
+    }
+
+    @Test(.enabled(if: ShaderToolsHelper.shouldRun))
+    func `a scene that is prepared keeps its programs in its folder`() async throws {
+        let item = try workshop.writeSceneItem("3000000001", entries: SyntheticScene.sceneWithEffect())
+
+        let outcome = try await bench.importer(shaderTools: try ShaderToolsHelper.required()).run(try candidate(at: item))
+
+        guard case .importedScene(let wallpaper, let preparation) = outcome else {
+            Issue.record("not imported as a scene: \(outcome)")
+            return
+        }
+        #expect(preparation == .prepared(programs: 2, failures: 0))
+        let kept = bench.location.url(for: wallpaper.optimisedCopy).deletingLastPathComponent()
+        #expect(bench.names(in: kept) == ["poster.heic", "preview.jpg", "project.json", "scene-programs.json", "scene.pkg"])
+        #expect(ScenePrograms.translator(in: kept) == ScenePrograms.currentTranslator)
+        #expect(bench.stagingResidue.isEmpty)
+    }
+
+    @Test func `a prepare hook that throws leaves nothing behind`() async throws {
         let item = try workshop.writeSceneItem("3000000001", entries: SyntheticScene.liveScene())
-        let importer = Importer(location: bench.location, library: bench.library, ffmpeg: nil, prepareScene: { _ in throw PrepareFailed() })
+        let importer = Importer(
+            location: bench.location, library: bench.library, ffmpeg: nil, shaderTools: nil, prepareScene: { _ in throw PrepareFailed() }
+        )
 
         await #expect(throws: PrepareFailed.self) { try await importer.run(try candidate(at: item)) }
 
@@ -115,7 +161,7 @@ struct SceneImportTests {
     @Test func `the same scene again is a duplicate, found before anything is written`() async throws {
         let item = try workshop.writeSceneItem("3000000001", entries: SyntheticScene.liveScene())
         let first = try await bench.importer().run(try candidate(at: item))
-        guard case .importedScene(let wallpaper) = first else {
+        guard case .importedScene(let wallpaper, _) = first else {
             Issue.record("not imported as a scene: \(first)")
             return
         }
@@ -171,7 +217,7 @@ struct SceneImportTests {
 
         let outcome = try await bench.importer(ffmpeg: try Helper.required()).run(try candidate(at: item))
 
-        guard case .importedScene(let wallpaper) = outcome else {
+        guard case .importedScene(let wallpaper, _) = outcome else {
             Issue.record("not imported as a scene: \(outcome)")
             return
         }

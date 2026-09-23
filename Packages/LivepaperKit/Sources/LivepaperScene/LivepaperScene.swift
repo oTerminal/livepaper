@@ -1,11 +1,14 @@
 /// Wallpaper Engine scenes (record 0007, docs/specs/M11-wallpaper-engine-scenes.md).
 ///
-/// What the product knows of a scene's files: `ScenePackage` reads a `.pkg`,
-/// `SpriteSheet` a `.tex` whose pictures are a sprite sheet, and
-/// `readSceneOutline` what an import needs from the scene's JSON, the GIF-scene
-/// rule among it. The rest is the seam a scene is drawn through: `SceneDrawing`,
-/// the stand-in that draws its poster (`PosterScene`), and the import-time hook
-/// (`ScenePreparation`). Spike S9's renderer is ported in behind the seam.
+/// What the product knows of a scene's files, and how it draws one. Reading:
+/// `ScenePackage` (a `.pkg`), `SceneTexture` and `SpriteSheet` (a `.tex`),
+/// `ScenePuppet` (a `.mdl`), `SceneDocument` (the scene's JSON, its user
+/// properties at the item's defaults) and `readSceneOutline` (what an import
+/// needs, the GIF-scene rule among it). Drawing: the `SceneDrawing` seam and
+/// `WallpaperEngineScene` behind it, from the programs the import translated
+/// (`ScenePrograms`; the translation is `LivepaperImport`'s, since the
+/// extension never runs it), our stand-ins for Wallpaper Engine's own
+/// textures (`ParticleTextures`), and the scene's sounds (`SceneSoundtrack`).
 public enum LivepaperScene {
     /// The rate a scene is drawn at. Heavy scenes could not hold 60 on the
     /// spike's Mac while light ones held either (`Spikes/results/S10.md`).

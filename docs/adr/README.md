@@ -15,3 +15,4 @@ Numbers 0001 to 0004 are the outcomes of the M1 engine spike (`docs/specs/M1-eng
 | [0005](0005-wallpaper-engine-video-items-only.md) | Which Wallpaper Engine items are imported: video items only. *Superseded by 0007* |
 | [0006](0006-bundled-lgpl-ffmpeg-helper.md) | Converting the formats AVFoundation cannot open, with a bundled LGPL ffmpeg helper |
 | [0007](0007-wallpaper-engine-scenes-drawn-live.md) | Wallpaper Engine scenes drawn live in the extension, a GIF scene imported as video; web and application items still refused |
+| [0008](0008-bundled-shader-tools-helper.md) | Translating scene shaders to Metal with bundled glslang and SPIRV-Cross helpers |

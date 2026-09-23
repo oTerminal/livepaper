@@ -10,8 +10,8 @@ public enum ImportStage: String, Equatable, Sendable, CaseIterable {
     /// Writing the optimised copy: a remux or a transcode, either of which leaves the timing clean.
     case normalise
     case validate
-    /// A scene's own work before it is committed: its files copied in, then the
-    /// hook where the renderer's import-time work goes (`ScenePreparation`).
+    /// A scene's own work before it is committed: its files copied in, then its
+    /// shaders translated to Metal (`ScenePreparation`).
     case prepare
     case artefacts
     case commit
@@ -53,8 +53,10 @@ public struct ImportReport: Equatable, Sendable {
 public enum ImportOutcome: Equatable, Sendable {
     case imported(Wallpaper, ImportReport)
     /// A scene, kept as it is to be drawn live (record 0007): there is no
-    /// optimised copy to report on. A GIF scene is `imported`, as the video it became.
-    case importedScene(Wallpaper)
+    /// optimised copy to report on, only how its preparation went. One that was
+    /// not prepared is imported all the same, and holds its poster until it is.
+    /// A GIF scene is `imported`, as the video it became.
+    case importedScene(Wallpaper, preparation: ScenePreparation.Outcome)
     /// The same source file was imported before, as this wallpaper. Nothing was written.
     case duplicate(of: Wallpaper)
 }
@@ -118,7 +120,8 @@ public struct Importer: Sendable {
     let ffmpeg: FFmpegTool?
     let validate: @Sendable (URL) async throws -> LoopSeamReport
     /// A scene's import-time work, on its folder in `.staging/` (`ImportStage.prepare`).
-    let prepareScene: @Sendable (URL) async throws -> Void
+    /// Only a cancel throws; a scene it could not prepare is imported all the same.
+    let prepareScene: @Sendable (URL) async throws -> ScenePreparation.Outcome
     let makeID: @Sendable () -> WallpaperID
     let now: @Sendable () -> Date
 
@@ -126,8 +129,9 @@ public struct Importer: Sendable {
         location: LibraryLocation,
         library: any ImportLibrary,
         ffmpeg: FFmpegTool?,
+        shaderTools: ShaderTools?,
         validate: @escaping @Sendable (URL) async throws -> LoopSeamReport = { try await validateLoopSeam(of: $0) },
-        prepareScene: @escaping @Sendable (URL) async throws -> Void = { try await ScenePreparation.prepare($0) },
+        prepareScene: (@Sendable (URL) async throws -> ScenePreparation.Outcome)? = nil,
         makeID: @escaping @Sendable () -> WallpaperID = { WallpaperID(uuid: UUID()) },
         now: @escaping @Sendable () -> Date = { Date() }
     ) {
@@ -135,7 +139,8 @@ public struct Importer: Sendable {
         self.library = library
         self.ffmpeg = ffmpeg
         self.validate = validate
-        self.prepareScene = prepareScene
+        // The shader tools are the default hook's: a hook given in their place needs none.
+        self.prepareScene = prepareScene ?? { try await ScenePreparation.prepare($0, tools: shaderTools) }
         self.makeID = makeID
         self.now = now
     }
@@ -191,7 +196,7 @@ public struct Importer: Sendable {
             try Task.checkCancellation()
             progress(ImportProgress(stage: .commit))
             // From here the import runs to its end: a cancel must not land between the rename and the manifest.
-            return try await commit(staging, as: wallpaper, report: staged.report)
+            return try await commit(staging, as: wallpaper, answering: .imported(wallpaper, staged.report))
         } catch {
             try? FileManager.default.removeItem(at: staging)
             throw error
@@ -306,8 +311,8 @@ public struct Importer: Sendable {
 
     /// The rename first, the manifest after it: a manifest never names files
     /// that are not there. If the manifest cannot be saved, the files go again.
-    /// With no report, the wallpaper is a scene kept as it is.
-    func commit(_ staging: URL, as wallpaper: Wallpaper, report: ImportReport?) async throws -> ImportOutcome {
+    /// Answers `outcome`, or a duplicate when another import of the same file got there first.
+    func commit(_ staging: URL, as wallpaper: Wallpaper, answering outcome: ImportOutcome) async throws -> ImportOutcome {
         let folder = location.wallpapers.appending(path: wallpaper.id.description, directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: location.wallpapers, withIntermediateDirectories: true)
         try FileManager.default.moveItem(at: staging, to: folder)
@@ -321,6 +326,6 @@ public struct Importer: Sendable {
             }
             throw error
         }
-        return report.map { .imported(wallpaper, $0) } ?? .importedScene(wallpaper)
+        return outcome
     }
 }
