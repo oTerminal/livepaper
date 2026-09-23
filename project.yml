@@ -64,6 +64,9 @@ targets:
         product: LivepaperPlayback
       - package: LivepaperKit
         product: LivepaperSystem
+      # Workshop items through Valve's steamcmd with the user's own login (record 0009).
+      - package: LivepaperKit
+        product: LivepaperWorkshop
       # The fakes run (-fakes YES) builds the screens on its fakes.
       - package: LivepaperKit
         product: LivepaperTestSupport

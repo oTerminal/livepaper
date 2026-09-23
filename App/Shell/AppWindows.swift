@@ -45,11 +45,44 @@ final class AppWindows {
         NSApp.setActivationPolicy(.regular)
     }
 
-    /// The close button or Command-W: the Dock icon goes, the app keeps running.
+    /// The close button or Command-W: the Dock icon goes, unless the Workshop window is open, and the app keeps running.
     fileprivate func libraryDidClose() {
         isLibraryOpen = false
-        NSApp.setActivationPolicy(.accessory)
+        NSApp.setActivationPolicy(isWorkshopOpen ? .regular : .accessory)
         didCloseLibrary?()
+    }
+
+    // MARK: The Workshop window (record 0009)
+
+    static let workshopID = "workshop"
+    private(set) var isWorkshopOpen = false
+
+    /// Opens the Workshop window, or brings it forward, with the Dock icon, as the library window does.
+    func openWorkshop() {
+        willOpenWindow?()
+        NSApp.setActivationPolicy(.regular)
+        (openWindow ?? EnvironmentValues().openWindow)(id: Self.workshopID)
+        NSApp.activate()
+    }
+
+    fileprivate func workshopDidOpen() {
+        isWorkshopOpen = true
+        NSApp.setActivationPolicy(.regular)
+    }
+
+    fileprivate func workshopDidClose() {
+        isWorkshopOpen = false
+        NSApp.setActivationPolicy(isLibraryOpen ? .regular : .accessory)
+    }
+}
+
+extension View {
+    /// The Workshop window's root: the Dock icon comes and goes with it, as with the library window.
+    func workshopWindow(_ windows: AppWindows) -> some View {
+        environment(windows)
+            .background(SceneActionsReader(windows: windows))
+            .onAppear { windows.workshopDidOpen() }
+            .onDisappear { windows.workshopDidClose() }
     }
 }
 

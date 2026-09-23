@@ -3,8 +3,9 @@ import LivepaperCore
 import LivepaperTestSupport
 import SwiftUI
 
-/// Settings, in two panes: General (opening at login, the pause rules, leaving
-/// Livepaper) and Shortcuts. The pause rules are the app state's; the rest talk
+/// Settings, in two panes: General (opening at login, the pause rules, the Steam
+/// account the Workshop uses, leaving Livepaper) and Shortcuts. The pause rules
+/// are the app state's; the Steam account is the Workshop model's; the rest talk
 /// to `SystemServices` through the model.
 struct SettingsView: View {
     enum Pane: String {
@@ -25,6 +26,7 @@ struct SettingsView: View {
                 SettingsPane { ShortcutsSection() }
             }
         }
+        .steamSignInSheet(on: .settings)
     }
 }
 
@@ -42,6 +44,7 @@ private struct GeneralPane: View {
                 }
             }
             PauseRulesSection()
+            SteamAccountSection()
             Section {
                 Button("Stop Using Livepaper as Wallpaper…", role: .destructive) {
                     isConfirmingLeave = true
@@ -167,16 +170,25 @@ private enum SettingsMetrics {
 #Preview("Settings") {
     SettingsView()
         .environment(AppModel.preview())
+        .environment(WorkshopModel.preview())
+}
+
+#Preview("Settings, signed in to Steam") {
+    SettingsView()
+        .environment(AppModel.preview())
+        .environment(WorkshopModel.preview(account: "someone"))
 }
 
 #Preview("Settings, the login item needing approval") {
     SettingsView()
         .environment(AppModel.preview().previewing { $0.previewLoginItem(.needsApproval) })
+        .environment(WorkshopModel.preview())
 }
 
 #Preview("Settings, the login item not found") {
     SettingsView()
         .environment(AppModel.preview().previewing { $0.previewLoginItem(.notFound) })
+        .environment(WorkshopModel.preview())
 }
 
 extension AppModel {
