@@ -1,4 +1,5 @@
 import AppKit
+import DesignSystem
 import SwiftUI
 
 /// The menu-bar item: a click toggles the glass popover, a secondary click (or a
@@ -20,12 +21,13 @@ final class MenuBarItem: NSObject, NSMenuDelegate {
     private let appearance: NSAppearance?
 
     /// `content` is the popover's: it sits on the glass, so nothing in it is glass.
-    init(options: LaunchOptions, menu: Menu, content: some View) {
+    /// `contentPadding` is `GlassPopover`'s: `Spacing.tight` for cards of `Radius.card`.
+    init(options: LaunchOptions, menu: Menu, contentPadding: CGFloat = Spacing.medium, content: some View) {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         guard let button = statusItem.button else { preconditionFailure("A status item made by the status bar has a button") }
         button.image = NSImage(systemSymbolName: "play.rectangle.on.rectangle", accessibilityDescription: "Livepaper")
         button.setAccessibilityLabel("Livepaper")
-        popover = MenuBarPopover(anchor: button, options: options, content: content)
+        popover = MenuBarPopover(anchor: button, options: options, contentPadding: contentPadding, content: content)
         self.menu = menu
         appearance = options.nsAppearance
         super.init()

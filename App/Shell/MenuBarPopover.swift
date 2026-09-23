@@ -21,11 +21,11 @@ final class MenuBarPopover: NSObject, NSWindowDelegate {
     /// reopen leaves the panel alone.
     private var generation = 0
 
-    init(anchor: NSStatusBarButton, options: LaunchOptions, content: some View) {
+    init(anchor: NSStatusBarButton, options: LaunchOptions, contentPadding: CGFloat, content: some View) {
         self.anchor = anchor
         super.init()
         presentation.accessibility = options.accessibility()
-        let root = PopoverRoot(presentation: presentation, content: content)
+        let root = PopoverRoot(presentation: presentation, contentPadding: contentPadding, content: content)
             .launchOptions(options)
         let hostingView = NSHostingView(rootView: root)
         // The panel follows the popover's size, not the other way round.
@@ -198,13 +198,14 @@ private struct PopoverRoot<Content: View>: View {
     @Accessibility private var accessibility
     @AccessibilityFocusState private var isFocused: Bool
     let presentation: PopoverPresentation
+    let contentPadding: CGFloat
     let content: Content
 
     var body: some View {
         ZStack(alignment: .top) {
             Color.clear
             if presentation.isPresented {
-                GlassPopover { content }
+                GlassPopover(contentPadding: contentPadding) { content }
                     .fixedSize()
                     // The laid-out size, which the transition's scale leaves alone,
                     // so the panel keeps its size while the popover leaves.
