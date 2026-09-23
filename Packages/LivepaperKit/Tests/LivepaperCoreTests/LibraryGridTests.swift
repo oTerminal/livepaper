@@ -39,6 +39,36 @@ struct LibraryGridTests {
         #expect(counts == SidebarCounts(all: 5, favourites: 2, playlists: [.numbered(1): 3, .numbered(2): 0]))
     }
 
+    // MARK: The sidebar's section
+
+    static let fallbacks: [Row<LibrarySection, LibrarySection>] = [
+        Row("All stays", .all, .all),
+        Row("Favourites stays", .favourites, .favourites),
+        Row("a playlist that is there stays", .playlist(.numbered(2)), .playlist(.numbered(2))),
+        Row("a playlist that has gone falls back to All", .playlist(.numbered(7)), .all),
+        Row("a connected display stays", .nowPlaying(second), .nowPlaying(second)),
+        Row("a display that has gone falls back to All", .nowPlaying(third), .all),
+    ]
+
+    @Test(arguments: fallbacks)
+    func `a section whose display or playlist has gone falls back to All`(row: Row<LibrarySection, LibrarySection>) {
+        #expect(row.input.resolved(displays: [Self.first, Self.second], playlists: Self.state.playlists) == row.expected)
+    }
+
+    static let newPlaylists: [Row<[Int], LibrarySection>] = [
+        Row("an empty playlist is where the user goes next, to fill it", [], .playlist(.numbered(3))),
+        Row("one made from a wallpaper's menu, with it in, leaves the user where they were", [2], .favourites),
+    ]
+
+    @Test(arguments: newPlaylists)
+    func `the sidebar goes to a new playlist only when it is empty`(row: Row<[Int], LibrarySection>) {
+        let playlist = Playlist(
+            id: .numbered(3), name: "Night", wallpapers: row.input.map(WallpaperID.numbered), interval: .seconds(600), shuffle: false
+        )
+
+        #expect(LibrarySection.favourites.afterCreating(playlist) == row.expected)
+    }
+
     // MARK: Grid
 
     struct Query: Sendable {

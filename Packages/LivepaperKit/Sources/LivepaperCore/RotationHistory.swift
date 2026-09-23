@@ -25,3 +25,42 @@ public struct RotationHistory: Equatable, Sendable {
         return wallpapers[(index + wallpapers.count - 1) % wallpapers.count]
     }
 }
+
+import Foundation
+
+/// Next and Previous over the app state, with each display's `RotationHistory`
+/// kept for the session. The model commits what they answer and tells
+/// `forget(changedFrom:to:)` of every change.
+public struct RotationHistories: Equatable, Sendable {
+    private var byDisplay: [DisplayIdentity: RotationHistory] = [:]
+
+    public init() {}
+
+    /// The playlist the display shows moves on at once, and what it showed is
+    /// kept for Previous. A display showing a wallpaper, or nothing, is left as it is.
+    public mutating func next(
+        on display: DisplayIdentity, in state: AppState, library: Library, now: Date, rng: inout some RandomNumberGenerator
+    ) -> AppState {
+        let after = state.rotating(display, .next(at: now), rng: &rng)
+        if let left = state.wallpaper(shownOn: display, in: library)?.id, after.wallpaper(shownOn: display, in: library)?.id != left {
+            byDisplay[display, default: RotationHistory()].leaving(left)
+        }
+        return after
+    }
+
+    /// Back through what the display's playlist showed this session, then back
+    /// through the playlist's order. The state as it was when there is nowhere to go.
+    public mutating func previous(on display: DisplayIdentity, in state: AppState, library: Library) -> AppState {
+        guard case .playlist(let id)? = state.assignment(for: display), let playlist = state[playlist: id] else { return state }
+        let showing = state.wallpaper(shownOn: display, in: library)?.id
+        guard let back = byDisplay[display, default: RotationHistory()].previous(in: playlist, current: showing) else { return state }
+        return state.steppingBack(display, to: back)
+    }
+
+    /// A display that now shows anything else starts again: its history was of another playlist.
+    public mutating func forget(changedFrom before: AppState, to after: AppState) {
+        for display in byDisplay.keys where before.assignment(for: display) != after.assignment(for: display) {
+            byDisplay[display] = nil
+        }
+    }
+}

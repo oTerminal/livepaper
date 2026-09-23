@@ -176,14 +176,16 @@ extension AppModel {
 
     // MARK: Playlists
 
-    /// A new playlist, last in the sidebar, rotating every 30 minutes in order.
+    /// A new playlist, last in the sidebar, as Core makes one
+    /// (`AppState.creatingPlaylist(_:named:with:)`); the sidebar goes where Core
+    /// says (`LibrarySection.afterCreating`). Nil when the name was refused.
     @discardableResult
-    func createPlaylist(named name: String, with wallpapers: [WallpaperID] = []) -> PlaylistID {
-        let playlist = Playlist(
-            id: PlaylistID(uuid: UUID()), name: name, wallpapers: wallpapers, interval: Playlist.defaultInterval, shuffle: false
-        )
-        commit(state: state.creatingPlaylist(playlist))
-        return playlist.id
+    func createPlaylist(named name: String, with wallpapers: [WallpaperID] = []) -> PlaylistID? {
+        let id = PlaylistID(uuid: UUID())
+        guard let next = try? state.creatingPlaylist(id, named: name, with: wallpapers), let playlist = next[playlist: id] else { return nil }
+        commit(state: next)
+        section = section.afterCreating(playlist)
+        return id
     }
 
     /// Spaces around the name are dropped; an empty name leaves the old one.
@@ -192,11 +194,9 @@ extension AppModel {
         commit(state: next)
     }
 
-    /// Displays that showed it show what All Displays has, or nothing.
+    /// Displays that showed it show what All Displays has, or nothing; the sidebar
+    /// leaves it for All (`LibrarySection.resolved`).
     func deletePlaylist(_ id: PlaylistID) {
-        if section == .playlist(id) {
-            section = .all
-        }
         commit(state: state.deletingPlaylist(id))
     }
 

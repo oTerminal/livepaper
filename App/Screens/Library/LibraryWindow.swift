@@ -103,6 +103,8 @@ struct LibraryWindow: View {
         }
     }
 
+    /// The name as typed: Core takes it, or refuses it and nothing changes. Where
+    /// the sidebar goes after a new playlist is Core's too (`createPlaylist`).
     private func name(_ prompt: NamePrompt, _ name: String) {
         switch prompt {
         case .renameWallpaper(let id, _):
@@ -110,11 +112,7 @@ struct LibraryWindow: View {
         case .renamePlaylist(let id, _):
             model.renamePlaylist(id, to: name)
         case .newPlaylist(let wallpaper):
-            let id = model.createPlaylist(named: name, with: wallpaper.map { [$0] } ?? [])
-            // From the sidebar, the new playlist is where the user goes next; from a tile's menu, they stay.
-            if wallpaper == nil {
-                model.section = .playlist(id)
-            }
+            model.createPlaylist(named: name, with: wallpaper.map { [$0] } ?? [])
         }
     }
 }

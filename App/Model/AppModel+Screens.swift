@@ -46,14 +46,11 @@ extension AppModel {
         section = .all
     }
 
-    /// New Playlist… in a card's playlist picker: an empty playlist, selected in
-    /// the sidebar so the library opens on it to be filled. The display keeps
-    /// what it shows: an empty playlist would show nothing.
-    @discardableResult
-    func startNewPlaylist() -> PlaylistID {
-        let id = createPlaylist(named: "New Playlist")
-        section = .playlist(id)
-        return id
+    /// New Playlist… in a card's playlist picker: an empty playlist, which the
+    /// sidebar goes to (`createPlaylist`), so the library opens on it to be
+    /// filled. The display keeps what it shows: an empty playlist would show nothing.
+    func startNewPlaylist() {
+        createPlaylist(named: "New Playlist")
     }
 
     // MARK: The status line
@@ -118,10 +115,10 @@ extension AppModel {
     }
 
     /// The Set on Display button's targets: the connected displays, each checked
-    /// when its assignment is this one.
+    /// when it shows this one.
     func setOnDisplayTargets(for assignment: Assignment) -> [SetOnDisplayTarget] {
         displays.map { display in
-            SetOnDisplayTarget(id: display.targetID, name: display.name, isCurrent: state.assignment(for: display.identity) == assignment)
+            SetOnDisplayTarget(id: display.targetID, name: display.name, isCurrent: state.shows(assignment, on: display.identity))
         }
     }
 

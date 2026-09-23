@@ -68,6 +68,23 @@ extension LibrarySection {
         case .playlist, .nowPlaying: false
         }
     }
+
+    /// The section once displays or playlists have come or gone: All, when its
+    /// display is unplugged or its playlist deleted.
+    public func resolved(displays: [DisplayIdentity], playlists: [Playlist]) -> LibrarySection {
+        switch self {
+        case .all, .favourites: self
+        case .playlist(let id): playlists.contains { $0.id == id } ? self : .all
+        case .nowPlaying(let display): displays.contains(display) ? self : .all
+        }
+    }
+
+    /// Where the sidebar goes when `playlist` is made: to it when it is empty,
+    /// since it is filled from there; one made from a wallpaper's menu, with that
+    /// wallpaper in it, leaves the user where they were.
+    public func afterCreating(_ playlist: Playlist) -> LibrarySection {
+        playlist.wallpapers.isEmpty ? .playlist(playlist.id) : self
+    }
 }
 
 /// Why the grid shows nothing, for the window's empty state.

@@ -82,7 +82,7 @@ final class AppModel: ImportLibrary {
     @ObservationIgnored private var madeLast: RenderState?
     @ObservationIgnored private var handedToHost: RenderState?
     /// What each display's playlist showed this session, for Previous.
-    @ObservationIgnored var histories: [DisplayIdentity: RotationHistory] = [:]
+    @ObservationIgnored var histories = RotationHistories()
     @ObservationIgnored var pendingDeletion: PendingDeletion?
     @ObservationIgnored var runningImport: (id: UUID, task: Task<Void, Never>)?
     /// Rows being looked for in the library before their turn (`ImportList.Effect.check`).
@@ -213,9 +213,7 @@ extension AppModel {
     private func displaysChanged(_ connected: [ConnectedDisplay]) {
         displays = connected.map { Display(identity: $0.identity, name: services.displayName($0), pixelSize: $0.pixelSize) }
         areDisplaysKnown = true
-        if case .nowPlaying(let identity) = section, display(identity) == nil {
-            section = .all
-        }
+        resolveSection()
         applyRenderState()
     }
 
@@ -331,8 +329,9 @@ extension AppModel {
             } catch {
                 AppLog.logger.error("\(AppLog.stateSaveFailed(error), privacy: .public)")
             }
-            forgetHistories(after: before)
+            histories.forget(changedFrom: before, to: newState)
         }
+        resolveSection()
         gridDidChange()
         return applyRenderState()
     }
@@ -379,10 +378,11 @@ extension AppModel {
         selection.gridChanged(grid.map(\.id))
     }
 
-    /// Previous walks what a display's playlist showed: a display that now shows anything else starts again.
-    private func forgetHistories(after before: AppState) {
-        for display in histories.keys where before.assignment(for: display) != state.assignment(for: display) {
-            histories[display] = nil
+    /// The sidebar leaves a display that was unplugged, or a playlist that was deleted, for All.
+    private func resolveSection() {
+        let resolved = section.resolved(displays: displays.map(\.identity), playlists: state.playlists)
+        if resolved != section {
+            section = resolved
         }
     }
 

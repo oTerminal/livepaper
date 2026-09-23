@@ -49,6 +49,12 @@ public struct AppState: Equatable, Sendable {
         resolveAssignments(assignments, connected: [display], applyToAll: applyToAll)[display]
     }
 
+    /// Whether the display shows this wallpaper or playlist, by its own
+    /// assignment or All Displays': Set on Display's checkmark.
+    public func shows(_ assignment: Assignment, on display: DisplayIdentity) -> Bool {
+        self.assignment(for: display) == assignment
+    }
+
     // MARK: Set on display
 
     /// Sets a wallpaper or a playlist on these displays. A wallpaper goes first
@@ -163,6 +169,14 @@ public struct AppState: Equatable, Sendable {
         var state = self
         state.playlists.append(playlist)
         return state
+    }
+
+    /// A new playlist, last in the user's order, rotating every
+    /// `Playlist.defaultInterval` in order. Its name is taken as a rename takes one.
+    public func creatingPlaylist(_ id: PlaylistID, named name: String, with wallpapers: [WallpaperID]) throws -> AppState {
+        let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty else { throw LibraryError.emptyName }
+        return creatingPlaylist(Playlist(id: id, name: name, wallpapers: wallpapers, interval: Playlist.defaultInterval, shuffle: false))
     }
 
     /// Displays that showed it show apply to all, or nothing.

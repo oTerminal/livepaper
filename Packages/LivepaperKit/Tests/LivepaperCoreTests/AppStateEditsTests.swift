@@ -308,3 +308,50 @@ struct AppStateEditsTests {
         #expect(state.adding(.numbered(1), toPlaylist: missing) == state)
     }
 }
+
+// Set on Display's checkmark.
+extension AppStateEditsTests {
+    static let checked: [Row<AppState, Bool>] = [
+        Row("its own assignment is this wallpaper", state { $0.assignments[first] = .wallpaper(.numbered(1)) }, true),
+        Row("apply to all's is, and it has none of its own", state { $0.applyToAll = .wallpaper(.numbered(1)) }, true),
+        Row("another wallpaper", state { $0.assignments[first] = .wallpaper(.numbered(2)) }, false),
+        Row(
+            "its own assignment goes before apply to all's",
+            state {
+                $0.assignments[first] = .wallpaper(.numbered(2))
+                $0.applyToAll = .wallpaper(.numbered(1))
+            },
+            false
+        ),
+        Row("a playlist that holds it", state { $0.assignments[first] = .playlist(.numbered(1)) }, false),
+        Row("nothing", state(), false),
+    ]
+
+    @Test(arguments: checked)
+    func `a display that shows this wallpaper is checked in Set on Display`(row: Row<AppState, Bool>) {
+        #expect(row.input.shows(.wallpaper(.numbered(1)), on: Self.first) == row.expected)
+    }
+}
+
+// A new playlist's name, from the sidebar's New Playlist or a wallpaper's menu.
+extension AppStateEditsTests {
+    static let newNames: [Row<String, String?>] = [
+        Row("a name", "Night", "Night"),
+        Row("spaces around the name are dropped", "  Night \n", "Night"),
+        Row("an empty name is refused", "", nil),
+        Row("a name of spaces is refused", "   ", nil),
+    ]
+
+    @Test(arguments: newNames)
+    func `a new playlist is named as a rename names it, and rotates every 30 minutes in order`(row: Row<String, String?>) throws {
+        let make = { try Self.state().creatingPlaylist(.numbered(3), named: row.input, with: [.numbered(4)]) }
+
+        if let expected = row.expected {
+            #expect(try make().playlists.last == Playlist(
+                id: .numbered(3), name: expected, wallpapers: [.numbered(4)], interval: .seconds(30 * 60), shuffle: false
+            ))
+        } else {
+            #expect(throws: LibraryError.emptyName) { try make() }
+        }
+    }
+}

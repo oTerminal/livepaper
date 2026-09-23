@@ -69,21 +69,14 @@ extension AppModel {
 
     /// The next wallpaper of the playlist the display shows (`NowPlaying.canSkip`).
     func next(on display: DisplayIdentity) {
-        guard case .playlist? = state.assignment(for: display) else { return }
-        if let showing = state.wallpaper(shownOn: display, in: library) {
-            histories[display, default: RotationHistory()].leaving(showing.id)
-        }
         var rng = SystemRandomNumberGenerator()
-        commit(state: state.rotating(display, .next(at: Date()), rng: &rng))
+        commit(state: histories.next(on: display, in: state, library: library, now: Date(), rng: &rng))
     }
 
     /// Back through what the display's playlist showed this session, then back
     /// through the playlist's order.
     func previous(on display: DisplayIdentity) {
-        guard case .playlist(let id)? = state.assignment(for: display), let playlist = state[playlist: id] else { return }
-        let showing = state.wallpaper(shownOn: display, in: library)?.id
-        guard let back = histories[display, default: RotationHistory()].previous(in: playlist, current: showing) else { return }
-        commit(state: state.steppingBack(display, to: back))
+        commit(state: histories.previous(on: display, in: state, library: library))
     }
 
     // MARK: Mute
