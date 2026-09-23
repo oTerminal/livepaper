@@ -18,18 +18,25 @@ struct PreviewPlayerView: NSViewRepresentable {
     var presentation: Presentation
     /// 0 to 1. At 0 the audio track is not opened.
     var volume: Double = 0
+    /// Where there is no picture. The inspector keeps black, which is also Fit's
+    /// bars; a tile passes clear, so its poster shows until the first frame.
+    var backgroundColor = PreviewPlayer.defaultBackgroundColor
 
     private static let logger = Logger(subsystem: LivepaperSystem.logSubsystem, category: "preview")
 
     func makeNSView(context: Context) -> PreviewPlayer {
         let player = PreviewPlayer(logger: Self.logger, presentation: presentation)
         player.volume = volume
+        player.backgroundColor = backgroundColor
         return player
     }
 
     func updateNSView(_ player: PreviewPlayer, context: Context) {
         player.presentation = presentation
         player.volume = volume
+        if player.backgroundColor != backgroundColor {
+            player.backgroundColor = backgroundColor
+        }
         if let url {
             // The URL already playing is a no-op.
             player.play(url)

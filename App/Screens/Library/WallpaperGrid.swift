@@ -87,7 +87,8 @@ struct WallpaperGrid: View {
             } livePreview: {
                 // Without a hover preview (an import that made none, or the fakes run) the poster stays.
                 if let url = model.art.hoverPreviewURL(for: wallpaper) {
-                    PreviewPlayerView(url: url, presentation: Presentation())
+                    // Clear: the preview fades in over the poster before its first frame is up.
+                    PreviewPlayerView(url: url, presentation: Presentation(), backgroundColor: .clear)
                 }
             }
         }
