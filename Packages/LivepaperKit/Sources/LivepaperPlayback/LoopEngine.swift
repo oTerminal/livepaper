@@ -247,8 +247,8 @@ public actor LoopEngine {
 
     // MARK: Watching
 
-    /// Counts the new pictures the layer shows over `window`, polling only for that window.
-    /// Nil unless the engine is playing.
+    /// Counts the new pictures the layer shows over `window`, and the frames the engine feeds
+    /// its renderer over the same polls, polling only for that window. Nil unless the engine is playing.
     public func displayedPictures(over window: Duration) async -> PictureCount? {
         guard !isRetired, lifecycle == .running, !isPaused, let video else { return nil }
         return await probe.count(over: window, frameDuration: video.frameDuration)

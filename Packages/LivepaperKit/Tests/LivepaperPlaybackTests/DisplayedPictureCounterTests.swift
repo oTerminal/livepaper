@@ -11,14 +11,16 @@ private func steady(from start: Double, count: Int, firstPicture: PictureID = 1)
 
 struct DisplayedPictureCounterTests {
     /// One poll of the picture on screen: the ID of the `IOSurface` behind it, nil when there was none,
-    /// at a host time in seconds.
+    /// at a host time in seconds, and the frames the engine had fed the renderer by then.
     struct Sighting: Sendable {
         var picture: PictureID?
         var at: Double
+        var fed: Int
 
-        init(_ picture: PictureID?, _ at: Double) {
+        init(_ picture: PictureID?, _ at: Double, fed: Int = 0) {
             self.picture = picture
             self.at = at
+            self.fed = fed
         }
     }
 
@@ -47,9 +49,39 @@ struct DisplayedPictureCounterTests {
     func `counts the pictures that changed in the window`(row: Row<[Sighting], Int>) {
         var counter = DisplayedPictureCounter(from: 10, window: .seconds(2), frameDuration: 1.0 / 30)
 
-        for sighting in row.input { counter.observe(sighting.picture, at: sighting.at) }
+        for sighting in row.input { counter.observe(sighting.picture, fed: sighting.fed, at: sighting.at) }
 
         #expect(counter.count.displayed == row.expected)
+    }
+
+    static let feeding: [Row<[Sighting], Int>] = [
+        Row(
+            "frames fed between the window's first and last polls count",
+            [Sighting(1, 10.1, fed: 100), Sighting(1, 10.5, fed: 112), Sighting(1, 11.9, fed: 157)],
+            57
+        ),
+        Row(
+            "frames fed before the window opens do not count",
+            [Sighting(1, 9.9, fed: 90), Sighting(1, 10.1, fed: 100), Sighting(1, 11.9, fed: 157)],
+            57
+        ),
+        Row(
+            "frames fed once the window has closed do not count",
+            [Sighting(1, 10.1, fed: 100), Sighting(1, 11.9, fed: 157), Sighting(1, 12.0, fed: 160)],
+            57
+        ),
+        Row("a poll with no picture still reads what was fed", [Sighting(nil, 10.1, fed: 100), Sighting(nil, 11.9, fed: 157)], 57),
+        Row("one poll sees nothing fed", [Sighting(1, 10.1, fed: 100)], 0),
+        Row("no poll in the window sees nothing fed", [Sighting(1, 9.9, fed: 90), Sighting(1, 12.0, fed: 160)], 0),
+    ]
+
+    @Test(arguments: feeding)
+    func `counts the frames fed over the same polls`(row: Row<[Sighting], Int>) {
+        var counter = DisplayedPictureCounter(from: 10, window: .seconds(2), frameDuration: 1.0 / 30)
+
+        for sighting in row.input { counter.observe(sighting.picture, fed: sighting.fed, at: sighting.at) }
+
+        #expect(counter.count.fed == row.expected)
     }
 
     static let expectations: [Row<Double, Int>] = [
@@ -83,12 +115,23 @@ struct DisplayedPictureCounterTests {
     @Test(arguments: verdicts)
     func `the count is what the watchdog judges`(row: Row<[Sighting], WatchdogVerdict>) {
         var counter = DisplayedPictureCounter(from: 10, window: .seconds(2), frameDuration: 1.0 / 30)
-        for sighting in row.input { counter.observe(sighting.picture, at: sighting.at) }
+        for sighting in row.input { counter.observe(sighting.picture, fed: sighting.fed, at: sighting.at) }
 
         let count = counter.count
         let verdict = judgeProgress(before: 0, after: count.displayed, expected: count.expected, attempt: 0)
 
         #expect(verdict == row.expected)
+    }
+
+    @Test func `a covered surface the engine feeds as usual is not composited`() {
+        var counter = DisplayedPictureCounter(from: 10, window: .seconds(2), frameDuration: 1.0 / 30)
+        var schedule = WatchdogSchedule()
+
+        // S3: the picture stops changing under a fullscreen app while the engine keeps enqueueing.
+        for frame in 0 ..< 60 { counter.observe(7, fed: 200 + frame, at: 10 + Double(frame) / 30) }
+
+        #expect(counter.count == PictureCount(displayed: 0, expected: 60, fed: 59))
+        #expect(schedule.judge(.numbered(1), counter.count) == .notComposited)
     }
 }
 

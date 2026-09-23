@@ -7,7 +7,9 @@
 /// picture is up.
 typealias PictureID = UInt32
 
-/// Counts the new pictures a surface showed over one window, for the watchdog.
+/// Counts the new pictures a surface showed over one window, for the watchdog, and the frames
+/// its engine fed the renderer over the same polls: a surface the window server does not
+/// composite shows nothing new while it is fed as usual (`Spikes/results/S3.md`).
 struct DisplayedPictureCounter: Equatable, Sendable {
     /// Host time, in seconds.
     let start: Double
@@ -15,6 +17,9 @@ struct DisplayedPictureCounter: Equatable, Sendable {
     let frameDuration: Double
     private var last: PictureID?
     private var changes = 0
+    /// The engine's running total of frames fed, at the window's first poll and at its latest.
+    private var fedAtFirst: Int?
+    private var fedAtLatest: Int?
 
     init(from start: Double, window: Duration, frameDuration: Double) {
         self.start = start
@@ -22,10 +27,14 @@ struct DisplayedPictureCounter: Equatable, Sendable {
         self.frameDuration = frameDuration
     }
 
-    /// One poll: the picture on screen at `time`, nil when there was none. The first picture
-    /// seen was already up, so it is not a new one.
-    mutating func observe(_ picture: PictureID?, at time: Double) {
-        guard time >= start, time < end, let picture else { return }
+    /// One poll: the picture on screen at `time`, nil when there was none, and the frames the
+    /// engine had fed the renderer by then. The first picture seen was already up, so it is not
+    /// a new one.
+    mutating func observe(_ picture: PictureID?, fed: Int, at time: Double) {
+        guard time >= start, time < end else { return }
+        if fedAtFirst == nil { fedAtFirst = fed }
+        fedAtLatest = fed
+        guard let picture else { return }
         if let last, picture != last { changes += 1 }
         last = picture
     }
@@ -34,10 +43,12 @@ struct DisplayedPictureCounter: Equatable, Sendable {
         time >= end
     }
 
-    /// What `judgeProgress` takes: the new pictures, and one per frame of the window.
+    /// What `judgeProgress` takes: the new pictures, and one per frame of the window. With them
+    /// the frames fed between the same two polls.
     var count: PictureCount {
         let expected = frameDuration > 0 ? Int(((end - start) / frameDuration).rounded()) : 0
-        return PictureCount(displayed: changes, expected: expected)
+        let fed = (fedAtLatest ?? 0) - (fedAtFirst ?? 0)
+        return PictureCount(displayed: changes, expected: expected, fed: fed)
     }
 }
 

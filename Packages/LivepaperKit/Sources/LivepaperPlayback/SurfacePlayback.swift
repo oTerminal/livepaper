@@ -62,14 +62,18 @@ public enum SurfacePlaybackState: Equatable, Sendable {
 }
 
 /// New pictures a surface showed over a window, and how many the wallpaper's
-/// frame rate should have shown: what `judgeProgress` takes.
+/// frame rate should have shown: what `judgeProgress` takes. With them, the
+/// frames the engine fed the renderer over the same window, which tell a
+/// surface the window server does not composite from one that stalled (S3).
 public struct PictureCount: Equatable, Sendable {
     public var displayed: Int
     public var expected: Int
+    public var fed: Int
 
-    public init(displayed: Int, expected: Int) {
+    public init(displayed: Int, expected: Int, fed: Int) {
         self.displayed = displayed
         self.expected = expected
+        self.fed = fed
     }
 }
 
@@ -102,7 +106,8 @@ public protocol SurfacePlayback: AnyObject {
     /// Tries a recovery inside the process: `.flush`, `.rebuildSurface` or
     /// `.rebuildPipeline`. `.restartAgent` is the app's, not the surface's.
     func recover(_ level: RecoveryLevel) async
-    /// Counts the new pictures shown over `window`. `nil` when nothing plays.
+    /// Counts the new pictures shown over `window`, and the frames fed to the
+    /// renderer meanwhile. `nil` when nothing plays.
     func displayedPictures(over window: Duration) async -> PictureCount?
 
     /// Lays the tree out again for a new size, without animation.

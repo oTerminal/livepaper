@@ -40,6 +40,11 @@ public struct WatchdogCandidate: Equatable, Sendable {
 /// What the watchdog does about one surface after counting its pictures.
 public enum WatchdogStep: Equatable, Sendable {
     case healthy
+    /// Too few pictures shown while the engine fed the renderer as usual: the
+    /// window server is not compositing the surface, as under a fullscreen app
+    /// the render state does not know of (S3). Not a stall, so nothing is tried
+    /// and the ladder stays where it was.
+    case notComposited
     /// `.flush`, `.rebuildSurface` or `.rebuildPipeline`, tried inside the process.
     case recover(RecoveryLevel)
     /// The ladder's top: the app is asked to restart WallpaperAgent through the
@@ -112,10 +117,15 @@ public struct WatchdogSchedule: Equatable, Sendable {
             && (candidate.mode == .locked || !candidate.displayCovered)
     }
 
-    /// Judges a surface's pictures over `window` and takes the next step of its ladder.
+    /// Judges a surface's pictures over `window` and takes the next step of its
+    /// ladder. Too few pictures is a stall only when the engine fed too few
+    /// frames as well: fed at least half the expected ones, as `judgeProgress`
+    /// asks of the pictures, the surface is not composited.
     public mutating func judge(_ surface: SurfaceID, _ count: PictureCount) -> WatchdogStep {
         let attempt = attempts[surface, default: 0]
-        switch judgeProgress(before: 0, after: count.displayed, expected: count.expected, attempt: attempt) {
+        let verdict = judgeProgress(before: 0, after: count.displayed, expected: count.expected, attempt: attempt)
+        if verdict != .healthy, count.fed * 2 >= count.expected { return .notComposited }
+        switch verdict {
         case .healthy:
             attempts[surface] = nil
             restartRequests.remove(surface)

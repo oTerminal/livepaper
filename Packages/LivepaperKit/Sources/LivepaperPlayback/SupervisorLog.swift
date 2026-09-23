@@ -87,14 +87,16 @@ public enum SupervisorLog {
         "check started reason=\(trigger.rawValue) surfaces=\(count)"
     }
 
+    /// `fed` is the frames the engine fed the renderer over the same window.
     public static func counted(_ surface: Surface, _ count: PictureCount) -> String {
-        "check count \(surface.fields) displayed=\(count.displayed) expected=\(count.expected)"
+        "check count \(surface.fields) displayed=\(count.displayed) expected=\(count.expected) fed=\(count.fed)"
     }
 
     /// `attempt` is how many recoveries had been tried on the surface before this verdict.
     public static func verdict(_ surface: Surface, _ step: WatchdogStep, attempt: Int) -> String {
         let verdict = switch step {
         case .healthy: "healthy"
+        case .notComposited: "notComposited"
         case .recover(let level): String(describing: level)
         case .requestRestart: String(describing: RecoveryLevel.restartAgent)
         }

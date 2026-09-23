@@ -3,7 +3,8 @@ import QuartzCore
 import Synchronization
 
 /// Polls the picture on screen from a queue of its own, and only while something is counting:
-/// a watchdog window, or the metrics probe. Nothing polls otherwise.
+/// a watchdog window, or the metrics probe. Nothing polls otherwise. Its engine tells it of every
+/// frame fed to the renderer, so that a window counts those over the same polls.
 ///
 /// Its own queue, at a high priority, because the engine's queue waits on the reader and a late
 /// poll reads as a late picture (`Spikes/results/S2.md`, "How presented frames were measured").
@@ -15,6 +16,8 @@ final class PictureProbe: Sendable {
     private let gate: RetirementGate<LayerAccess>
     private let queue = DispatchSerialQueue(label: "app.livepaper.playback.probe", qos: .userInteractive)
     private let state = Mutex(State())
+    /// Frames the engine has fed the renderer, ever: a window takes the difference.
+    private let fed = Atomic(0)
 
     private struct State {
         var timer: (any DispatchSourceTimer)?
@@ -36,7 +39,8 @@ final class PictureProbe: Sendable {
         state.withLock { $0.timer?.cancel() }
     }
 
-    /// The new pictures shown over `window`, polled for that window and no longer.
+    /// The new pictures shown over `window`, and the frames fed between the same polls, polled
+    /// for that window and no longer.
     func count(over window: Duration, frameDuration: Double) async -> PictureCount {
         await withCheckedContinuation { continuation in
             let counter = DisplayedPictureCounter(from: CACurrentMediaTime(), window: window, frameDuration: frameDuration)
@@ -45,6 +49,12 @@ final class PictureProbe: Sendable {
                 startPolling(&state)
             }
         }
+    }
+
+    /// The engine put a frame on the renderer's queue. Called from the engine's queue, for every
+    /// frame, so it takes no lock.
+    func frameFed() {
+        fed.wrappingAdd(1, ordering: .relaxed)
     }
 
     /// Starts measuring presented gaps afresh; nil stops.
@@ -81,13 +91,14 @@ final class PictureProbe: Sendable {
 
     private func poll() {
         let picture = displayedPicture()
+        let fedSoFar = fed.load(ordering: .relaxed)
         let now = CACurrentMediaTime()
         let finished = state.withLock { state in
             state.gaps?.observe(picture, at: now)
             var finished: [(CheckedContinuation<PictureCount, Never>, PictureCount)] = []
             var open: [Window] = []
             for var window in state.windows {
-                window.counter.observe(picture, at: now)
+                window.counter.observe(picture, fed: fedSoFar, at: now)
                 if window.counter.isOver(at: now) {
                     finished.append((window.continuation, window.counter.count))
                 } else {

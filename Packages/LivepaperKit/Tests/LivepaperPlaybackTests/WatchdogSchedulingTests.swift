@@ -86,10 +86,50 @@ struct WatchdogSchedulingTests {
         #expect(WatchdogSchedule.mayJudge(row.input) == row.expected)
     }
 
+    // MARK: What a count means
+
+    static let judgements: [Row<PictureCount, WatchdogStep>] = [
+        Row("every picture shown is healthy", PictureCount(displayed: 60, expected: 60, fed: 60), .healthy),
+        Row("half the pictures shown is healthy, whatever was fed", PictureCount(displayed: 30, expected: 60, fed: 0), .healthy),
+        Row(
+            "a covered surface fed as usual is not composited, not stalled",
+            PictureCount(displayed: 0, expected: 60, fed: 60),
+            .notComposited
+        ),
+        Row(
+            "a wedged decoder that stops taking frames is a stall",
+            PictureCount(displayed: 0, expected: 60, fed: 0),
+            .recover(.flush)
+        ),
+        Row(
+            "a stopped clock is a stall: the renderer's queue fills and feeding stops",
+            PictureCount(displayed: 0, expected: 60, fed: 12),
+            .recover(.flush)
+        ),
+        Row(
+            "too few shown while half the frames were fed is not composited",
+            PictureCount(displayed: 29, expected: 60, fed: 30),
+            .notComposited
+        ),
+        Row(
+            "too few shown and too few fed is a stall",
+            PictureCount(displayed: 29, expected: 60, fed: 29),
+            .recover(.flush)
+        ),
+    ]
+
+    @Test(arguments: judgements)
+    func `tells a surface that is not composited from one that stalled`(row: Row<PictureCount, WatchdogStep>) {
+        var schedule = WatchdogSchedule()
+
+        #expect(schedule.judge(.numbered(1), row.input) == row.expected)
+    }
+
     // MARK: The ladder
 
-    static let healthy = PictureCount(displayed: 60, expected: 60)
-    static let stalled = PictureCount(displayed: 0, expected: 60)
+    static let healthy = PictureCount(displayed: 60, expected: 60, fed: 60)
+    static let stalled = PictureCount(displayed: 0, expected: 60, fed: 0)
+    static let notComposited = PictureCount(displayed: 0, expected: 60, fed: 60)
     static let toTheTop: [WatchdogStep] = [.recover(.flush), .recover(.rebuildSurface), .recover(.rebuildPipeline), .requestRestart]
 
     enum Step: Sendable {
@@ -179,6 +219,21 @@ struct WatchdogSchedulingTests {
             "the app's recovery leaves healthy surfaces at the bottom",
             [.count(1, healthy), .recover(.rebuildPipeline), .count(1, stalled)],
             Climb(steps: [.healthy, .recover(.flush)], restartAgentRequested: false)
+        ),
+        Row(
+            "a surface not composited starts no ladder",
+            [.count(1, notComposited), .count(1, notComposited), .recover(.rebuildPipeline), .count(1, stalled)],
+            Climb(steps: [.notComposited, .notComposited, .recover(.flush)], restartAgentRequested: false)
+        ),
+        Row(
+            "a surface not composited keeps its place on the ladder",
+            [.count(1, stalled), .count(1, notComposited), .count(1, stalled)],
+            Climb(steps: [.recover(.flush), .notComposited, .recover(.rebuildSurface)], restartAgentRequested: false)
+        ),
+        Row(
+            "a surface not composited keeps its restart request",
+            [.count(1, stalled), .count(1, stalled), .count(1, stalled), .count(1, stalled), .count(1, notComposited)],
+            Climb(steps: toTheTop + [.notComposited], restartAgentRequested: true)
         ),
     ]
 

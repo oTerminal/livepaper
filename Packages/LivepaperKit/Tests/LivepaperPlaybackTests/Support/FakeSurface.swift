@@ -121,7 +121,7 @@ final class FakeSurface: SurfacePlayback {
         calls.append(.countPictures)
         await countGate?.wait()
         if !counts.isEmpty { return counts.removeFirst() }
-        return state == .playing ? PictureCount(displayed: 60, expected: 60) : nil
+        return state == .playing ? PictureCount(displayed: 60, expected: 60, fed: 60) : nil
     }
 
     func layout(surface: SurfaceGeometry) {

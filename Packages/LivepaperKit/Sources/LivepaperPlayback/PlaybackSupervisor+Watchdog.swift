@@ -5,8 +5,10 @@ import LivepaperCore
 /// the app's `check`, it counts the pictures each surface it may judge shows
 /// over `WatchdogSchedule.window`, and climbs `.flush` → `.rebuildSurface` →
 /// `.rebuildPipeline` on a surface that stalls, then asks the app for
-/// `.restartAgent` through the heartbeat. The counting runs for the checks
-/// and stops: nothing polls while nothing changes.
+/// `.restartAgent` through the heartbeat. A surface that shows too few
+/// pictures while its engine is fed as usual is not composited, which is no
+/// stall. The counting runs for the checks and stops: nothing polls while
+/// nothing changes.
 extension PlaybackSupervisor {
     /// The Mac woke. A second later every display's decision is taken again,
     /// against each surface as it is then, and a check runs (docs/roadmap.md, Risks).
@@ -121,6 +123,9 @@ extension PlaybackSupervisor {
             switch step {
             case .healthy:
                 if wasRequested, !watchdog.restartAgentRequested { log(SupervisorLog.restartRequestCleared) }
+            case .notComposited:
+                // Not a stall: nothing to try, and no check to follow.
+                break
             case .recover(let level):
                 await playback.recover(level)
                 log(SupervisorLog.recoveryTried(fields(surface), level: level))

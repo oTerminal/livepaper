@@ -68,7 +68,7 @@ struct PlaybackSupervisorTests {
         RenderState(generation: generation, isStopped: stopped, displays: displays, pauseRules: rules, conditions: conditions)
     }
 
-    static let stalled = PictureCount(displayed: 0, expected: 60)
+    static let stalled = PictureCount(displayed: 0, expected: 60, fed: 0)
 
     /// Conditions the app sensed at launch: `display` is covered.
     static func covering(_ display: Int) -> SensedConditions {

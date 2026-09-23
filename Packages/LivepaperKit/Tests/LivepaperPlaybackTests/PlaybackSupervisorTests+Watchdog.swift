@@ -50,6 +50,24 @@ extension PlaybackSupervisorTests {
         #expect(!bench.supervisor.heartbeat.flags.contains(.restartAgentRequested), "a later healthy check clears it")
     }
 
+    @Test func `a surface the engine feeds but the window server does not composite is left alone`() async {
+        let bench = SupervisorBench()
+        // The render state does not know the display is covered: the app is late, or its sensing missed it.
+        await bench.apply(Self.state(.numbered(1)))
+        await bench.acquire(1, display: 1)
+        bench.surface(1).counts = [PictureCount(displayed: 0, expected: 60, fed: 60)]
+
+        await bench.supervisor.check().value
+
+        #expect(bench.surface(1).recoveries == [])
+        #expect(bench.surface(1).countsTaken == 1, "nothing was tried, so no check follows")
+        #expect(!bench.supervisor.heartbeat.flags.contains(.restartAgentRequested))
+
+        await bench.supervisor.recover(.flush)?.value
+
+        #expect(bench.surface(1).recoveries == [], "nor is it a stalled surface for the app's recovery")
+    }
+
     @Test func `a recovery that works ends the ladder`() async {
         let bench = SupervisorBench()
         await bench.apply(Self.state(.numbered(1)))

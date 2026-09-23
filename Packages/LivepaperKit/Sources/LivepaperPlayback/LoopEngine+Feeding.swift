@@ -73,6 +73,7 @@ extension LoopEngine {
             guard let frame = stamped(buffer) else { continue }
             frame.displayImmediately()
             guard onLayer({ $0.enqueueFirst(frame) }) != nil else { return nil }
+            probe.frameFed()
             return frame.presentationTimeStamp
         }
         return nil
@@ -110,6 +111,7 @@ extension LoopEngine {
             }
             guard let frame = stamped(buffer) else { continue }
             guard onLayer({ $0.renderer.enqueue(frame) }) != nil else { return }
+            probe.frameFed()
         }
     }
 

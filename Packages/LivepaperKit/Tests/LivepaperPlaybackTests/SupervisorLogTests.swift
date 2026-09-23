@@ -74,10 +74,15 @@ struct SupervisorLogTests {
         Row("check started", SupervisorLog.checkStarted(.wake, judging: 2), "check started reason=wake surfaces=2"),
         Row(
             "check count",
-            SupervisorLog.counted(surface, PictureCount(displayed: 3, expected: 60)),
-            "check count \(fields) displayed=3 expected=60"
+            SupervisorLog.counted(surface, PictureCount(displayed: 3, expected: 60, fed: 57)),
+            "check count \(fields) displayed=3 expected=60 fed=57"
         ),
         Row("verdict healthy", SupervisorLog.verdict(surface, .healthy, attempt: 0), "check verdict \(fields) verdict=healthy attempt=0"),
+        Row(
+            "verdict not composited",
+            SupervisorLog.verdict(surface, .notComposited, attempt: 1),
+            "check verdict \(fields) verdict=notComposited attempt=1"
+        ),
         Row(
             "verdict flush",
             SupervisorLog.verdict(surface, .recover(.flush), attempt: 0),
