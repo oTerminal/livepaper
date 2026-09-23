@@ -56,13 +56,13 @@ extension ImportList.RowState {
         case .waiting: .queued
         case .running(_, let words, let fraction): .running(fraction: fraction, detail: words)
         case .finished, .duplicate: .finished
-        case .failed(let reason, _): .failed(message: reason)
+        case .failed(let reason, _, _): .failed(message: reason)
         }
     }
 
     /// Retry is offered only where it can help.
     var canRetry: Bool {
-        if case .failed(_, let canRetry) = self { canRetry } else { false }
+        if case .failed(_, let canRetry, _) = self { canRetry } else { false }
     }
 }
 

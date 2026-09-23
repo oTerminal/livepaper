@@ -63,7 +63,7 @@ extension AppModel {
     }
 
     /// A row's cancel: a running import's stream is dropped, which stops it; a
-    /// waiting row is taken away, and so is a failed one.
+    /// waiting row is taken away, and so is a failed one ("Remove from List").
     func cancelImport(_ row: ImportList.Row.ID) {
         perform(importList.cancel(row))
     }
@@ -144,7 +144,7 @@ extension AppModel {
         return true
     }
 
-    /// Finished rows leave `ImportList.finishedLifetime` after they finished.
+    /// Finished rows, and failed rows Retry cannot help, leave `ImportList.finishedLifetime` after they ended.
     private func scheduleImportTick() {
         importTick?.cancel()
         importTick = nil

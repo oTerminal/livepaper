@@ -12,7 +12,7 @@ struct ImportListTests {
         case imported(Int, at: TimeInterval)
         /// Candidate `number` is already in the library as wallpaper `of`.
         case duplicate(Int, of: Int, at: TimeInterval)
-        case failed(Int, any Error)
+        case failed(Int, any Error, at: TimeInterval = 0)
         case cancel(Int)
         case retry(Int)
         case tick(at: TimeInterval)
@@ -41,8 +41,8 @@ struct ImportListTests {
             Shown(number: number, state: .duplicate(of: .numbered(wallpaper), at: Moment.after(seconds)))
         }
 
-        static func failed(_ number: Int, _ reason: String, canRetry: Bool) -> Shown {
-            Shown(number: number, state: .failed(reason: reason, canRetry: canRetry))
+        static func failed(_ number: Int, _ reason: String, canRetry: Bool, at seconds: TimeInterval = 0) -> Shown {
+            Shown(number: number, state: .failed(reason: reason, canRetry: canRetry, at: Moment.after(seconds)))
         }
     }
 
@@ -66,8 +66,8 @@ struct ImportListTests {
                 effects = list.received(.finished(.imported(.numbered(number), report)), for: .row(number), at: Moment.after(seconds))
             case .duplicate(let number, let wallpaper, let seconds):
                 effects = list.received(.finished(.duplicate(of: .numbered(wallpaper))), for: .row(number), at: Moment.after(seconds))
-            case .failed(let number, let error):
-                effects = list.failed(.row(number), error: error, at: Moment.launch)
+            case .failed(let number, let error, let seconds):
+                effects = list.failed(.row(number), error: error, at: Moment.after(seconds))
             case .cancel(let number):
                 effects = list.cancel(.row(number))
             case .retry(let number):
@@ -227,9 +227,24 @@ struct ImportListTests {
             Outcome(rows: [.finished(2, at: 12), .running(3)], effects: [])
         ),
         Row(
-            "a failed row stays, for its Retry",
+            "a failed row that Retry can help stays, for its Retry",
             [.enqueue(1...1), .failed(1, unreadable), .tick(at: 3600)],
             Outcome(rows: [.failed(1, "It could not be read", canRetry: true)], effects: [])
+        ),
+        Row(
+            "a failed row that Retry cannot help leaves 5 s after it failed, as a finished row does: its toast said why",
+            [.enqueue(1...2), .failed(1, ImportError.rejected(.protected), at: 10), .tick(at: 15)],
+            Outcome(rows: [.running(2)], effects: [])
+        ),
+        Row(
+            "and not before",
+            [.enqueue(1...2), .failed(1, ImportError.rejected(.protected), at: 10), .tick(at: 14.9)],
+            Outcome(rows: [.failed(1, "It is copy-protected", canRetry: false, at: 10), .running(2)], effects: [])
+        ),
+        Row(
+            "a retried row that fails again keeps the time of the second failure",
+            [.enqueue(1...1), .failed(1, unreadable, at: 10), .retry(1), .failed(1, ImportError.rejected(.protected), at: 20), .tick(at: 24)],
+            Outcome(rows: [.failed(1, "It is copy-protected", canRetry: false, at: 20)], effects: [])
         ),
     ]
 
@@ -276,7 +291,12 @@ struct ImportListTests {
         Row("nothing finished: no tick is wanted", [.enqueue(1...2)], nil),
         Row("the first finished row to leave", [.enqueue(1...3), .imported(1, at: 10), .duplicate(2, of: 7, at: 12)], 15),
         Row("then the next", [.enqueue(1...3), .imported(1, at: 10), .duplicate(2, of: 7, at: 12), .tick(at: 15)], 17),
-        Row("a failed row never leaves by itself", [.enqueue(1...1), .failed(1, unreadable)], nil),
+        Row("a failed row that Retry can help never leaves by itself", [.enqueue(1...1), .failed(1, unreadable)], nil),
+        Row(
+            "a failed row that Retry cannot help leaves 5 s after it failed",
+            [.enqueue(1...3), .failed(1, ImportError.rejected(.protected), at: 10), .imported(2, at: 12)],
+            15
+        ),
     ]
 
     @Test(arguments: ticks)
