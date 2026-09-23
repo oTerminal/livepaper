@@ -159,4 +159,15 @@ public struct GridSelection: Equatable, Sendable {
             self.selected = nil
         }
     }
+
+    /// The sidebar moved to `section`, whose grid is `grid`. A playlist's section
+    /// starts with nothing selected: the inspector shows a selected wallpaper
+    /// before the playlist, so a kept selection would hide the playlist's settings.
+    public mutating func sectionChanged(to section: LibrarySection, grid: [WallpaperID]) {
+        if case .playlist = section {
+            selected = nil
+        } else {
+            gridChanged(grid)
+        }
+    }
 }

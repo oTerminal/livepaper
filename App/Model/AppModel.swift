@@ -103,7 +103,7 @@ final class AppModel: ImportLibrary {
         get { sectionValue }
         set {
             sectionValue = newValue
-            gridDidChange()
+            selection.sectionChanged(to: newValue, grid: grid.map(\.id))
         }
     }
 

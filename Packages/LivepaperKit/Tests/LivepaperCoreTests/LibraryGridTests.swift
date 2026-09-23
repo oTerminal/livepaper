@@ -243,4 +243,20 @@ struct LibraryGridTests {
         #expect(kept == .numbered(2))
         #expect(selection.selected == nil)
     }
+
+    static let sections: [Row<LibrarySection, Int?>] = [
+        Row("a playlist starts with nothing selected, so the inspector shows the playlist", .playlist(.numbered(1)), nil),
+        Row("favourites keep the selection their grid shows", .favourites, 2),
+        Row("all wallpapers keep it too", .all, 2),
+        Row("a display's section keeps it while its grid shows it", .nowPlaying(.numbered(1)), 2),
+    ]
+
+    @Test(arguments: sections)
+    func `choosing a section in the sidebar`(row: Row<LibrarySection, Int?>) {
+        var selection = GridSelection(selected: .numbered(2))
+
+        selection.sectionChanged(to: row.input, grid: [.numbered(1), .numbered(2)])
+
+        #expect(selection.selected == row.expected.map(WallpaperID.numbered))
+    }
 }
