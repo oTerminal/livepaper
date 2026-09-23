@@ -26,7 +26,15 @@ final class FakesRemote {
             guard let command = notification.object as? String else { return }
             let words = command.split(separator: " ", maxSplits: 1).map(String.init)
             guard let verb = words.first else { return }
-            MainActor.assumeIsolated { perform(verb, words.count > 1 ? words[1] : "") }
+            let rest = words.count > 1 ? words[1] : ""
+            // From a timer on the run loop, not from this main-queue callout: Quit
+            // waits for the model in a nested run loop, which cannot run the main
+            // queue from inside one of its own callouts, so the model's quit never
+            // ran and `fakes.sh quit` left the app hung.
+            let timer = Timer(timeInterval: 0, repeats: false) { _ in
+                MainActor.assumeIsolated { perform(verb, rest) }
+            }
+            RunLoop.main.add(timer, forMode: .common)
         }
     }
 }

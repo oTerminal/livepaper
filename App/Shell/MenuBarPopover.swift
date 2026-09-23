@@ -33,7 +33,14 @@ final class MenuBarPopover: NSObject, NSWindowDelegate {
         panel.contentView = hostingView
         panel.appearance = options.nsAppearance
         panel.delegate = self
-        presentation.sizeChanged = { [weak self] in self?.place() }
+        // A size is reported from inside SwiftUI's layout. Moving the panel there laid
+        // it out again from inside that layout, which AppKit refuses; with AppKit
+        // views in the popover (the recents' scroll view, the playlist pickers) it
+        // went on into a constraints loop that crashed the app on open. The next turn
+        // of the main queue is soon enough: `open` places the panel itself.
+        presentation.sizeChanged = { [weak self] in
+            Task { @MainActor in self?.place() }
+        }
     }
 
     var isShown: Bool { presentation.isPresented }
@@ -51,6 +58,10 @@ final class MenuBarPopover: NSObject, NSWindowDelegate {
         place()
         panel.orderFrontRegardless()
         panel.makeKey()
+        // No control starts focused, as in a menu: with keyboard navigation on, the
+        // first one (a card's playlist picker) would open ringed as if chosen. Tab
+        // goes in from here, and Escape closes wherever focus is.
+        panel.makeFirstResponder(nil)
         anchor?.highlight(true)
         startWatching()
     }
