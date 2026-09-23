@@ -19,8 +19,9 @@ struct MenuDisplay: Identifiable, Equatable {
     }
 }
 
-/// Drives the real render host from the developer menu, so that the checks on
-/// screen (docs/specs/M5-engine.md) can be run until M6's screens replace it.
+/// Drives the real render host, as M5's developer menu did, until M6's app
+/// model replaces it; the menu-bar item's "Log Playback Metrics" is all that
+/// is left of the menu.
 ///
 /// It owns the library, the host client and the sensors, keeps what each
 /// display shows in memory, and applies a new render state whenever that or
@@ -40,8 +41,6 @@ final class DeveloperSession {
 
     let location = LibraryLocation(home: .homeDirectory)
     let host: ExtensionHostClient
-    /// The S2p check's window.
-    @ObservationIgnored let preview = PreviewWindow()
     let logger = Logger(subsystem: LivepaperSystem.logSubsystem, category: DeveloperLog.category)
 
     /// What each display shows, displays that are not connected now included,

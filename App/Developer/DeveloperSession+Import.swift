@@ -20,7 +20,7 @@ extension DeveloperSession {
         guard panel.runModal() == .OK, !panel.urls.isEmpty else { return }
 
         let files = panel.urls
-        // The helper is not bundled yet (M4-import.md, "As built"): files only ffmpeg can open are refused.
+        // The bundled helper, when the build had one (project.yml); without it, files only ffmpeg can open are refused.
         let importer = Importer(
             location: location,
             library: storedLibrary,

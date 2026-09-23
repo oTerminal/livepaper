@@ -1,0 +1,133 @@
+import AppKit
+import SwiftUI
+
+/// The menu-bar item: a click toggles the glass popover, a secondary click (or a
+/// Control-click) shows a short menu of what the popover does not hold.
+@MainActor
+final class MenuBarItem: NSObject, NSMenuDelegate {
+    /// The secondary-click menu's items, answered by whoever runs the app.
+    struct Menu {
+        /// "Log Playback Metrics", a checkmark: M8's soak and M10's checklist switch it on.
+        var isPlaybackMetricsOn: () -> Bool
+        var setPlaybackMetrics: (Bool) -> Void
+        /// The fakes run's "Fakes" submenu, built when the menu opens; nil leaves it out.
+        var fakes: (() -> NSMenu)?
+    }
+
+    private let statusItem: NSStatusItem
+    private let popover: MenuBarPopover
+    private let menu: Menu
+    private let appearance: NSAppearance?
+
+    /// `content` is the popover's: it sits on the glass, so nothing in it is glass.
+    init(options: LaunchOptions, menu: Menu, content: some View) {
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        guard let button = statusItem.button else { preconditionFailure("A status item made by the status bar has a button") }
+        button.image = NSImage(systemSymbolName: "play.rectangle.on.rectangle", accessibilityDescription: "Livepaper")
+        button.setAccessibilityLabel("Livepaper")
+        popover = MenuBarPopover(anchor: button, options: options, content: content)
+        self.menu = menu
+        appearance = options.nsAppearance
+        super.init()
+        button.target = self
+        button.action = #selector(clicked)
+        button.sendAction(on: [.leftMouseDown, .rightMouseDown])
+        // VoiceOver presses the item for the popover; the menu is an action of its own.
+        button.setAccessibilityCustomActions([
+            NSAccessibilityCustomAction(name: "Show Menu") { [weak self] in
+                self?.showMenu()
+                return true
+            },
+        ])
+    }
+
+    // Each with motion from a click, and without from a key press, VoiceOver or a hotkey.
+
+    func togglePopover() {
+        popover.toggle(animated: Self.isPointerEvent(NSApp.currentEvent))
+    }
+
+    func openPopover() {
+        popover.open(animated: Self.isPointerEvent(NSApp.currentEvent))
+    }
+
+    func closePopover() {
+        popover.close(animated: Self.isPointerEvent(NSApp.currentEvent))
+    }
+
+    @objc private func clicked() {
+        let event = NSApp.currentEvent
+        let isControlClick = event?.type == .leftMouseDown && event?.modifierFlags.contains(.control) == true
+        if event?.type == .rightMouseDown || isControlClick {
+            showMenu()
+        } else {
+            togglePopover()
+        }
+    }
+
+    // MARK: The menu
+
+    private func showMenu() {
+        closePopover()
+        statusItem.menu = makeMenu()
+        // With a menu set, the button pops it up as a menu-bar item does, and
+        // tracks it until it closes.
+        statusItem.button?.performClick(nil)
+    }
+
+    func menuDidClose(_ menu: NSMenu) {
+        statusItem.menu = nil
+    }
+
+    private func makeMenu() -> NSMenu {
+        let items = NSMenu(title: "Livepaper")
+        items.delegate = self
+        items.appearance = appearance
+
+        let metrics = NSMenuItem("Log Playback Metrics") { [menu] in
+            menu.setPlaybackMetrics(!menu.isPlaybackMetricsOn())
+        }
+        metrics.state = menu.isPlaybackMetricsOn() ? .on : .off
+        items.addItem(metrics)
+
+        if let fakes = menu.fakes {
+            let item = NSMenuItem(title: "Fakes", action: nil, keyEquivalent: "")
+            item.submenu = fakes()
+            items.addItem(item)
+        }
+
+        items.addItem(.separator())
+        items.addItem(NSMenuItem("Quit Livepaper", keyEquivalent: "q") {
+            NSApp.terminate(nil)
+        })
+        return items
+    }
+
+    private static func isPointerEvent(_ event: NSEvent?) -> Bool {
+        guard let type = event?.type else { return false }
+        return [.leftMouseDown, .leftMouseUp, .rightMouseDown, .rightMouseUp, .otherMouseDown, .otherMouseUp].contains(type)
+    }
+}
+
+/// What a menu item built in code runs, such as the Fakes submenu's.
+final class MenuAction: NSObject {
+    private let handler: () -> Void
+
+    init(_ handler: @escaping () -> Void) {
+        self.handler = handler
+    }
+
+    @objc func run() {
+        handler()
+    }
+}
+
+extension NSMenuItem {
+    /// An item that runs `handler` when chosen. The item keeps the handler.
+    convenience init(_ title: String, keyEquivalent: String = "", handler: @escaping () -> Void) {
+        let action = MenuAction(handler)
+        self.init(title: title, action: #selector(MenuAction.run), keyEquivalent: keyEquivalent)
+        target = action
+        representedObject = action
+    }
+}
