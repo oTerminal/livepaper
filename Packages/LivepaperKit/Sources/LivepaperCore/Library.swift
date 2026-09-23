@@ -59,6 +59,17 @@ public struct Library: Equatable, Sendable {
         try updating(id) { $0.isFavourite = isFavourite }
     }
 
+    /// The wallpaper's own presentation, which every display showing it takes.
+    public func settingPresentation(_ presentation: Presentation, for id: WallpaperID) throws -> Library {
+        try updating(id) { $0.presentation = presentation }
+    }
+
+    /// Kept between 0 and 1, and a volume that is not a number is silent.
+    public func settingVolume(_ volume: Double, for id: WallpaperID) throws -> Library {
+        let volume = volume.isFinite ? min(max(volume, 0), 1) : 0
+        return try updating(id) { $0.volume = volume }
+    }
+
     /// A deleted wallpaper and where it was, which is all that undo needs.
     public struct Removal: Equatable, Sendable {
         public let wallpaper: Wallpaper

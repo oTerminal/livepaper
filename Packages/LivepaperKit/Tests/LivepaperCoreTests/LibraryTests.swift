@@ -92,6 +92,36 @@ struct LibraryTests {
         #expect(unmarked == library)
     }
 
+    // MARK: Presentation and volume
+
+    @Test func `sets a wallpaper's presentation`() throws {
+        let library = try Library.of(.numbered(1), .numbered(2))
+        let framed = Presentation(fit: .fit, focalPoint: Point(x: 0.2, y: 0.8), zoom: 2, pan: Point(x: -0.1, y: 0.05))
+
+        let changed = try library.settingPresentation(framed, for: .numbered(2))
+
+        #expect(changed[.numbered(2)]?.presentation == framed)
+        #expect(changed[.numbered(1)] == .numbered(1))
+        #expect(library[.numbered(2)]?.presentation == Presentation())
+    }
+
+    static let volumes: [Row<Double, Double>] = [
+        Row("a volume between silent and full", 0.35, 0.35),
+        Row("silent", 0, 0),
+        Row("full", 1, 1),
+        Row("above full is full", 1.5, 1),
+        Row("below silent is silent", -0.2, 0),
+        Row("not a number is silent", .nan, 0),
+        Row("infinity is silent", .infinity, 0),
+    ]
+
+    @Test(arguments: volumes)
+    func `sets a wallpaper's volume, kept between silent and full`(row: Row<Double, Double>) throws {
+        let library = try Library.of(.numbered(1))
+
+        #expect(try library.settingVolume(row.input, for: .numbered(1))[.numbered(1)]?.volume == row.expected)
+    }
+
     // MARK: Delete and restore
 
     @Test(arguments: [1, 2, 3])
@@ -140,6 +170,8 @@ struct LibraryTests {
 
         #expect(throws: missing) { try library.renaming(.numbered(9), to: "Ocean") }
         #expect(throws: missing) { try library.settingFavourite(true, for: .numbered(9)) }
+        #expect(throws: missing) { try library.settingPresentation(Presentation(), for: .numbered(9)) }
+        #expect(throws: missing) { try library.settingVolume(0.5, for: .numbered(9)) }
         #expect(throws: missing) { try library.deleting(.numbered(9)) }
     }
 
