@@ -65,12 +65,15 @@ public struct EmptyState: View {
             // No spacing: the link's own 40 pt target supplies the gap, and the two never overlap.
             VStack(spacing: 0) {
                 if let (title, action) = primary {
-                    Button(title, action: action)
+                    // A key press on either button must not animate what its action changes.
+                    Button(title) { withoutAnimationIfKeyPress(action) }
                         .buttonStyle(.borderedProminent)
                         .controlSize(.large)
                 }
                 if let (title, action) = secondary {
-                    Button(action: action) {
+                    Button {
+                        withoutAnimationIfKeyPress(action)
+                    } label: {
                         Text(title)
                             .frame(minWidth: Spacing.minimumHitArea, minHeight: Spacing.minimumHitArea)
                             .contentShape(.rect)

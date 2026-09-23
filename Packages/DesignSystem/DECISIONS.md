@@ -9,6 +9,8 @@ Every component reads accessibility through `@Accessibility`, never the system e
 
 `accessibility.symbolReplace` is the symbol-replace content transition, or a plain fade under Reduce Motion (the system honours only the real setting, not the Gallery's override).
 
+The overrides-over-system rule lives in one place (M6): `AccessibilitySettings(overrides:systemReduceMotion:systemReduceTransparency:systemIncreaseContrast:)`, table-tested. `@Accessibility` gives it the environment's values; `AccessibilitySettings.system(overriding:)` gives it `NSWorkspace`'s, for AppKit code that starts a change the design system animates before any view has read `@Accessibility` (the menu-bar popover's first open). The app had written the rule out again against `NSWorkspace`; now it reads no accessibility setting itself.
+
 Changes made from a key press run inside `withoutAnimation`, which also switches off a component's own `.animation(_:value:)`. Where one control answers both a click and a key press (a default button, a focused button pressed with Space), `withoutAnimationIfKeyPress` decides from the current event, so the rule does not rest on the caller.
 
 Every `.animation(_:value:)` sits on the one effect it drives, never on a container that also holds the caller's content. Hover fades run `Motion.enter` in and `Motion.exit` out. Focus rings follow the control's drawn shape (`contentShape(.focusEffect, …)`), not its 40 pt hit rectangle. A focusable container's ring is the union of the focus shapes of everything inside it, so a container that is one tab stop (`SidebarRowGroup`) keeps its focusable view beside its rows, not around them.
@@ -17,7 +19,7 @@ VoiceOver on macOS speaks an element's value before its label ("3, Playlists, bu
 
 Reviewed on 2026-09-21 with `review-animations` and `make-interfaces-feel-better` (full mode); the findings are folded into the entries below. Looked at again on 2026-09-22: every page walked with VoiceOver (scripted, transcripts kept out of the repo), tabbed through with keyboard navigation on, and the motion recorded at 0.1x over the busy backdrop; what changed as a result is in the entries. Both skills were then re-run over all 22 components (2026-09-22): review-animations approved 21 and blocked OnboardingCard (the step crossfade sat on the card, so a height change animated; fixed below); make-interfaces-feel-better approved 9, blocked RecentsStrip (the strip did not clip; fixed below) and asked for changes on the rest, all applied or recorded under the component. A focused button pressed with Space was checked at 0.1x: the change lands in one frame, so `withoutAnimationIfKeyPress` reading `.keyDown` is right.
 
-Where a component's own action can arrive from a focused button (Space or Return), the component wraps it in `withoutAnimationIfKeyPress` itself: TransportCluster, RecentsStrip, ImportProgressRow, StatusLine's Restart and PanZoomEditor's Reset, as OnboardingCard and VolumeSlider already did. `CompactTextButton` is the shared small text button (Restart, Reset): a compact capsule with the full 40 pt target, that rule built in. It is public since M6, for the popover's Choose on a card whose display shows nothing: the same secondary action in a line of controls, which a native bordered button would have given a target under 40 pt.
+Where a component's own action can arrive from a focused button (Space or Return), the component wraps it in `withoutAnimationIfKeyPress` itself: TransportCluster, RecentsStrip, ImportProgressRow, StatusLine's Restart and PanZoomEditor's Reset, as OnboardingCard and VolumeSlider already did. M6 found three that did not and left the rule to their callers: SetOnDisplayButton (the button and each menu item), EmptyState (both actions) and Toast (Undo and Dismiss; Command-Z already ran without animation) now decide it themselves too, as do M6's LabelButton, LabelToggle, SymbolButton and FavouriteToggle. `CompactTextButton` is the shared small text button (Restart, Reset): a compact capsule with the full 40 pt target, that rule built in. It is public since M6, for the popover's Choose on a card whose display shows nothing: the same secondary action in a line of controls, which a native bordered button would have given a target under 40 pt.
 
 ## Tokens
 
@@ -129,6 +131,7 @@ Where a component's own action can arrive from a focused button (Space or Return
 - Reduce Motion: the sliding pill is replaced by per-segment pills that crossfade.
 - Segments are equal width (a private `Layout`), 32 pt drawn in a 40 pt hit area. Selected text is `primary`, the rest `secondary`, so colour marks selection as well as the pill.
 - Generic over its value: "fit mode" is a term of `CONTEXT.md`, so the package takes options, not the app's enum.
+- The pill's fill is `Pill` (M6), which LabelToggle's on state also reads, so the 14% and 30% live in one place.
 
 ### VolumeSlider
 - Native `Slider`, labelled "Volume" with a percent value. The speaker symbol shows the level in thirds and swaps with `.symbolEffect(.replace)`, in a fixed 24 pt leading-aligned slot so the speaker body stays still as waves come and go.
@@ -222,3 +225,18 @@ Where a component's own action can arrive from a focused button (Space or Return
 - The one place a wallpaper service that has stopped responding is reported: a static warning symbol, the words, and Restart. No pulse.
 - Only a change of kind crossfades (opacity, `Duration.hover`, one scoped animation that a caller's `withoutAnimation` still silences); text inside `.working` swaps in place, because a count can change many times a second.
 - Always 40 pt tall, so the window never shifts when Restart appears, and Restart's hit area fills that height. Restart never truncates; the message gives way instead. Becoming degraded is announced to VoiceOver.
+
+### LabelButton, LabelToggle and SymbolButton
+- Made in M6 for the popover's footer, which had drawn its own: a label, an icon button, and a raw 14% fill that ignored Increase Contrast. A symbol and words, or a symbol alone, for a line of controls on a popover or card. Not glass (the popover is); 40 pt tall targets; `.press`.
+- The symbol has a fixed 20 pt slot, the width of the speaker with its waves at callout size, so the words stay put when the caller swaps the symbol (Pause All for Resume All, the speaker for the slashed one). The symbol's side sits 2 pt closer to the edge than the words' side. The focus ring is the capsule the on pill fills.
+- LabelToggle's on state is FitModePicker's pill (`Pill`: `primary` at 14%, 30% under Increase Contrast), one definition for both. Not the accent: the popover never makes the app active, and there the accent draws grey and reads as disabled. The fill is state and never animates, even inside a caller's `withAnimation`.
+- LabelToggle reads as a toggle (the toggle trait, value On or Off) and keeps the caller's words as its label, so VoiceOver says "Mute" in either state. Not yet walked with VoiceOver.
+- SymbolButton's title is its tooltip and its VoiceOver label, since nothing on screen says it. Its focus ring is a circle round the glyph, as TransportCluster's are: the 40 pt square is a hit area, not a drawn shape.
+- Disabled dims to 40%, as CompactTextButton does: `.press` is a custom style, so nothing else would show it.
+- A key press on any of them goes through `withoutAnimationIfKeyPress`.
+
+### FavouriteToggle
+- The heart beside a wallpaper's name in the inspector, moved here from the app in M6. An outline in `secondary` when off; filled in the accent when on, as SidebarRow marks its selection (the library window is active, so the accent draws). `.title3`, a 40 pt target, a circle focus ring.
+- No motion: it is state, and `.animation(nil, value:)` keeps a caller's `withAnimation` off it. A key press goes through `withoutAnimationIfKeyPress`.
+- The tooltip says what a click does, "Favourite" or "Unfavourite". VoiceOver reads a toggle labelled "Favourite", On or Off; the word is the one WallpaperTile reads for a favourite. Not yet walked with VoiceOver.
+- Disabled dims to 40%, as the other M6 controls do.
