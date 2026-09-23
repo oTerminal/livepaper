@@ -101,7 +101,7 @@ What M12 decided or found on the way. Names are quoted from the code.
 - `WorkshopModel` (`App/Workshop/`) runs steamcmd one job at a time (`takeSteam`), sets it up on first use from the sign-in or the first Get, and keeps the Get button's done for the session (`handedOver`). A sign-in's password goes from the sheet's field into one `SteamSecret` in one task; the sheet's fields go with the sheet. Quit stops steamcmd (`stopAll`), which runs in a session of its own.
 - The Workshop window reads an item page's HTML after it loads (`evaluateJavaScript("document.documentElement.outerHTML")`) and nothing else; nothing is injected. The web view's website data store is the default one, so a sign-in to Steam Community in the page itself lasts, as in a browser; Livepaper never reads it.
 - The row's poster is the page's preview picture, fetched to a temporary file.
-- The Workshop window, the sheet in the app, Settings' section and the popover's button compile, with previews, but were not seen on screen: the app was not launched on this Mac while M11's port owned the installed build and the desktop. The sheet's content and the Get button were seen in the Gallery.
+- The Workshop window, the sheet in the app, Settings' section and the popover's button compile, with previews, but were not seen on screen: the app was not launched on this Mac while M11's port owned the installed build and the desktop. The sheet's content and the Get button were seen in the Gallery. (They were seen on 2026-09-24, with the installed build: "On screen", below.)
 
 ### Log lines
 
@@ -127,6 +127,14 @@ Through a scratch harness linking `LivepaperWorkshop` and `LivepaperImport`, wit
 | 4 | Pass: 3775394622 (13,490,478 bytes), not in Steam's folder before, downloaded in 7.6 s; `scene.pkg`, `project.json` and `preview.gif` identical to `we-samples/3775394622`; discovery: one candidate, "Agamemnon", a scene |
 | 5 | Pass: `ERROR! Download item 3289988463 failed (Failure).` |
 | 6 | Pass, dark appearance, the window inactive: every step of the sheet and every state of the button and the rows. The code field's prompt was cut off at title size and was shortened to "Code" |
+
+### On screen, with the installed build (2026-09-24)
+
+The branch's final build, installed and running, driven by Accessibility presses with the pointer and the keyboard untouched. No password was typed, and neither a sign-in nor a sign-out ran.
+
+- A Workshop link pasted into the library window (Edit > Paste): `workshop: getting item 3289988463`, `workshop: setting up steamcmd from …`, `workshop: steamcmd set up, Valve's signature checked` 14.6 s later, `workshop: item 3289988463 downloaded, 4404844 bytes` 4.7 s after that with the saved login, `workshop: item 3289988463 handed to the import`, then the import's `duplicate of wallpaper … "Lonely Cat"`. The row read "Starting Steam's download tool", "Updating Steam's download tool" up to 100 %, "Signing in to Steam", "Downloading from Steam", then the import's "Finished".
+- The app set steamcmd up in `Livepaper/Steam/steamcmd/`, and steamcmd's `Frameworks -> MacOS/Frameworks` link landed in `Livepaper/Steam/`, not in the library's root. The `Livepaper/steamcmd/` an earlier build had set up, and the link it had left in the root, went to the Trash first.
+- Seen: the Workshop window's toolbar (Get disabled on the Workshop's front page, "Go to an item's page to get it", and enabled on an item's page), Settings' section signed in, and, in the fakes run, the sign-in sheet on Settings, cancelled.
 
 ### What the user tries after the merge
 
