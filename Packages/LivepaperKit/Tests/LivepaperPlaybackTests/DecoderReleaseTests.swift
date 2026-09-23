@@ -62,12 +62,14 @@ struct DecoderReleaseTests {
             mSampleRate: 48000, mFormatID: kAudioFormatLinearPCM, mFormatFlags: kAudioFormatFlagIsFloat,
             mBytesPerPacket: 4, mFramesPerPacket: 1, mBytesPerFrame: 4, mChannelsPerFrame: 1, mBitsPerChannel: 32, mReserved: 0
         )
-        CMAudioFormatDescriptionCreate(
+        let status = CMAudioFormatDescriptionCreate(
             allocator: nil, asbd: &description, layoutSize: 0, layout: nil, magicCookieSize: 0, magicCookie: nil,
             extensions: nil, formatDescriptionOut: &audio
         )
+        try #require(status == noErr)
+        guard let audio else { return }
 
-        decoder.fed(try #require(audio))
+        decoder.fed(audio)
         decoder.fed(nil)
 
         #expect(decoder.release() == nil)
