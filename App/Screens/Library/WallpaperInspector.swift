@@ -75,8 +75,11 @@ struct WallpaperInspector: View {
                     DetailsList(rows: detailsRows)
                 }
 
-                Button("Delete", role: .destructive) { model.delete(wallpaper.id) }
-                    .controlSize(.large)
+                // Space on the focused button is a key press: the toast and the grid change without motion.
+                Button("Delete", role: .destructive) {
+                    withoutAnimationIfKeyPress { model.delete(wallpaper.id) }
+                }
+                .controlSize(.large)
             }
             .padding(Spacing.large)
         }
@@ -98,7 +101,7 @@ struct WallpaperInspector: View {
                 }
                 .help("Rename")
             Spacer(minLength: 0)
-            FavouriteToggle(isOn: wallpaper.isFavourite) { model.toggleFavourite(wallpaper.id) }
+            FavouriteToggle(isOn: Binding { wallpaper.isFavourite } set: { model.setFavourite($0, for: wallpaper.id) })
         }
     }
 
@@ -165,60 +168,6 @@ struct WallpaperInspector: View {
             DetailsRow(label: "Size", value: Int64(details.byteCount).formatted(.byteCount(style: .file))),
             DetailsRow(label: "Imported", value: wallpaper.importedAt.formatted(date: .abbreviated, time: .shortened)),
         ]
-    }
-}
-
-/// The heart beside the name: outline when off, filled and accent when on, as
-/// a sidebar row marks its selection. Read as a toggle, "Favourite".
-struct FavouriteToggle: View {
-    let isOn: Bool
-    let toggle: () -> Void
-
-    var body: some View {
-        Button(action: toggle) {
-            Image(systemName: "heart")
-                .symbolVariant(isOn ? .fill : .none)
-                .foregroundStyle(isOn ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.secondary))
-                .font(.title3)
-                .frame(minWidth: Spacing.minimumHitArea, minHeight: Spacing.minimumHitArea)
-                .contentShape(.rect)
-                .contentShape(.focusEffect, .circle)
-        }
-        .buttonStyle(.press)
-        .help(isOn ? "Unfavourite" : "Favourite")
-        .accessibilityRepresentation {
-            Toggle("Favourite", isOn: Binding { isOn } set: { _ in toggle() })
-        }
-    }
-}
-
-/// A titled part of the inspector, with an optional line under the title.
-struct InspectorSection<Content: View>: View {
-    let title: String
-    let caption: String?
-    let content: Content
-
-    init(_ title: String, caption: String? = nil, @ViewBuilder content: () -> Content) {
-        self.title = title
-        self.caption = caption
-        self.content = content()
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.small) {
-            VStack(alignment: .leading, spacing: Spacing.hairline) {
-                Text(title)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .accessibilityAddTraits(.isHeader)
-                if let caption {
-                    Text(caption)
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-                }
-            }
-            content
-        }
     }
 }
 

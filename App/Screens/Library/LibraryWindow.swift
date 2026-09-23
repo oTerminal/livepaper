@@ -44,7 +44,10 @@ struct LibraryWindow: View {
             isPresented: Binding { playlistToDelete != nil } set: { if !$0 { playlistToDelete = nil } },
             presenting: playlistToDelete
         ) { playlist in
-            Button("Delete Playlist", role: .destructive) { model.deletePlaylist(playlist.id) }
+            // Return is a key press: the sidebar and the grid change without motion.
+            Button("Delete Playlist", role: .destructive) {
+                withoutAnimationIfKeyPress { model.deletePlaylist(playlist.id) }
+            }
             Button("Cancel", role: .cancel) {}
         } message: { _ in
             Text("Its wallpapers stay in the library.")
@@ -97,7 +100,7 @@ struct LibraryWindow: View {
         }
         ToolbarItem(placement: .primaryAction) {
             Button(isInspectorShown ? "Hide Inspector" : "Show Inspector", systemImage: "sidebar.trailing") {
-                isInspectorShown.toggle()
+                withoutAnimationIfKeyPress { isInspectorShown.toggle() }
             }
             .help(isInspectorShown ? "Hide Inspector" : "Show Inspector")
         }

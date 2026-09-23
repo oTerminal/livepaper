@@ -110,7 +110,9 @@ struct WallpaperGrid: View {
 }
 
 /// A tile's context menu: set it on a display or all of them, favourite it,
-/// rename it, put it in playlists or take it out, delete it.
+/// rename it, put it in playlists or take it out, delete it. An item chosen with
+/// Return is a key press, so what it changes (the toast, the grid, Set on
+/// Display's state) does not animate.
 struct WallpaperMenu: View {
     @Environment(AppModel.self) private var model
     let wallpaper: Wallpaper
@@ -121,20 +123,26 @@ struct WallpaperMenu: View {
         // A display already showing it is checked.
         ForEach(model.setOnDisplayTargets(for: assignment)) { target in
             Toggle("Set on \(target.name)", isOn: Binding { target.isCurrent } set: { _ in
-                model.setOnDisplay(assignment, target: target.id)
+                withoutAnimationIfKeyPress { model.setOnDisplay(assignment, target: target.id) }
             })
         }
-        Button("Set on All Displays") { model.setOnDisplay(assignment, target: SetOnDisplayTarget.allID) }
+        Button("Set on All Displays") {
+            withoutAnimationIfKeyPress { model.setOnDisplay(assignment, target: SetOnDisplayTarget.allID) }
+        }
         Divider()
-        Button(wallpaper.isFavourite ? "Unfavourite" : "Favourite") { model.toggleFavourite(wallpaper.id) }
+        Button(wallpaper.isFavourite ? "Unfavourite" : "Favourite") {
+            withoutAnimationIfKeyPress { model.toggleFavourite(wallpaper.id) }
+        }
         Button("Rename…") { ask(.renameWallpaper(wallpaper.id, name: wallpaper.name)) }
         Menu("Playlists") {
             ForEach(model.playlists) { playlist in
                 Toggle(playlist.name, isOn: Binding { playlist.wallpapers.contains(wallpaper.id) } set: { isIn in
-                    if isIn {
-                        model.add(wallpaper.id, to: playlist.id)
-                    } else {
-                        model.remove(wallpaper.id, from: playlist.id)
+                    withoutAnimationIfKeyPress {
+                        if isIn {
+                            model.add(wallpaper.id, to: playlist.id)
+                        } else {
+                            model.remove(wallpaper.id, from: playlist.id)
+                        }
                     }
                 })
             }
@@ -144,16 +152,11 @@ struct WallpaperMenu: View {
             Button("New Playlist…") { ask(.newPlaylist(with: wallpaper.id)) }
         }
         Divider()
-        Button("Delete", role: .destructive) { model.delete(wallpaper.id) }
-            // Shown here; the grid takes the key itself.
-            .keyboardShortcut(.delete, modifiers: .command)
-    }
-}
-
-extension Image {
-    /// Where a poster goes while it is read: a plain grey, never a symbol stretched to fill.
-    static let posterLoading = Image(size: CGSize(width: 16, height: 10)) { context in
-        context.fill(Path(CGRect(x: 0, y: 0, width: 16, height: 10)), with: .color(Color(white: 0.5)))
+        Button("Delete", role: .destructive) {
+            withoutAnimationIfKeyPress { model.delete(wallpaper.id) }
+        }
+        // Shown here; the grid takes the key itself.
+        .keyboardShortcut(.delete, modifiers: .command)
     }
 }
 

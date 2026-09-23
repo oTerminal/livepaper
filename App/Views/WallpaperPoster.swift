@@ -38,6 +38,15 @@ extension WallpaperPoster where Content == PosterFill {
     }
 }
 
+extension Image {
+    /// Where a poster goes while it is read, for a component that takes an
+    /// `Image`: the quaternary fill, which follows the appearance it is drawn in,
+    /// never a symbol stretched to fill.
+    static let posterLoading = Image(size: CGSize(width: 16, height: 10)) { context in
+        context.fill(Path(CGRect(x: 0, y: 0, width: 16, height: 10)), with: .style(.quaternary))
+    }
+}
+
 #Preview {
     let model = AppModel.preview()
     HStack(spacing: Spacing.medium) {

@@ -52,7 +52,8 @@ private struct RecentsSection: View {
 
     private func item(_ wallpaper: Wallpaper) -> RecentItem<WallpaperID> {
         let poster = model.art.poster(for: wallpaper, size: PopoverMetrics.recentPosterSize)
-        return RecentItem(id: wallpaper.id, poster: poster ?? PopoverMetrics.loadingPoster, title: wallpaper.name)
+        // The strip takes an `Image`, so one stands in while the poster is read.
+        return RecentItem(id: wallpaper.id, poster: poster ?? .posterLoading, title: wallpaper.name)
     }
 }
 
@@ -76,10 +77,6 @@ enum PopoverMetrics {
     static let cardPosterSize = CGSize(width: 64, height: 40)
     /// `RecentsStrip`'s thumbnail.
     static let recentPosterSize = CGSize(width: 72, height: 45)
-    /// What a recent shows while its poster is read, since the strip takes an `Image`.
-    static let loadingPoster = Image(size: CGSize(width: 16, height: 10)) { context in
-        context.fill(Path(CGRect(x: 0, y: 0, width: 16, height: 10)), with: .color(.gray.opacity(0.2)))
-    }
 }
 
 // MARK: Previews
