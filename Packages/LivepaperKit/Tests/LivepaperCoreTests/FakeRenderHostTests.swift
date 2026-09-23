@@ -26,6 +26,22 @@ struct FakeRenderHostTests {
         #expect(reported == [.connecting, .live, .recovering(.flush), .stopped])
     }
 
+    @Test func `can take a while to apply, so a fakes run shows the working phase`() async throws {
+        let clock = ManualClock(start: Moment.launch)
+        let host = FakeRenderHost(clock: clock)
+        host.applyDelay = .seconds(1)
+        let state = RenderState(displays: [], pauseRules: PauseRules(), conditions: nil)
+
+        let applying = Task { await host.apply(state) }
+        while clock.sleeperCount == 0 { await Task.yield() }
+        let beforeTheDelay = host.appliedStates
+        clock.advance(by: .seconds(1))
+        await applying.value
+
+        #expect(beforeTheDelay.isEmpty)
+        #expect(host.appliedStates == [state])
+    }
+
     @Test func `can refuse to activate`() async {
         let host = FakeRenderHost()
         host.activationError = Refused()

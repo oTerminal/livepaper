@@ -61,7 +61,7 @@ public struct AppState: Equatable, Sendable {
         for display in displays {
             state.assignments[display] = assignment
         }
-        return state.settingRotation(after: self, starting: assignment, on: displays, now: now, rng: &rng)
+        return state.startingAssignment(assignment, on: displays, after: self, now: now, rng: &rng)
     }
 
     /// All Displays: apply to all, and no display keeps one of its own, so that
@@ -72,7 +72,7 @@ public struct AppState: Equatable, Sendable {
         var state = self
         state.applyToAll = assignment
         state.assignments = [:]
-        return state.settingRotation(after: self, starting: assignment, on: connected, now: now, rng: &rng)
+        return state.startingAssignment(assignment, on: connected, after: self, now: now, rng: &rng)
     }
 
     /// Takes away a display's own assignment: it shows apply to all, or nothing.
@@ -208,8 +208,8 @@ public struct AppState: Equatable, Sendable {
     /// After an assignment: a wallpaper goes first in the recents, and a playlist
     /// starts on these displays at its first wallpaper (in order) or the first of
     /// a shuffled pass.
-    private func settingRotation(
-        after before: AppState, starting assignment: Assignment, on displays: [DisplayIdentity], now: Date,
+    private func startingAssignment(
+        _ assignment: Assignment, on displays: [DisplayIdentity], after before: AppState, now: Date,
         rng: inout some RandomNumberGenerator
     ) -> AppState {
         var state = keepingRotations(after: before)

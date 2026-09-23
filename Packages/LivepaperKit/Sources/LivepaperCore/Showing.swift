@@ -1,9 +1,7 @@
-import Foundation
-
 extension AppState {
     /// The wallpaper a display shows: its assignment's, or its playlist's
     /// rotation. A wallpaper the library has lost counts as nothing.
-    func wallpaper(shownOn display: DisplayIdentity, in library: Library) -> Wallpaper? {
+    public func wallpaper(shownOn display: DisplayIdentity, in library: Library) -> Wallpaper? {
         switch assignment(for: display) {
         case .wallpaper(let id)?:
             return library[id]
