@@ -21,6 +21,7 @@ let package = Package(
         .library(name: "LivepaperSystem", targets: ["LivepaperSystem"]),
         .library(name: "LivepaperScene", targets: ["LivepaperScene"]),
         .library(name: "LivepaperTestSupport", targets: ["LivepaperTestSupport"]),
+        .library(name: "LivepaperWorkshop", targets: ["LivepaperWorkshop"]),
         // Linked by the wallpaper extension and nothing else: all private API is here.
         .library(name: "WallpaperAgentBridge", targets: ["WallpaperAgentBridge"]),
     ],
@@ -74,6 +75,14 @@ let package = Package(
         .testTarget(
             name: "WallpaperAgentBridgeTests",
             dependencies: ["WallpaperAgentBridge", "LivepaperCore"],
+            swiftSettings: approachableConcurrency
+        ),
+        // Wallpaper Engine Workshop items, downloaded with the user's own Steam login through Valve's steamcmd (record 0009).
+        .target(name: "LivepaperWorkshop", dependencies: ["LivepaperImport"], swiftSettings: approachableConcurrency),
+        .testTarget(
+            name: "LivepaperWorkshopTests",
+            dependencies: ["LivepaperWorkshop", "LivepaperImport"],
+            resources: [.copy("Fixtures")],
             swiftSettings: approachableConcurrency
         ),
     ]
