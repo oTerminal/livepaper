@@ -23,7 +23,8 @@ extension AppState {
 
 extension RenderState {
     /// The render state for this library and app state on the connected
-    /// displays, applied on every change.
+    /// displays, applied on every change. Each display's assignment is
+    /// `resolveAssignments`', through `AppState.assignment(for:)`.
     ///
     /// A display that shows nothing is left out, so the extension shows nothing
     /// there. Mute is the app's: every volume is 0 and the extension leaves the

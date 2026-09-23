@@ -44,9 +44,9 @@ public struct AppState: Equatable, Sendable {
         playlists.first { $0.id == id }
     }
 
-    /// What a display shows: its own assignment, else apply to all (`resolveAssignments`' rule for one display).
+    /// What a display shows: `resolveAssignments` for this one display, so the rule is written once.
     public func assignment(for display: DisplayIdentity) -> Assignment? {
-        assignments[display] ?? applyToAll
+        resolveAssignments(assignments, connected: [display], applyToAll: applyToAll)[display]
     }
 
     // MARK: Set on display
