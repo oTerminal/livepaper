@@ -171,6 +171,7 @@ Where a component's own action can arrive from a focused button (Space or Return
 - No custom motion.
 - `style: .plain` (M6) is a borderless menu button, for inside a card or the popover: the glass button there was glass on glass, which the popover forbids. `.glass` stays the default, for the inspector. Like `TransportClusterStyle`, the caller says where it sits.
 - In the popover it sits under the card's `TransportCluster` at `.controlSize(.small)`, naming the playlist. Tried first beside the transport with its symbol only (`.labelStyle(.iconOnly)`): it left the card's words about 115 pt of a 400 pt popover, and nothing on screen said which playlist a display was on. Its target is the native menu button's, shorter than 40 pt: a SwiftUI `Menu` on macOS draws its label as an AppKit pop-up button, which ignores a frame or content shape given to the label.
+- The symbol is an `NSImage` described as "Playlist" (M6). The popover's accessibility tree showed a menu button titled "Playlist", valued "Evening" and described as "Stack of rectangles": the pop-up button AppKit draws the label with takes its description from its image, and a symbol's own description is its shape. Both styles share the label, so both had it. VoiceOver should read "Evening, Playlist, menu button"; not yet walked with VoiceOver.
 
 ### RecentsStrip
 - Thumbnails 72 x 45, `Radius.control`, outlined, `.press`. Title is the tooltip and the VoiceOver label.

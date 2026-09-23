@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 /// One playlist a `PlaylistPicker` offers.
@@ -97,10 +98,21 @@ public struct PlaylistPicker<ID: Hashable>: View {
                     Text("No Playlist", bundle: .module)
                 }
             } icon: {
-                Image(systemName: "rectangle.stack")
+                Image(nsImage: PlaylistSymbol.image)
             }
             .lineLimit(1)
         }
         .menuStyle(.button)
     }
+}
+
+/// The symbol beside the playlist's name. AppKit draws the menu's label as a
+/// pop-up button, which takes its accessibility description from this image,
+/// and a symbol's own description is its shape: VoiceOver said "Stack of
+/// rectangles". Described as the control's label, it says "Playlist".
+private enum PlaylistSymbol {
+    static let image = NSImage(
+        systemSymbolName: "rectangle.stack",
+        accessibilityDescription: String(localized: "Playlist", bundle: .module)
+    ) ?? NSImage()
 }
