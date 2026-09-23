@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import LivepaperCore
 import LivepaperScene
 import LivepaperTestSupport
 
@@ -47,5 +48,17 @@ struct ScenePackageTests {
     @Test func `a package's scene is named after its project's file`() {
         #expect(SceneFolder.package(for: "scene.json") == "scene.pkg")
         #expect(SceneFolder.package(for: "gifscene.json") == "gifscene.pkg")
+        #expect(SceneFolder.itemPackage(for: "night scene.json") == "night scene.pkg")
+    }
+
+    @Test func `in the library a package's name holds only what a library path can, and a name it could is kept`() throws {
+        #expect(SceneFolder.package(for: "night scene.json") == "night_scene.pkg")
+        #expect(SceneFolder.package(for: "夜.json") == "_.pkg")
+        #expect(SceneFolder.package(for: "scenes/.main.json") == "scenes/_main.pkg")
+        #expect(SceneFolder.package(for: "scene.v2.json") == "scene.v2.pkg")
+        #expect(SceneFolder.package(for: "scenes/main.json") == "scenes/main.pkg")
+        for name in ["night scene.json", "夜.json", "scenes/.main.json"] {
+            _ = try LibraryPath("wallpapers/1/\(SceneFolder.package(for: name))")
+        }
     }
 }

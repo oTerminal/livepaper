@@ -118,6 +118,19 @@ struct ScenePreparationTests {
         #expect(!FileManager.default.fileExists(atPath: programsFile(in: scene).path))
     }
 
+    @Test func `a tool that takes too long leaves the scene unprepared, and nothing is written, so it is tried again`() async throws {
+        let scene = try folder.writeSceneItem("3000000001", entries: SyntheticScene.sceneWithEffect())
+        // A machine that is busy, or asleep, says nothing about the shader.
+        let glslang = try folder.write("#!/bin/sh\nexec sleep 30\n", to: "tools/glslang")
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: glslang.path)
+        let tools = ShaderTools(glslang: glslang, spirvCross: glslang, timeLimit: .milliseconds(200))
+
+        let outcome = try await ScenePreparation.prepare(scene, tools: tools)
+
+        #expect(outcome == .notPrepared(reason: "glslang took too long and was stopped"))
+        #expect(!FileManager.default.fileExists(atPath: programsFile(in: scene).path))
+    }
+
     @Test func `a scene that cannot be read is not prepared`() async throws {
         let scene = try folder.writeSceneItem("3000000001", entries: [SyntheticScene.Entry("scene.json", json: "{ not JSON")])
 

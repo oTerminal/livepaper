@@ -29,7 +29,7 @@ extension TemporaryFolder {
         let json = try JSONSerialization.data(withJSONObject: project, options: [.sortedKeys])
         try write(String(bytes: json, encoding: .utf8) ?? "", to: "\(path)/project.json")
 
-        let package = file("\(path)/\(SceneFolder.package(for: sceneFile))")
+        let package = file("\(path)/\(SceneFolder.itemPackage(for: sceneFile))")
         try SyntheticScene.package(entries).write(to: package)
         try write("DXBC", to: "\(path)/shaders/blobsSM40/0a1b2c.dxs")
         if let preview, let previewName {

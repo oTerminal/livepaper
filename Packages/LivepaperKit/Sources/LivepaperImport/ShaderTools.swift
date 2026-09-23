@@ -18,9 +18,11 @@ extension ShaderToolError: CustomStringConvertible {
         }
     }
 
-    /// A limit the shader drove a tool past, as against a tool that could not be run at all.
+    /// A limit the shader drove a tool past, as against a tool that could not
+    /// be run at all. A run that took too long says as much about a busy
+    /// machine as about the shader, so it is tried again another time.
     var isAboutTheShader: Bool {
-        if case .launchFailed = self { false } else { true }
+        if case .outputLimitExceeded = self { true } else { false }
     }
 }
 
@@ -115,7 +117,8 @@ extension ShaderTools {
             throw ShaderToolError.launchFailed(tool: name, message: error.localizedDescription)
         }
 
-        let clock = ContinuousClock()
+        // The time limit is the tool's own time: a Mac asleep in the middle of a run does not use it up.
+        let clock = SuspendingClock()
         let deadline = clock.now + timeLimit
         while exited.wait(timeout: .now() + .milliseconds(25)) == .timedOut {
             let stoppedBy: (any Error)? = if cancellation.isCancelled {

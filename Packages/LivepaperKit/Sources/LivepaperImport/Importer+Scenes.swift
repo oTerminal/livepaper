@@ -99,24 +99,32 @@ extension Importer {
     }
 
     /// The item's own files, as the scene's folder keeps them: `project.json`,
-    /// the package and the preview, under the names the project gives them.
-    /// Not the `shaders/` folder beside them, Wallpaper Engine's own cache of
-    /// compiled DirectX shaders. Answers the package's name in the folder.
+    /// the package and the preview, under the names the project gives them
+    /// (the package's made plain, `SceneFolder.package(for:)`). Not the
+    /// `shaders/` folder beside them, Wallpaper Engine's own cache of compiled
+    /// DirectX shaders. Answers the package's name in the folder.
+    ///
+    /// A file that is a link is copied as the file it leads to, and only while
+    /// that is inside the item's folder: discovery looked, but the folder may
+    /// have changed since, and the library keeps files, never links.
     private func copySceneFiles(_ candidate: ImportCandidate, _ item: SceneItem, into staging: URL) throws -> String {
         let packageName = SceneFolder.package(for: item.sceneFile)
         var copies = [(item.project, SceneFolder.project), (candidate.source, packageName)]
         // Discovery found the preview inside the item's folder; it keeps its place in it.
-        let itemFolder = item.project.deletingLastPathComponent().pathComponents
-        if let preview = candidate.preview, preview.pathComponents.starts(with: itemFolder) {
-            let name = preview.pathComponents.dropFirst(itemFolder.count).joined(separator: "/")
+        let itemFolder = item.project.deletingLastPathComponent()
+        if let preview = candidate.preview, preview.pathComponents.starts(with: itemFolder.pathComponents) {
+            let name = preview.pathComponents.dropFirst(itemFolder.pathComponents.count).joined(separator: "/")
             if ![SceneFolder.project, packageName, SceneFolder.poster, SceneFolder.hoverPreview].contains(name) {
                 copies.append((preview, name))
             }
         }
         for (from, name) in copies {
+            guard isInside(from, itemFolder) else {
+                throw WallpaperEngineProjectError.escapesFolder(from.lastPathComponent)
+            }
             let to = staging.appending(path: name, directoryHint: .notDirectory)
             try FileManager.default.createDirectory(at: to.deletingLastPathComponent(), withIntermediateDirectories: true)
-            try FileManager.default.copyItem(at: from, to: to)
+            try FileManager.default.copyItem(at: from.resolvingSymlinksInPath(), to: to)
         }
         return packageName
     }

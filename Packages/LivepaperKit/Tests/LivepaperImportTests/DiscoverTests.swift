@@ -116,6 +116,17 @@ struct DiscoverTests {
         #expect(found == Discovery(skipped: [refusal]))
     }
 
+    @Test func `a project that is a link out of the Wallpaper Engine folder is refused`() throws {
+        let outside = try folder.write(#"{"file": "scene.json", "type": "scene"}"#, to: "elsewhere/project.json")
+        try folder.write(to: "item/scene.pkg")
+        try FileManager.default.createSymbolicLink(at: folder.file("item/project.json"), withDestinationURL: outside)
+
+        let found = try discoverSources(at: folder.folder("item"))
+
+        let refusal = SkippedSource(url: folder.folder("item"), reason: .wallpaperEngine(.escapesFolder("project.json")))
+        #expect(found == Discovery(skipped: [refusal]))
+    }
+
     @Test func `a folder of Workshop items gives the video and scene items and says which it left out`() throws {
         try folder.write(Self.videoProject, to: "431960/111/project.json")
         try folder.write(to: "431960/111/rain.webm")

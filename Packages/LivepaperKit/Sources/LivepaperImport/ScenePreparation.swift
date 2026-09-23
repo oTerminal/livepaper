@@ -73,8 +73,8 @@ public enum ScenePreparation {
             } catch is CancellationError {
                 throw CancellationError()
             } catch {
-                // A tool that cannot be started, or a work folder that cannot be written: nothing is known about the
-                // scene's programs, so nothing is written, and the next launch tries again.
+                // A tool that cannot be started or took too long, or a work folder that cannot be written: nothing is
+                // known about the scene's programs, so nothing is written, and the next launch tries again.
                 return .notPrepared(reason: "\(error)")
             }
         }
@@ -104,7 +104,8 @@ public enum ScenePreparation {
 
         /// Translates the request's program, or records why it could not be.
         /// Throws for a cancel, and for what is no fault of the program's: a
-        /// tool that cannot be started, a work folder that cannot be written.
+        /// tool that cannot be started or took too long, a work folder that
+        /// cannot be written.
         mutating func add(_ request: ProgramRequest, cancellation: Cancellation) throws {
             guard let sources = Self.sources(for: request.shader, in: files) else {
                 programs.failures[request.signature] = "no source for \(request.shader)"

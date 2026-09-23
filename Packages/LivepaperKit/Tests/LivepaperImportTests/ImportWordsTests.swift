@@ -85,6 +85,11 @@ struct ImportWordsTests {
         Row("the poster could not be saved", ArtefactError.posterNotWritten, .retryable("Its poster could not be written")),
 
         Row(
+            "a scene's file that has come to lead out of its folder since discovery",
+            WallpaperEngineProjectError.escapesFolder("scene.pkg"),
+            .final("Its Wallpaper Engine project names a file outside its folder")
+        ),
+        Row(
             "gone since it was dropped",
             DiscoverError.notFound(URL(filePath: "/Volumes/Archive/Harbour.mov")),
             .retryable("It could not be found")

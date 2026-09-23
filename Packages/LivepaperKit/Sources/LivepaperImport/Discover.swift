@@ -124,6 +124,9 @@ private func search(_ folder: URL, into discovery: inout Discovery) throws {
 }
 
 private func wallpaperEngineItem(in folder: URL, project data: Data) -> Result<ImportCandidate, SkipReason> {
+    // The project itself may be a link, and a scene's is copied into the library: it has to be the folder's own.
+    let projectFile = folder.appending(path: SceneFolder.project, directoryHint: .notDirectory)
+    guard isInside(projectFile, folder) else { return .failure(.wallpaperEngine(.escapesFolder(SceneFolder.project))) }
     let project: WallpaperEngineProject
     do {
         project = try WallpaperEngineProject.parse(data)
@@ -146,16 +149,17 @@ private func wallpaperEngineItem(in folder: URL, project data: Data) -> Result<I
 
     case .scene:
         // The scene's JSON is inside the package the project's file names.
-        let name = SceneFolder.package(for: project.file)
+        let name = SceneFolder.itemPackage(for: project.file)
         let package = folder.appending(path: name, directoryHint: .notDirectory)
         guard FileManager.default.fileExists(atPath: package.path) else { return .failure(.noScenePackage(name)) }
         guard isInside(package, folder) else { return .failure(.wallpaperEngine(.escapesFolder(project.file))) }
-        let scene = SceneItem(project: folder.appending(path: "project.json", directoryHint: .notDirectory), sceneFile: project.file)
+        let scene = SceneItem(project: projectFile, sceneFile: project.file)
         return .success(ImportCandidate(source: package, name: project.title ?? folder.lastPathComponent, preview: preview, scene: scene))
     }
 }
 
-private func isInside(_ file: URL, _ folder: URL) -> Bool {
+/// Whether `file`, its links followed, is somewhere inside `folder`, its links followed too.
+func isInside(_ file: URL, _ folder: URL) -> Bool {
     let folderSteps = folder.resolvingSymlinksInPath().pathComponents
     let fileSteps = file.resolvingSymlinksInPath().pathComponents
     return fileSteps.count > folderSteps.count && fileSteps.starts(with: folderSteps)

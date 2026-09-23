@@ -26,6 +26,8 @@ public func importFailureWords(_ error: any Error) -> (reason: String, canRetry:
     case let error as ImportError: words(for: error)
     case let error as MediaError: words(for: error)
     case let error as FFmpegError: words(for: error)
+    // A Wallpaper Engine item that changed after discovery read it, to lead out of its folder.
+    case let error as WallpaperEngineProjectError: (skipWords(.wallpaperEngine(error)), false)
     case ArtefactError.noPicture: ("It has no picture to make a poster from", false)
     case ArtefactError.posterNotWritten: ("Its poster could not be written", true)
     case DiscoverError.notFound: ("It could not be found", true)

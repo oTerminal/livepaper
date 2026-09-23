@@ -41,8 +41,8 @@ extension SceneDrawing {
 }
 
 /// A scene wallpaper's folder in the library, as the import writes it and a
-/// `SceneDrawing` reads it: the item's own `project.json` and package (named
-/// as its project names them) and preview, and the library's poster and hover preview.
+/// `SceneDrawing` reads it: the item's own `project.json`, package (named as
+/// `package(for:)` says) and preview, and the library's poster and hover preview.
 public enum SceneFolder {
     public static let project = "project.json"
     public static let poster = "poster.heic"
@@ -51,8 +51,26 @@ public enum SceneFolder {
     /// What a scene is drawn into: the drawables of the surface's Metal slot.
     public static let pixelFormat = MTLPixelFormat.bgra8Unorm
 
-    /// The package a project's scene lives in: its `file` with `.pkg` for `.json` (`scene.json`, `scene.pkg`).
-    public static func package(for sceneFile: String) -> String {
+    /// The package a project's scene lives in, in the item's own folder: its
+    /// `file` with `.pkg` for `.json` (`scene.json`, `scene.pkg`).
+    public static func itemPackage(for sceneFile: String) -> String {
         (sceneFile as NSString).deletingPathExtension + ".pkg"
+    }
+
+    /// The same package in the library, under a name a `LibraryPath` can hold:
+    /// in each step of it, a character a library path refuses, or a `.` it
+    /// would start with, becomes `_` (`scene.json`, `scene.pkg`; `night
+    /// scene.json`, `night_scene.pkg`). A name it could hold is left as it is.
+    public static func package(for sceneFile: String) -> String {
+        let steps = itemPackage(for: sceneFile).split(separator: "/", omittingEmptySubsequences: false).map { step in
+            String(step.unicodeScalars.enumerated().map { index, scalar -> Character in
+                switch scalar {
+                case "a"..."z", "A"..."Z", "0"..."9", "-", "_": Character(scalar)
+                case "." where index > 0: "."
+                default: "_"
+                }
+            })
+        }
+        return steps.joined(separator: "/")
     }
 }
