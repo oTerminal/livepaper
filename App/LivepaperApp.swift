@@ -29,7 +29,7 @@ struct LivepaperApp: App {
         }
 
         Settings {
-            SettingsPlaceholder()
+            SettingsView()
                 .environment(delegate.model)
                 .background(SceneActionsReader(windows: delegate.windows))
                 .launchOptions(delegate.options)

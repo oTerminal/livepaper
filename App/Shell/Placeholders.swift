@@ -59,35 +59,7 @@ struct LibraryPlaceholder: View {
     }
 }
 
-/// Settings' stand-in: the pause rules.
-struct SettingsPlaceholder: View {
-    @Environment(AppModel.self) private var model
-
-    var body: some View {
-        Form {
-            Section("Pause Rules") {
-                Toggle("When the desktop is covered", isOn: rule(\.whenDesktopCovered))
-                Toggle("When the display is asleep or locked", isOn: rule(\.whenDisplayAsleepOrLocked))
-                Toggle("In Low Power Mode", isOn: rule(\.inLowPowerMode))
-                Toggle("On battery", isOn: rule(\.onBattery))
-            }
-        }
-        .formStyle(.grouped)
-        .frame(width: 480)
-        .fixedSize(horizontal: false, vertical: true)
-    }
-
-    private func rule(_ rule: WritableKeyPath<PauseRules, Bool>) -> Binding<Bool> {
-        Binding(get: { model.pauseRules[keyPath: rule] }, set: { model.setPauseRule(rule, $0) })
-    }
-}
-
 #Preview("Library") {
     LibraryPlaceholder()
-        .environment(AppModel.preview())
-}
-
-#Preview("Settings") {
-    SettingsPlaceholder()
         .environment(AppModel.preview())
 }
