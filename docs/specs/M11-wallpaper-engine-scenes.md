@@ -232,7 +232,7 @@ The rows are in `SceneClockTests` and `WatchdogSchedulingTests` ("a covered scen
 
 | Scene | Draws | Differs |
 |---|---|---|
-| Lonely Cat | The image, the water rippling around the cat, masked off it | Nothing seen against its still preview. It is set to Fit in the library, so it shows with bars |
+| Lonely Cat | The image, the water rippling around the cat, masked off it | Nothing seen against its still preview |
 | Gaze | The image, the ripple on the water, fog and embers | Fog and ember glow are our textures. The preview is a still, so their motion is unchecked |
 | A Lonely Winter | The background's flow, the three islands bobbing, snow, sakura petals, light shafts, smoke and fog | Petals, snow, shafts, smoke and fog are our textures; the petals are our shapes, white as in the preview. |
 | Jet Lag | The cabin, the clouds scrolling past the window with motion blur and fisheye, dust motes, a light shaft | The window's pulse is audio-reactive and stays still. Its music is not heard while the wallpaper is muted. The dust motes do not move out of the pointer's way: their control point follows the pointer, which particles do not use yet |
@@ -247,7 +247,7 @@ The rows are in `SceneClockTests` and `WatchdogSchedulingTests` ("a covered scen
 | 1 | Install the build; the app prepares the six scenes | Pass: six `scene: prepared` lines 8.6 s after launch, then the agent restart |
 | 2 | Each scene set in turn from the Library's inspector | Pass for all six on the build before the last (A Lonely Winter and Agamemnon again on the last, whose particle colours changed): `loaded … drawn by WallpaperEngineScene`, the first picture 31 to 65 ms after the start, `shows … in the Metal slot`; window captures a second apart differed in 0.7 % (Jet Lag, slow clouds) to 73 % (Agamemnon, film grain) of their pixels; each capture looked at against the preview (table above) |
 | 3 | The watchdog on a scene under the user's windows | Pass on the last build: `healthy`, 61 to 63 of 60 displayed, 1 to 8 presented (Liveness). A covering fullscreen app was not tried: the pointer and the keyboard stayed untouched |
-| 4 | The desktop left on Lonely Cat | Pass. It is set to Fit in the library, as it was before this work, so it shows with bars; Fill in its inspector removes them |
+| 4 | The desktop left on Lonely Cat | Pass, set to Fill |
 | 5 | The prototype Botanical (`14F5E54A`) deleted through the inspector's Delete | Pass: `app: deleted wallpaper 14F5E54A-… "Botanical", undo offered`; its folder went to the Trash when the undo ended |
 
 **Not checked yet.** The pointer and the keyboard stayed untouched and the desktop stayed under the user's windows, so these wait for a check on screen, the first four for the user:
