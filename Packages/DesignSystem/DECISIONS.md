@@ -113,6 +113,7 @@ Where a component's own action can arrive from a focused button (Space or Return
 - No animation anywhere: every change is a key press.
 - While recording, a local event monitor takes key presses so Command-W and the like are recorded, not obeyed. A click elsewhere or the window losing key status cancels.
 - The caption line is always present, so rows below never jump when the hint or the conflict appears. A conflict is a red symbol plus words, and is announced.
+- The recorder is as wide as its field and the clear button's slot in every phase: a caption that fits starts under the field, and a wider one, usually a conflict, hangs from the field's trailing edge and runs out under the row's label (`HotkeyRecorderCaption`, tested). A caption that widened the recorder moved the field 60 pt left in Settings' trailing-aligned rows on the key press that made the conflict. A host sets the recorder at a row's trailing edge, as a form does.
 - The clear button's 40 pt slot is always laid out too, faded out and disabled when there is nothing to clear: inserting it moved the field by 44 pt on the very click that started recording, and rows in a trailing-aligned form did not line up.
 
 ### SidebarRow

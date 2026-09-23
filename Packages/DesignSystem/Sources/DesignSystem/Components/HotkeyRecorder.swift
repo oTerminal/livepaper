@@ -34,17 +34,15 @@ public struct HotkeyRecorder: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.tight) {
-            HStack(spacing: Spacing.tight) {
-                field
-                // The slot is always laid out, so the field never moves on the click
-                // that starts recording, and rows in a trailing-aligned form line up.
-                let showsClear = state.hotkey != nil && !state.isRecording
-                clearButton
-                    .opacity(showsClear ? 1 : 0)
-                    .disabled(!showsClear)
-                    .accessibilityHidden(!showsClear)
-            }
+        RecorderLayout {
+            field
+            // The slot is always laid out, so the field never moves on the click
+            // that starts recording, and rows in a trailing-aligned form line up.
+            let showsClear = state.hotkey != nil && !state.isRecording
+            clearButton
+                .opacity(showsClear ? 1 : 0)
+                .disabled(!showsClear)
+                .accessibilityHidden(!showsClear)
             caption
         }
         .onChange(of: hotkey, initial: true) { _, hotkey in
@@ -196,6 +194,60 @@ public struct HotkeyRecorder: View {
     private nonisolated enum Metrics {
         static let fieldWidth: CGFloat = 140
         static let fieldHeight: CGFloat = 28
+    }
+}
+
+/// The field, the clear button's slot beside it, and the caption on the line
+/// below, where `HotkeyRecorderCaption` puts it. Only the field and the slot
+/// give the recorder its width.
+private struct RecorderLayout: Layout {
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        frames(of: subviews).size
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        for (subview, frame) in zip(subviews, frames(of: subviews).frames) {
+            subview.place(
+                at: CGPoint(x: bounds.minX + frame.minX, y: bounds.minY + frame.minY),
+                proposal: ProposedViewSize(frame.size)
+            )
+        }
+    }
+
+    /// The field's baseline comes first, so a form row's label lines up with the field.
+    func explicitAlignment(
+        of guide: VerticalAlignment,
+        in bounds: CGRect,
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout ()
+    ) -> CGFloat? {
+        let frames = frames(of: subviews).frames
+        switch guide {
+        case .firstTextBaseline:
+            return bounds.minY + frames[0].minY + subviews[0].dimensions(in: .unspecified)[guide]
+        case .lastTextBaseline:
+            return bounds.minY + frames[2].minY + subviews[2].dimensions(in: .unspecified)[guide]
+        default:
+            return nil
+        }
+    }
+
+    private func frames(of subviews: Subviews) -> (frames: [CGRect], size: CGSize) {
+        let field = subviews[0].sizeThatFits(.unspecified)
+        let slot = subviews[1].sizeThatFits(.unspecified)
+        let caption = subviews[2].sizeThatFits(.unspecified)
+        let rowHeight = max(field.height, slot.height)
+        let width = field.width + Spacing.tight + slot.width
+        let captionX = HotkeyRecorderCaption.offset(width: caption.width, fieldWidth: field.width, recorderWidth: width)
+        return (
+            [
+                CGRect(origin: CGPoint(x: 0, y: (rowHeight - field.height) / 2), size: field),
+                CGRect(origin: CGPoint(x: field.width + Spacing.tight, y: (rowHeight - slot.height) / 2), size: slot),
+                CGRect(origin: CGPoint(x: captionX, y: rowHeight + Spacing.tight), size: caption),
+            ],
+            CGSize(width: width, height: rowHeight + Spacing.tight + caption.height)
+        )
     }
 }
 
