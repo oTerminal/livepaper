@@ -1,4 +1,5 @@
 import Foundation
+import LivepaperScene
 
 /// The wording of the engine's and the layer tree's own log lines, in one place. The metrics
 /// line, which other milestones read, is `PlaybackMetrics.logLine(for:)`.
@@ -47,6 +48,37 @@ enum EngineLog {
 
     static func notReadyForDisplay(_ surface: SurfaceID, _ url: URL?) -> String {
         "layers: surface \(surface) had no picture of \(name(of: url)) after 1 s, going ahead"
+    }
+
+    // MARK: Scenes (record 0007)
+
+    static func noMetalDevice(_ surface: SurfaceID) -> String {
+        "scene: surface \(surface) has no Metal device, holding the poster"
+    }
+
+    /// A scene is named by its folder, which is the wallpaper's ID.
+    static func sceneLoaded(_ surface: SurfaceID, _ folder: URL, by type: any SceneDrawing.Type, milliseconds: Double) -> String {
+        "scene: surface \(surface) loaded \(folder.lastPathComponent) in \(Int(milliseconds.rounded())) ms, drawn by \(type)"
+    }
+
+    static func sceneCannotLoad(_ surface: SurfaceID, _ folder: URL, _ error: any Error) -> String {
+        "scene: surface \(surface) cannot load \(folder.lastPathComponent), holding the poster: \(describe(error))"
+    }
+
+    static func sceneDrawing(_ surface: SurfaceID, from time: Double) -> String {
+        "scene: surface \(surface) drawing at \(Int(LivepaperScene.framesPerSecond)) fps from \(String(format: "%.2f", time)) s"
+    }
+
+    static func sceneStopped(_ surface: SurfaceID, at time: Double, _ reason: String) -> String {
+        "scene: surface \(surface) stopped drawing at \(String(format: "%.2f", time)) s (\(reason))"
+    }
+
+    static func sceneFirstPicture(_ surface: SurfaceID, milliseconds: Double) -> String {
+        "scene: surface \(surface) first picture drawn \(Int(milliseconds.rounded())) ms after the start"
+    }
+
+    static func sceneShown(_ surface: SurfaceID, _ folder: URL, waited: Bool) -> String {
+        "scene: surface \(surface) shows \(folder.lastPathComponent) in the Metal slot\(waited ? "" : ", with no picture after 1 s")"
     }
 
     private static func describe(_ error: (any Error)?) -> String {

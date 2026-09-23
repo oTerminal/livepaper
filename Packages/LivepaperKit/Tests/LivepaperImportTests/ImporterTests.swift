@@ -146,6 +146,21 @@ struct ImporterTests {
         #expect(try picture(at: bench.location.url(for: wallpaper.poster)).brightness > 60)
     }
 
+    @Test func `an H.264 file that has to be transcoded comes out no larger than it went in`() async throws {
+        let source = try Fixture.url("bframes-low-rate.mp4")
+
+        let outcome = try await bench.importer().run(ImportCandidate(source: source, name: "Low rate"))
+
+        guard case .imported(let wallpaper, let report) = outcome else {
+            Issue.record("not imported: \(outcome)")
+            return
+        }
+        #expect(report.writtenBy == .transcode)
+        let copy = try await videoBitRate(of: bench.location.url(for: wallpaper.optimisedCopy))
+        let original = try await videoBitRate(of: source)
+        #expect(copy <= original, "the copy's video runs at \(Int(copy)) bit/s, the source's at \(Int(original))")
+    }
+
     // MARK: Ends before anything is written
 
     @Test func `the same bytes under another name are a duplicate, and nothing is converted`() async throws {

@@ -32,18 +32,36 @@ public struct SurfaceGeometry: Equatable, Sendable {
 /// inside the library.
 public struct SurfaceWallpaper: Equatable, Sendable {
     public var wallpaper: WallpaperID
+    /// The optimised copy; for a scene, its package, which no video engine opens.
     public var video: URL
     public var poster: URL
     public var presentation: Presentation
     /// 0 to 1. At 0 the audio track is not opened.
     public var volume: Double
+    /// Set when the wallpaper is a scene, which is drawn rather than played (record 0007).
+    public var scene: SurfaceScene?
 
-    public init(wallpaper: WallpaperID, video: URL, poster: URL, presentation: Presentation, volume: Double) {
+    public init(
+        wallpaper: WallpaperID, video: URL, poster: URL, presentation: Presentation, volume: Double, scene: SurfaceScene? = nil
+    ) {
         self.wallpaper = wallpaper
         self.video = video
         self.poster = poster
         self.presentation = presentation
         self.volume = volume
+        self.scene = scene
+    }
+}
+
+/// A scene a surface draws: its folder in the library, which a `SceneDrawing`
+/// loads, and the size it is laid out in, which the presentation fits to the surface.
+public struct SurfaceScene: Equatable, Sendable {
+    public var folder: URL
+    public var size: Size
+
+    public init(folder: URL, size: Size) {
+        self.folder = folder
+        self.size = size
     }
 }
 

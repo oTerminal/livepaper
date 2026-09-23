@@ -46,6 +46,19 @@ final class LibraryStoreTests {
         )
     }
 
+    /// The scene in `library-v1.1.json`.
+    static let fixtureScene = Wallpaper(
+        id: .numbered(3),
+        name: "Lantern Street",
+        importedAt: Date(timeIntervalSince1970: 1_789_985_400),
+        fingerprint: Fingerprint(sha256: "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"),
+        optimisedCopy: .known("wallpapers/AAAAAAAA-0000-0000-0000-000000000003/scene.pkg"),
+        poster: .known("wallpapers/AAAAAAAA-0000-0000-0000-000000000003/poster.heic"),
+        hoverPreview: .known("wallpapers/AAAAAAAA-0000-0000-0000-000000000003/hover.mov"),
+        details: WallpaperDetails(duration: 0, width: 3840, height: 2160, frameRate: 30, codec: "scene", byteCount: 16_000_000),
+        scene: WallpaperScene(project: .known("wallpapers/AAAAAAAA-0000-0000-0000-000000000003/project.json"), width: 3840, height: 2160)
+    )
+
     private func damageManifest(_ damage: (Data) -> Data) throws {
         let data = try Data(contentsOf: store.manifest)
         try damage(data).write(to: store.manifest)
@@ -106,9 +119,50 @@ final class LibraryStoreTests {
         #expect(try store.load() == Self.fixtureLibrary())
     }
 
+    @Test func `the version 1.1 fixture loads, with its scene`() throws {
+        try FileManager.default.createDirectory(at: store.manifest.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try Fixture.data("library-v1.1").write(to: store.manifest)
+
+        let library = try store.load()
+
+        #expect(library.wallpapers.map(\.kind) == [.video, .scene])
+        #expect(library[.numbered(1)] == (try Self.fixtureLibrary())[.numbered(1)])
+        #expect(library[.numbered(3)] == Self.fixtureScene)
+    }
+
+    @Test func `a scene survives a round trip`() throws {
+        let library = try Library.of(.numbered(1), Self.fixtureScene)
+
+        try store.save(library)
+
+        #expect(try store.load() == library)
+    }
+
+    /// A Livepaper that knows only 1.0 needs every field a 1.0 wallpaper has.
+    /// It reads a scene as a video whose optimised copy is the package, which
+    /// it cannot play, and so holds the poster.
+    @Test func `a scene is written with everything a 1.0 reader needs, its package where the optimised copy was`() throws {
+        let json = try #require(JSONSerialization.jsonObject(with: Library.of(Self.fixtureScene).encode()) as? [String: Any])
+        let wallpaper = try #require((json["wallpapers"] as? [[String: Any]])?.first)
+
+        let fieldsOfVersion1 = [
+            "id", "name", "isFavourite", "importedAt", "fingerprint", "optimisedCopy", "poster", "details", "presentation", "volume",
+        ]
+        #expect(fieldsOfVersion1.allSatisfy { wallpaper[$0] != nil })
+        #expect(wallpaper["optimisedCopy"] as? String == "wallpapers/\(WallpaperID.numbered(3))/scene.pkg")
+    }
+
+    @Test func `a video is written as it was before scenes, with no scene field`() throws {
+        let json = try #require(JSONSerialization.jsonObject(with: Library.of(.numbered(1)).encode()) as? [String: Any])
+        let wallpaper = try #require((json["wallpapers"] as? [[String: Any]])?.first)
+
+        #expect(wallpaper["scene"] == nil)
+        #expect(json["version"] as? [String: Int] == ["major": 1, "minor": 1])
+    }
+
     @Test func `a newer minor version loads, and its new fields are ignored`() throws {
         let json = try #require(String(bytes: try Library.of(.numbered(1)).encode(), encoding: .utf8))
-            .replacing(#""minor" : 0"#, with: #""minor" : 4"#)
+            .replacing(#""minor" : \#(Library.schemaVersion.minor)"#, with: #""minor" : 4"#)
             .replacing(#""volume" : 0"#, with: #""volume" : 0, "tags" : ["calm"]"#)
         #expect(json.contains(#""minor" : 4"#) && json.contains("tags"))
 

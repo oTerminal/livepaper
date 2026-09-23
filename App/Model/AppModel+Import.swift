@@ -152,7 +152,7 @@ extension AppModel {
     private func received(_ event: ImportEvent, for id: UUID) {
         if case .finished(let outcome) = event {
             switch outcome {
-            case .imported(let wallpaper, _):
+            case .imported(let wallpaper, _), .importedScene(let wallpaper):
                 AppLog.logger.notice("\(AppLog.importFinished(wallpaper), privacy: .public)")
             case .duplicate(let wallpaper):
                 AppLog.logger.notice("\(AppLog.importDuplicate(of: wallpaper), privacy: .public)")

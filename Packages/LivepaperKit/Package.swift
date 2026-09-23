@@ -19,14 +19,17 @@ let package = Package(
         .library(name: "LivepaperImport", targets: ["LivepaperImport"]),
         .library(name: "LivepaperPlayback", targets: ["LivepaperPlayback"]),
         .library(name: "LivepaperSystem", targets: ["LivepaperSystem"]),
+        .library(name: "LivepaperScene", targets: ["LivepaperScene"]),
         .library(name: "LivepaperTestSupport", targets: ["LivepaperTestSupport"]),
         // Linked by the wallpaper extension and nothing else: all private API is here.
         .library(name: "WallpaperAgentBridge", targets: ["WallpaperAgentBridge"]),
     ],
     targets: [
         .target(name: "LivepaperCore", swiftSettings: approachableConcurrency),
-        .target(name: "LivepaperImport", dependencies: ["LivepaperCore"], swiftSettings: approachableConcurrency),
-        .target(name: "LivepaperPlayback", dependencies: ["LivepaperCore"], swiftSettings: approachableConcurrency),
+        // Wallpaper Engine scenes (record 0007): their files, and the seam a scene is drawn through.
+        .target(name: "LivepaperScene", dependencies: ["LivepaperCore"], swiftSettings: approachableConcurrency),
+        .target(name: "LivepaperImport", dependencies: ["LivepaperCore", "LivepaperScene"], swiftSettings: approachableConcurrency),
+        .target(name: "LivepaperPlayback", dependencies: ["LivepaperCore", "LivepaperScene"], swiftSettings: approachableConcurrency),
         .target(name: "LivepaperSystem", dependencies: ["LivepaperCore"], swiftSettings: mainActorByDefault),
         // The Objective-C declarations of the private wallpaper-extension API, since a package has no bridging header.
         .target(name: "WallpaperAgentBridgeObjC"),
@@ -48,14 +51,19 @@ let package = Package(
             swiftSettings: approachableConcurrency
         ),
         .testTarget(
+            name: "LivepaperSceneTests",
+            dependencies: ["LivepaperScene", "LivepaperCore", "LivepaperTestSupport"],
+            swiftSettings: approachableConcurrency
+        ),
+        .testTarget(
             name: "LivepaperImportTests",
-            dependencies: ["LivepaperImport", "LivepaperCore", "LivepaperTestSupport"],
+            dependencies: ["LivepaperImport", "LivepaperScene", "LivepaperCore", "LivepaperTestSupport"],
             resources: [.copy("Fixtures")],
             swiftSettings: approachableConcurrency
         ),
         .testTarget(
             name: "LivepaperPlaybackTests",
-            dependencies: ["LivepaperPlayback", "LivepaperCore", "LivepaperTestSupport"],
+            dependencies: ["LivepaperPlayback", "LivepaperScene", "LivepaperCore", "LivepaperTestSupport"],
             swiftSettings: approachableConcurrency
         ),
         .testTarget(

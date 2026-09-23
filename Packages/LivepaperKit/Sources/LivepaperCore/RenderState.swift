@@ -43,17 +43,21 @@ public struct SensedConditions: Codable, Equatable, Sendable {
 /// the app as `render-state.json` (record 0002). It is the full state every
 /// time, so applying it twice is harmless.
 public struct RenderState: Codable, Equatable, Sendable {
-    public static let schemaVersion = SchemaVersion(major: 1, minor: 0)
+    /// 1.1 added a display's `scene` (record 0007).
+    public static let schemaVersion = SchemaVersion(major: 1, minor: 1)
 
     /// What one display shows. Paths are relative to the library root.
     public struct Display: Codable, Equatable, Sendable {
         public var identity: DisplayIdentity
         public var wallpaper: WallpaperID
+        /// For a scene, its package, as in the library (`Wallpaper.optimisedCopy`).
         public var optimisedCopy: LibraryPath
         public var poster: LibraryPath
         public var presentation: Presentation
         public var volume: Double
         public var userPaused: Bool
+        /// Set when the wallpaper is a scene, which the extension draws rather than plays.
+        public var scene: WallpaperScene?
 
         public init(
             identity: DisplayIdentity,
@@ -62,7 +66,8 @@ public struct RenderState: Codable, Equatable, Sendable {
             poster: LibraryPath,
             presentation: Presentation,
             volume: Double,
-            userPaused: Bool
+            userPaused: Bool,
+            scene: WallpaperScene? = nil
         ) {
             self.identity = identity
             self.wallpaper = wallpaper
@@ -71,6 +76,7 @@ public struct RenderState: Codable, Equatable, Sendable {
             self.presentation = presentation
             self.volume = volume
             self.userPaused = userPaused
+            self.scene = scene
         }
     }
 
@@ -126,7 +132,7 @@ public struct RenderState: Codable, Equatable, Sendable {
 
 extension RenderState.Display {
     private enum CodingKeys: String, CodingKey {
-        case wallpaper, optimisedCopy, poster, presentation, volume, userPaused
+        case wallpaper, optimisedCopy, poster, presentation, volume, userPaused, scene
         case identity = "display"
     }
 }

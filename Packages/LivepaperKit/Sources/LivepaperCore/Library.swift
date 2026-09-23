@@ -21,7 +21,8 @@ public func acceptedName(_ typed: String) -> String? {
 /// A value: every operation returns a new library and leaves this one as it
 /// was, which is what makes undo a matter of keeping the old one.
 public struct Library: Equatable, Sendable {
-    public static let schemaVersion = SchemaVersion(major: 1, minor: 0)
+    /// 1.1 added a wallpaper's `scene` (record 0007).
+    public static let schemaVersion = SchemaVersion(major: 1, minor: 1)
 
     /// In the order they were imported.
     public private(set) var wallpapers: [Wallpaper]

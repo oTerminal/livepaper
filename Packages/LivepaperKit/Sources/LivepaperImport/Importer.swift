@@ -1,5 +1,6 @@
 import Foundation
 import LivepaperCore
+import LivepaperScene
 
 public enum ImportStage: String, Equatable, Sendable, CaseIterable {
     case fingerprint
@@ -9,6 +10,9 @@ public enum ImportStage: String, Equatable, Sendable, CaseIterable {
     /// Writing the optimised copy: a remux or a transcode, either of which leaves the timing clean.
     case normalise
     case validate
+    /// A scene's own work before it is committed: its files copied in, then the
+    /// hook where the renderer's import-time work goes (`ScenePreparation`).
+    case prepare
     case artefacts
     case commit
 }
@@ -48,12 +52,20 @@ public struct ImportReport: Equatable, Sendable {
 
 public enum ImportOutcome: Equatable, Sendable {
     case imported(Wallpaper, ImportReport)
+    /// A scene, kept as it is to be drawn live (record 0007): there is no
+    /// optimised copy to report on. A GIF scene is `imported`, as the video it became.
+    case importedScene(Wallpaper)
     /// The same source file was imported before, as this wallpaper. Nothing was written.
     case duplicate(of: Wallpaper)
 }
 
 public enum ImportError: Error, Equatable, Sendable {
     case rejected(RejectReason)
+    /// The scene's package, or the scene in it, cannot be read.
+    case scene(SceneReadError)
+    /// The scene has no size of its own (`orthogonalprojection`) to lay it out
+    /// on a display: a scene in perspective, or one that sizes itself.
+    case sceneWithoutSize
     /// The file needs the ffmpeg helper and there is none.
     case helperMissing
     /// The helper converted the file, and AVFoundation cannot read what it made.
@@ -93,7 +105,9 @@ public protocol ImportRunning: Sendable {
 extension Importer: ImportRunning {}
 
 /// Turns a source file into a wallpaper in the library: one optimised copy
-/// that loops without a gap, a poster and a hover preview.
+/// that loops without a gap, a poster and a hover preview. A Wallpaper Engine
+/// scene is kept as its own files instead, to be drawn live, and a GIF scene
+/// becomes a video (`Importer+Scenes.swift`, record 0007).
 ///
 /// The source file is only ever read. Everything is built in `.staging/<id>/`
 /// and renamed into place at the end, and a failed or cancelled import leaves
@@ -103,6 +117,8 @@ public struct Importer: Sendable {
     let library: any ImportLibrary
     let ffmpeg: FFmpegTool?
     let validate: @Sendable (URL) async throws -> LoopSeamReport
+    /// A scene's import-time work, on its folder in `.staging/` (`ImportStage.prepare`).
+    let prepareScene: @Sendable (URL) async throws -> Void
     let makeID: @Sendable () -> WallpaperID
     let now: @Sendable () -> Date
 
@@ -111,6 +127,7 @@ public struct Importer: Sendable {
         library: any ImportLibrary,
         ffmpeg: FFmpegTool?,
         validate: @escaping @Sendable (URL) async throws -> LoopSeamReport = { try await validateLoopSeam(of: $0) },
+        prepareScene: @escaping @Sendable (URL) async throws -> Void = { try await ScenePreparation.prepare($0) },
         makeID: @escaping @Sendable () -> WallpaperID = { WallpaperID(uuid: UUID()) },
         now: @escaping @Sendable () -> Date = { Date() }
     ) {
@@ -118,6 +135,7 @@ public struct Importer: Sendable {
         self.library = library
         self.ffmpeg = ffmpeg
         self.validate = validate
+        self.prepareScene = prepareScene
         self.makeID = makeID
         self.now = now
     }
@@ -153,6 +171,9 @@ public struct Importer: Sendable {
         progress(ImportProgress(stage: .fingerprint))
         let fingerprint = try await fingerprint(of: source)
         if let existing = try await library.wallpaper(withFingerprint: fingerprint) { return .duplicate(of: existing) }
+        if let scene = candidate.scene {
+            return try await importScene(candidate, scene, fingerprint: fingerprint, progress: progress)
+        }
 
         progress(ImportProgress(stage: .probe))
         let probe = try await probeSource(at: source)
@@ -179,20 +200,22 @@ public struct Importer: Sendable {
 
     // MARK: Stages
 
-    private struct Staged {
+    struct Staged {
         var details: WallpaperDetails
         var hasHoverPreview: Bool
         var report: ImportReport
     }
 
-    private enum File {
+    enum File {
         static let optimisedCopy = "wallpaper.mov"
         static let poster = "poster.heic"
         static let hoverPreview = "hover.mov"
         static let intermediate = "ffmpeg.mov"
+        /// A GIF scene's frames, before they become the optimised copy.
+        static let spriteSheet = "sprite-sheet.mov"
     }
 
-    private func build(
+    func build(
         _ source: URL, probe: ProbeResult, plan: ImportPlan, in staging: URL, progress: @escaping @Sendable (ImportProgress) -> Void
     ) async throws -> Staged {
         // What the optimised copy is written from: the source file, or what ffmpeg made of it.
@@ -217,7 +240,7 @@ public struct Importer: Sendable {
             report(0)
             switch writtenBy {
             case .remux: try await remux(material.url, to: optimisedCopy, rate: rate, progress: report)
-            case .transcode: try await transcode(material.url, to: optimisedCopy, as: .optimisedCopy(rate: rate), progress: report)
+            case .transcode: try await transcodeOptimisedCopy(material.url, of: video, rate: rate, to: optimisedCopy, progress: report)
             }
 
             progress(ImportProgress(stage: .validate))
@@ -245,7 +268,7 @@ public struct Importer: Sendable {
 
     /// The hover preview is a nicety. One that cannot be made, or would not
     /// loop, is left out, and the wallpaper is imported without it.
-    private func makeHoverPreview(of optimisedCopy: URL, rate: FrameRate, at destination: URL) async throws -> Bool {
+    func makeHoverPreview(of optimisedCopy: URL, rate: FrameRate, at destination: URL) async throws -> Bool {
         do {
             try await transcode(optimisedCopy, to: destination, as: .hoverPreview(of: rate)) { _ in }
             if try await validate(destination).passes { return true }
@@ -266,7 +289,7 @@ public struct Importer: Sendable {
         )
     }
 
-    private func wallpaper(id: WallpaperID, name: String, fingerprint: Fingerprint, staged: Staged) throws -> Wallpaper {
+    func wallpaper(id: WallpaperID, name: String, fingerprint: Fingerprint, staged: Staged) throws -> Wallpaper {
         let folder = "\(location.wallpapers.lastPathComponent)/\(id)"
         let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
         return Wallpaper(
@@ -283,7 +306,8 @@ public struct Importer: Sendable {
 
     /// The rename first, the manifest after it: a manifest never names files
     /// that are not there. If the manifest cannot be saved, the files go again.
-    private func commit(_ staging: URL, as wallpaper: Wallpaper, report: ImportReport) async throws -> ImportOutcome {
+    /// With no report, the wallpaper is a scene kept as it is.
+    func commit(_ staging: URL, as wallpaper: Wallpaper, report: ImportReport?) async throws -> ImportOutcome {
         let folder = location.wallpapers.appending(path: wallpaper.id.description, directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: location.wallpapers, withIntermediateDirectories: true)
         try FileManager.default.moveItem(at: staging, to: folder)
@@ -297,6 +321,6 @@ public struct Importer: Sendable {
             }
             throw error
         }
-        return .imported(wallpaper, report)
+        return report.map { .imported(wallpaper, $0) } ?? .importedScene(wallpaper)
     }
 }

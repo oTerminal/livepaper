@@ -8,7 +8,7 @@ Research that shaped it:
 - Wallper's recurring bugs: playback not resuming after sleep (regressed three times), a 1-2 frame black flash at the loop seam (audio/video track length mismatch), menu-bar tint mismatch, library emptying on restart. Each is designed against below.
 - macOS 14-27 has no public API for lock-screen video. The workable route is a private `com.apple.wallpaper` ExtensionKit extension, as Phosphene does (MIT, Swift 6, macOS 26+). The extension needs only the app-sandbox entitlement; App Groups break without a Team ID.
 - Another project (MacWall) got an ad-hoc-signed wallpaper extension discovered and handshaking with WallpaperAgent. Nobody has shown a downloaded, quarantined, non-notarized copy working on a second Mac. That is our first test.
-- AVFoundation cannot open WebM/MKV. Wallpaper Engine Workshop is ~41% plain video items, ~54% scenes (full renderer needed; out of scope permanently).
+- AVFoundation cannot open WebM/MKV. Wallpaper Engine Workshop is ~41% plain video items, ~54% scenes (a full renderer needed; drawn live by the extension since record 0007).
 
 ## Product decisions
 
@@ -21,11 +21,11 @@ Research that shaped it:
 | App shape | Menu-bar resident agent + library window (Dock icon only while open) |
 | Menu bar | Custom glass popover: per-display current wallpaper, pause/next/mute, playlist picker, recents, Open Library, Settings |
 | Library window | Glass sidebar (All, Favourites, Playlists, per-display Now Playing) + thumbnail grid with hover previews + trailing inspector. Whole window is a drop target |
-| Wallpaper types | Video (mp4/mov/m4v; H.264/HEVC/ProRes) + GIF + Wallpaper Engine **video items only, permanently** |
+| Wallpaper types | Video (mp4/mov/m4v; H.264/HEVC/ProRes) + GIF + Wallpaper Engine video items and scenes (record 0007): a scene is drawn live in the extension, a GIF scene is imported as video. Never web or application items, which run code of their own |
 | HDR | SDR only, permanently; HDR sources are tone-mapped |
 | WebM/MKV/AVI/WMV/GIF | Converted once at import by a bundled LGPL ffmpeg helper built from source (no GPL parts), run as a separate process |
 | Import | Drag & drop (window, Dock icon, menu bar item), Open panel, batch. Finder: "Open With", right-click Services/Quick Actions "Set as Live Wallpaper", URL scheme, CLI. WE folders recognised on drop. No URL or Steam downloading, no Share extension |
-| Storage | Copy into an app-managed library; keep only the optimised copy (lossless remux when already H.264/HEVC, transcode only when required) |
+| Storage | Copy into an app-managed library. A video keeps only the optimised copy (lossless remux when already H.264/HEVC, transcode only when required). A scene, which is drawn live, keeps its package, project and preview, never the `shaders/` cache |
 | Library features | Favourites, rename, delete (Trash + undo), sort, search, file details, duplicate detection. No tags |
 | Per-wallpaper settings | Fill (default) / Fit / Stretch, focal point, pan & zoom, volume. No dim/blur, loop crossfade, trim or speed |
 | Audio | Muted by default, per-wallpaper volume, global mute |
@@ -125,6 +125,7 @@ After M1, three lanes can run in parallel: A engine (M5), B design system and sc
 | M8 | Hardening | 24 h soak with lid cycles, zero unrecovered stalls; hot-plug loop; idle app ~0% CPU; 4K60 energy within the M1 budget (`Spikes/results/S2.md`, "Energy budget"); VoiceOver and keyboard pass |
 | M9 | Release engineering: inside-out signing script, DMG, Sparkle + appcast, release workflow, samples + provenance, README install steps, move-to-Applications prompt | Second Mac installs from a real download; an N → N+1 Sparkle update keeps login item, extension and assignments |
 | M10 | 1.0 | Checklist for testing each macOS beta seed exists |
+| M11 | Wallpaper Engine scenes: imported and drawn live in the extension at 30 fps, behind a `SceneDrawing` seam that S9's renderer plugs into; a GIF scene imported as video (record 0007). Built before M7 | The product owner's nine samples import; a scene is live on the desktop, pauses, resumes and switches with video both ways; a GIF scene plays as video with no seam |
 
 Spike matrix (M1):
 

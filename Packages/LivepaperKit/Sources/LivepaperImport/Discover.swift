@@ -1,18 +1,37 @@
 import Foundation
+import LivepaperScene
 
 /// A source file that an import can be started on.
 public struct ImportCandidate: Equatable, Sendable {
+    /// The file the import reads and fingerprints: a video file, or a scene's package.
     public let source: URL
     /// What the wallpaper will be called: the project's title for a Wallpaper
-    /// Engine video item, otherwise the file's name.
+    /// Engine item, otherwise the file's name.
     public let name: String
-    /// The Wallpaper Engine item's own preview image, to show while the import runs.
+    /// The Wallpaper Engine item's own preview image, to show while the import
+    /// runs. A scene's poster and hover preview are made from it.
     public let preview: URL?
+    /// Set for a Wallpaper Engine scene, whose package is `source` (record 0007).
+    public let scene: SceneItem?
 
-    public init(source: URL, name: String, preview: URL? = nil) {
+    public init(source: URL, name: String, preview: URL? = nil, scene: SceneItem? = nil) {
         self.source = source
         self.name = name
         self.preview = preview
+        self.scene = scene
+    }
+}
+
+/// The rest of a Wallpaper Engine scene item, beside its package.
+public struct SceneItem: Equatable, Sendable {
+    /// The item's `project.json`, which the library keeps with the package.
+    public let project: URL
+    /// The scene's JSON, by its name inside the package: the project's `file`.
+    public let sceneFile: String
+
+    public init(project: URL, sceneFile: String) {
+        self.project = project
+        self.sceneFile = sceneFile
     }
 }
 
@@ -21,6 +40,9 @@ public enum SkipReason: Error, Equatable, Sendable {
     case wallpaperEngine(WallpaperEngineProjectError)
     /// The Wallpaper Engine project names a file that is not in its folder.
     case missingFile(String)
+    /// A scene item whose folder has no package of this name: its files lie
+    /// loose, which Livepaper does not read.
+    case noScenePackage(String)
 }
 
 public struct SkippedSource: Equatable, Sendable {
@@ -53,9 +75,10 @@ public let importableExtensions: Set<String> = ["mp4", "m4v", "mov", "webm", "mk
 
 /// A file, a folder or a Wallpaper Engine folder, as the source files to import.
 ///
-/// A folder with a `project.json` is a Wallpaper Engine item and gives the one
-/// file its project names, or nothing (record 0005). Any other folder gives the
-/// video files in it, and is searched through.
+/// A folder with a `project.json` is a Wallpaper Engine item and gives one
+/// candidate, or nothing: a video item its video file, a scene its package
+/// (record 0007). Any other folder gives the video files in it, and is
+/// searched through.
 public func discoverSources(at url: URL) throws -> Discovery {
     var isDirectory: ObjCBool = false
     guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory) else {
@@ -108,15 +131,28 @@ private func wallpaperEngineItem(in folder: URL, project data: Data) -> Result<I
         return .failure(.wallpaperEngine(error))
     }
 
-    let file = folder.appending(path: project.file, directoryHint: .notDirectory)
-    guard FileManager.default.fileExists(atPath: file.path) else { return .failure(.missingFile(project.file)) }
-    // The parser checked the name. This checks where the name really leads.
-    guard isInside(file, folder) else { return .failure(.wallpaperEngine(.escapesFolder(project.file))) }
-
     let preview = project.preview
         .map { folder.appending(path: $0, directoryHint: .notDirectory) }
         .flatMap { FileManager.default.fileExists(atPath: $0.path) && isInside($0, folder) ? $0 : nil }
-    return .success(ImportCandidate(source: file, name: project.title ?? file.deletingPathExtension().lastPathComponent, preview: preview))
+
+    switch project.kind {
+    case .video:
+        let file = folder.appending(path: project.file, directoryHint: .notDirectory)
+        guard FileManager.default.fileExists(atPath: file.path) else { return .failure(.missingFile(project.file)) }
+        // The parser checked the name. This checks where the name really leads.
+        guard isInside(file, folder) else { return .failure(.wallpaperEngine(.escapesFolder(project.file))) }
+        let name = project.title ?? file.deletingPathExtension().lastPathComponent
+        return .success(ImportCandidate(source: file, name: name, preview: preview))
+
+    case .scene:
+        // The scene's JSON is inside the package the project's file names.
+        let name = SceneFolder.package(for: project.file)
+        let package = folder.appending(path: name, directoryHint: .notDirectory)
+        guard FileManager.default.fileExists(atPath: package.path) else { return .failure(.noScenePackage(name)) }
+        guard isInside(package, folder) else { return .failure(.wallpaperEngine(.escapesFolder(project.file))) }
+        let scene = SceneItem(project: folder.appending(path: "project.json", directoryHint: .notDirectory), sceneFile: project.file)
+        return .success(ImportCandidate(source: package, name: project.title ?? folder.lastPathComponent, preview: preview, scene: scene))
+    }
 }
 
 private func isInside(_ file: URL, _ folder: URL) -> Bool {

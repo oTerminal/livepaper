@@ -1,0 +1,306 @@
+// The display link on a thread of its own with its own run loop, and the layer shown by its opacity
+// once it is in the tree, follow spike S10 (`Spikes/results/S10.md`).
+
+import Foundation
+import LivepaperScene
+import Metal
+import os
+import QuartzCore
+import Synchronization
+
+/// Draws one surface's scene into the tree's Metal slot, a frame at a time, at
+/// `LivepaperScene.framesPerSecond` (record 0007).
+///
+/// `CAMetalDisplayLink` drives it, on a render thread with a run loop of its own
+/// (`SceneRenderThread`), shared by every surface: the link fires there and
+/// the scene is drawn there, never on the main actor, whose work must not wait
+/// on a frame, and never on Swift's cooperative pool. Loading a scene can take
+/// a while, and happens on a queue of its own. What the owner calls runs on the
+/// owner's actor; what the threads share is behind one lock.
+///
+/// Scene time runs only while the engine draws (`SceneClock`). Pausing stops the
+/// link and keeps the scene; suspending also lets the scene go, and a resume
+/// loads it again; stopping forgets it and its time. The last picture stays on
+/// the layer through all of them.
+public final class SceneEngine: @unchecked Sendable {
+    public let surface: SurfaceID
+    private let layer: CAMetalLayer
+    private let drawingType: DrawingType
+    private let logger: Logger
+    private let shared = Mutex(Shared())
+    private let linkTarget = LinkTarget()
+
+    private struct Shared {
+        var drawing: DrawingBox?
+        var folder: URL?
+        var clock = SceneClock()
+        var tally = SceneTally()
+        /// Counts starts and stops: a link of an earlier run draws nothing.
+        var run = 0
+        var link: LinkBox?
+        var drawnSize: SIMD2<Int>?
+        var startedAt: ContinuousClock.Instant?
+        var firstPictureDrawn = false
+    }
+
+    /// `layer` is the tree's Metal slot; `drawingType` what draws the scene (`PosterScene` until S9's renderer is ported in).
+    init(surface: SurfaceID, layer: CAMetalLayer, drawingType: any SceneDrawing.Type, logger: Logger) {
+        self.surface = surface
+        self.layer = layer
+        self.drawingType = DrawingType(type: drawingType)
+        self.logger = logger
+        linkTarget.engine = self
+    }
+
+    var isLoaded: Bool { shared.withLock { $0.drawing != nil } }
+
+    // MARK: Loading
+
+    /// Loads the scene in `folder`, unless it is the one loaded already. False
+    /// when it cannot be drawn: no GPU, or a scene the drawing refuses.
+    func load(_ folder: URL) async -> Bool {
+        if shared.withLock({ $0.folder == folder && $0.drawing != nil }) { return true }
+        guard let gpu = SceneGPU.shared else {
+            logger.error("\(EngineLog.noMetalDevice(self.surface), privacy: .public)")
+            return false
+        }
+        layer.device = gpu.device
+        let type = drawingType
+        let clock = ContinuousClock()
+        let started = clock.now
+        let made: Result<DrawingBox, any Error> = await withCheckedContinuation { continuation in
+            sceneLoadQueue.async {
+                continuation.resume(returning: Result { DrawingBox(try type.type.init(folder: folder, device: gpu.device)) })
+            }
+        }
+        switch made {
+        case .success(let drawing):
+            shared.withLock { shared in
+                shared.drawing = drawing
+                shared.folder = folder
+                shared.drawnSize = nil
+            }
+            let took = (clock.now - started) / .milliseconds(1)
+            logger.notice("\(EngineLog.sceneLoaded(self.surface, folder, by: type.type, milliseconds: took), privacy: .public)")
+            return true
+        case .failure(let error):
+            logger.error("\(EngineLog.sceneCannotLoad(self.surface, folder, error), privacy: .public)")
+            return false
+        }
+    }
+
+    // MARK: Running
+
+    /// Starts drawing, from where scene time stopped. Nothing without a scene loaded.
+    func start() {
+        let run = shared.withLock { shared -> Int? in
+            guard shared.drawing != nil else { return nil }
+            shared.run += 1
+            shared.clock.start()
+            shared.startedAt = ContinuousClock.now
+            shared.firstPictureDrawn = false
+            return shared.run
+        }
+        guard let run else { return }
+        logger.notice("\(EngineLog.sceneDrawing(self.surface, from: self.shared.withLock(\.clock.latest)), privacy: .public)")
+        let layer = LayerBox(layer: layer)
+        let target = linkTarget
+        SceneRenderThread.shared.perform { [self] in
+            guard shared.withLock({ $0.run == run }) else { return }
+            let link = CAMetalDisplayLink(metalLayer: layer.layer)
+            link.delegate = target
+            let rate = Float(LivepaperScene.framesPerSecond)
+            link.preferredFrameRateRange = CAFrameRateRange(minimum: rate, maximum: rate, preferred: rate)
+            link.preferredFrameLatency = 2
+            link.add(to: .current, forMode: .default)
+            shared.withLock { $0.link = LinkBox(link) }
+        }
+    }
+
+    /// Stops drawing and scene time; the last picture stays on the layer.
+    func pause(_ reason: String = "pause") {
+        let link = shared.withLock { shared -> LinkBox? in
+            shared.run += 1
+            shared.clock.stop()
+            defer { shared.link = nil }
+            return shared.link
+        }
+        guard let link else { return }
+        SceneRenderThread.shared.perform { link.link.invalidate() }
+        logger.notice("\(EngineLog.sceneStopped(self.surface, at: self.shared.withLock(\.clock.latest), reason), privacy: .public)")
+    }
+
+    /// Stops drawing and lets the scene go, textures and all. `start` after `load` goes on from the same scene time.
+    func suspend() {
+        pause("suspend")
+        shared.withLock { $0.drawing = nil }
+    }
+
+    /// Stops drawing and forgets the scene and its time.
+    func stop() {
+        pause("stop")
+        shared.withLock { shared in
+            shared.drawing = nil
+            shared.folder = nil
+            shared.clock.reset()
+        }
+    }
+
+    /// A new display link on the same scene: the recovery levels short of loading it again.
+    func restart() {
+        pause("restart")
+        start()
+    }
+
+    /// The folder of the scene loaded, or last asked for.
+    var folder: URL? { shared.withLock(\.folder) }
+
+    /// Waits for the first picture of this run to be drawn, up to `timeout`.
+    func waitForFirstPicture(timeout: Duration = .seconds(1)) async -> Bool {
+        let clock = ContinuousClock()
+        let deadline = clock.now + timeout
+        while !shared.withLock(\.firstPictureDrawn) {
+            guard clock.now < deadline else { return false }
+            try? await Task.sleep(for: .milliseconds(8))
+        }
+        return true
+    }
+
+    /// The pictures presented and the frames committed over `window`, for the watchdog.
+    func displayedPictures(over window: Duration) async -> PictureCount {
+        let before = shared.withLock(\.tally)
+        try? await Task.sleep(for: window)
+        let after = shared.withLock(\.tally)
+        return SceneTally.count(from: before, to: after, over: window, framesPerSecond: LivepaperScene.framesPerSecond)
+    }
+
+    // MARK: On the render thread
+
+    private struct Frame {
+        var drawing: DrawingBox
+        var time: Double
+        var resize: SIMD2<Int>?
+    }
+
+    fileprivate func draw(_ update: CAMetalDisplayLink.Update, from link: CAMetalDisplayLink) {
+        let texture = update.drawable.texture
+        let size = SIMD2(texture.width, texture.height)
+        let frame = shared.withLock { shared -> Frame? in
+            guard shared.link?.link === link, let drawing = shared.drawing else { return nil }
+            let resize = shared.drawnSize == size ? nil : size
+            shared.drawnSize = size
+            return Frame(drawing: drawing, time: shared.clock.time(forFrameAt: update.targetPresentationTimestamp), resize: resize)
+        }
+        guard let frame, let buffer = SceneGPU.shared?.queue.makeCommandBuffer() else { return }
+        if let resize = frame.resize { frame.drawing.drawing.resize(width: resize.x, height: resize.y) }
+        buffer.label = "livepaper.scene"
+        frame.drawing.drawing.draw(into: texture, on: buffer, at: frame.time)
+        update.drawable.addPresentedHandler { [weak self] drawable in
+            guard drawable.presentedTime > 0 else { return }
+            self?.shared.withLock { $0.tally.presented += 1 }
+        }
+        buffer.addCompletedHandler { [weak self] buffer in
+            guard buffer.status == .completed else { return }
+            self?.firstPictureDrawn()
+        }
+        buffer.present(update.drawable)
+        buffer.commit()
+        shared.withLock { $0.tally.committed += 1 }
+    }
+
+    private func firstPictureDrawn() {
+        let startedAt = shared.withLock { shared -> ContinuousClock.Instant? in
+            guard !shared.firstPictureDrawn else { return nil }
+            shared.firstPictureDrawn = true
+            return shared.startedAt
+        }
+        guard let startedAt else { return }
+        let took = (ContinuousClock.now - startedAt) / .milliseconds(1)
+        logger.notice("\(EngineLog.sceneFirstPicture(self.surface, milliseconds: took), privacy: .public)")
+    }
+}
+
+/// The display link's delegate, which must be an `NSObject`; it hands each frame to its engine.
+private final class LinkTarget: NSObject, CAMetalDisplayLinkDelegate, @unchecked Sendable {
+    weak var engine: SceneEngine?
+
+    func metalDisplayLink(_ link: CAMetalDisplayLink, needsUpdate update: CAMetalDisplayLink.Update) {
+        engine?.draw(update, from: link)
+    }
+}
+
+/// A drawing, handed to the render thread and used there only, one call at a time (`SceneDrawing`).
+private final class DrawingBox: @unchecked Sendable {
+    let drawing: any SceneDrawing
+
+    init(_ drawing: any SceneDrawing) {
+        self.drawing = drawing
+    }
+}
+
+/// What draws scenes, carried to the queue that loads one. A type is only ever read.
+private struct DrawingType: @unchecked Sendable {
+    let type: any SceneDrawing.Type
+}
+
+/// The Metal slot, carried to the render thread to make each run's link on. Only the link reads it there.
+private struct LayerBox: @unchecked Sendable {
+    let layer: CAMetalLayer
+}
+
+/// A display link, made, added and invalidated on the render thread only.
+private final class LinkBox: @unchecked Sendable {
+    let link: CAMetalDisplayLink
+
+    init(_ link: CAMetalDisplayLink) {
+        self.link = link
+    }
+}
+
+private let sceneLoadQueue = DispatchQueue(label: "app.livepaper.playback.scene-load", qos: .userInitiated)
+
+/// The device and the one command queue every surface's scene is drawn with.
+/// Metal's devices and queues are safe to share between threads.
+struct SceneGPU: @unchecked Sendable {
+    let device: any MTLDevice
+    let queue: any MTLCommandQueue
+
+    static let shared: SceneGPU? = {
+        guard let device = MTLCreateSystemDefaultDevice(), let queue = device.makeCommandQueue() else { return nil }
+        queue.label = "app.livepaper.scene"
+        return SceneGPU(device: device, queue: queue)
+    }()
+}
+
+/// The thread every scene's display link runs on, with a run loop of its own
+/// (S10: the link fires in the extension, with no window).
+final class SceneRenderThread: Thread, @unchecked Sendable {
+    static let shared: SceneRenderThread = {
+        let thread = SceneRenderThread()
+        thread.name = "app.livepaper.scene"
+        thread.qualityOfService = .userInteractive
+        thread.start()
+        thread.ready.wait()
+        return thread
+    }()
+
+    private let ready = DispatchSemaphore(value: 0)
+    /// Set once, before `ready` is signalled, and only read after it.
+    private var runLoop: RunLoop?
+
+    override func main() {
+        runLoop = .current
+        // A run loop with nothing in it returns at once.
+        RunLoop.current.add(Port(), forMode: .default)
+        ready.signal()
+        while true {
+            _ = autoreleasepool { RunLoop.current.run(mode: .default, before: .distantFuture) }
+        }
+    }
+
+    func perform(_ block: @escaping @Sendable () -> Void) {
+        guard let runLoop else { return }
+        runLoop.perform(inModes: [.default], block: block)
+        CFRunLoopWakeUp(runLoop.getCFRunLoop())
+    }
+}

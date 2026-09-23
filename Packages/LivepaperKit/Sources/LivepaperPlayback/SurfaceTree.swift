@@ -7,6 +7,7 @@ import AVFoundation
 import CoreGraphics
 import ImageIO
 import LivepaperCore
+import LivepaperScene
 import QuartzCore
 
 /// Where a picture goes: how it is fitted, and its size in pixels once known.
@@ -20,18 +21,27 @@ struct PicturePlacement: Equatable {
 ///     root     black behind a wallpaper, which is Fit's bars; the neutral colour with none
 ///     ├── still    the poster, laid out as its video would be
 ///     ├── lower    video, opaque once it has played
-///     └── upper    video, the only layer whose opacity is ever animated
+///     ├── upper    video, the only layer whose opacity is ever animated
+///     └── scene    the Metal slot, where a scene is drawn over its poster (record 0007)
 ///
 /// Changes go in a transaction without implicit animations and are pushed to the render server
 /// at once: the tree lives in a remote context.
 final class SurfaceTree {
     private static let barColour = CGColor(srgbRed: 0, green: 0, blue: 0, alpha: 1)
     private static let fadeKey = "livepaper.crossfade"
+    /// Metal's limit for a texture's side; a picture zoomed past it is drawn smaller and scaled up.
+    private static let largestDrawable = 16_384.0
 
     let root = CALayer()
     private let still = CALayer()
     private let video: VideoSlots<AVSampleBufferDisplayLayer>
     let feeds: VideoSlots<VideoLayerFeed>
+    /// The Metal slot. Made here with the rest of the tree, since a layer added after the agent
+    /// hosts the context does not composite, and shown only by its opacity, which S10 found is
+    /// enough for a `CAMetalLayer` to draw on the desktop (`Spikes/results/S10.md`). Its device
+    /// is set by the scene engine when it first draws, so a surface that only ever plays video
+    /// never touches Metal.
+    let scene = CAMetalLayer()
 
     init(prepareVideoLayer: @MainActor (AVSampleBufferDisplayLayer) -> Void) {
         let lower = AVSampleBufferDisplayLayer()
@@ -50,7 +60,30 @@ final class SurfaceTree {
                 layer.opacity = 0
                 root.addSublayer(layer)
             }
+            scene.pixelFormat = SceneFolder.pixelFormat
+            scene.colorspace = CGColorSpace(name: CGColorSpace.sRGB)
+            scene.framebufferOnly = true
+            scene.isOpaque = true
+            scene.maximumDrawableCount = 3
+            scene.allowsNextDrawableTimeout = true
+            scene.presentsWithTransaction = false
+            scene.opacity = 0
+            root.addSublayer(scene)
         }
+    }
+
+    /// The Metal slot where `placement` puts the scene, and its drawables that size in pixels.
+    func layOutScene(_ placement: PicturePlacement, on geometry: SurfaceGeometry) {
+        let scale = geometry.scale > 0 ? geometry.scale : 1
+        let rect = frame(for: placement, on: geometry)
+        scene.frame = rect
+        scene.contentsScale = scale
+        let side = { (points: Double) in min(max(1, (points * scale).rounded()), Self.largestDrawable) }
+        scene.drawableSize = CGSize(width: side(rect.width), height: side(rect.height))
+    }
+
+    func showScene(_ shown: Bool) {
+        scene.opacity = shown ? 1 : 0
     }
 
     private static func feed(

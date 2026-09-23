@@ -40,6 +40,8 @@ public struct VideoProbe: Equatable, Sendable {
     public var frameCount: Int
     /// Of the track, in seconds.
     public var duration: Double
+    /// The track's samples over its duration, in bits per second. Zero when AVFoundation does not know it.
+    public var bitRate: Double
     /// Whether the track's edits do anything but play its media from zero, as it is.
     public var hasEditList: Bool
     /// B-frames: decode order is not presentation order.
@@ -50,7 +52,7 @@ public struct VideoProbe: Equatable, Sendable {
 
     public init(
         codec: String, isDecodable: Bool, width: Int, height: Int, orientation: Orientation, nominalFrameRate: Double,
-        minFrameDuration: Double, timing: FrameTiming, frameCount: Int, duration: Double, hasEditList: Bool,
+        minFrameDuration: Double, timing: FrameTiming, frameCount: Int, duration: Double, bitRate: Double = 0, hasEditList: Bool,
         hasFrameReordering: Bool, startsOnSyncFrame: Bool, transferFunction: TransferFunction
     ) {
         self.codec = codec
@@ -63,6 +65,7 @@ public struct VideoProbe: Equatable, Sendable {
         self.timing = timing
         self.frameCount = frameCount
         self.duration = duration
+        self.bitRate = bitRate
         self.hasEditList = hasEditList
         self.hasFrameReordering = hasFrameReordering
         self.startsOnSyncFrame = startsOnSyncFrame

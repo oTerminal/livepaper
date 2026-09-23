@@ -57,4 +57,27 @@ struct DetailsWordsTests {
     func `the codec is named as people know it`(row: Row<String, String>) {
         #expect(Self.details(codec: row.input).codecWords == row.expected)
     }
+
+    // MARK: Which rows (record 0007)
+
+    static let rows: [Row<WallpaperKind, [WallpaperDetail]>] = [
+        Row("a video's, as they always were", .video, [.resolution, .length, .frameRate, .codec, .size, .imported]),
+        Row("a scene's say what it is, and have no length or codec", .scene, [.kind, .resolution, .frameRate, .size, .imported]),
+    ]
+
+    @Test(arguments: rows)
+    func `the details shown depend on the kind of wallpaper`(row: Row<WallpaperKind, [WallpaperDetail]>) {
+        var wallpaper = Wallpaper.numbered(1)
+        if row.input == .scene {
+            wallpaper.scene = WallpaperScene(project: .known("wallpapers/\(wallpaper.id)/project.json"), width: 3840, height: 2160)
+        }
+
+        #expect(wallpaper.kind == row.input)
+        #expect(wallpaper.detailsShown == row.expected)
+    }
+
+    @Test func `the kind is named in words`() {
+        #expect(WallpaperKind.video.words == "Video")
+        #expect(WallpaperKind.scene.words == "Wallpaper Engine scene")
+    }
 }

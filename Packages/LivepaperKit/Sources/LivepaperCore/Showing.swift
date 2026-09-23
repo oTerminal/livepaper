@@ -45,7 +45,8 @@ extension RenderState {
                 poster: wallpaper.poster,
                 presentation: wallpaper.presentation,
                 volume: state.playbackVolume(of: wallpaper),
-                userPaused: state.pausedDisplays.contains(identity)
+                userPaused: state.pausedDisplays.contains(identity),
+                scene: wallpaper.scene
             )
         }
         guard let previous else {

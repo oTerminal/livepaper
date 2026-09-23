@@ -61,9 +61,34 @@ struct DiscoverTests {
         #expect(found == Discovery(candidates: [ImportCandidate(source: video, name: "loop")]))
     }
 
+    @Test func `a Wallpaper Engine scene gives its package, with its project, title and preview (record 0007)`() throws {
+        let project = #"{"file": "scene.json", "preview": "preview.jpg", "title": "Lantern Street", "type": "scene"}"#
+        try folder.write(project, to: "item/project.json")
+        let package = try folder.write(to: "item/scene.pkg")
+        let preview = try folder.write(to: "item/preview.jpg")
+        try folder.write(to: "item/shaders/blobsSM40/0a1b.dxs")
+
+        let found = try discoverSources(at: folder.folder("item"))
+
+        let scene = SceneItem(project: folder.file("item/project.json"), sceneFile: "scene.json")
+        #expect(found == Discovery(candidates: [ImportCandidate(source: package, name: "Lantern Street", preview: preview, scene: scene)]))
+    }
+
+    @Test func `a scene with no title is named after its folder, and its package after its scene file`() throws {
+        try folder.write(#"{"file": "gifscene.json", "type": "scene"}"#, to: "2987840102/project.json")
+        let package = try folder.write(to: "2987840102/gifscene.pkg")
+
+        let found = try discoverSources(at: folder.folder("2987840102"))
+
+        #expect(found.candidates.map(\.source) == [package])
+        #expect(found.candidates.map(\.name) == ["2987840102"])
+        #expect(found.candidates.map(\.scene?.sceneFile) == ["gifscene.json"])
+    }
+
     static let refused: [Row<String, SkipReason>] = [
-        Row("a scene", #"{"file": "scene.json", "type": "scene"}"#, .wallpaperEngine(.unsupportedType("scene"))),
-        Row("a web item", #"{"file": "index.html", "type": "web"}"#, .wallpaperEngine(.unsupportedType("web"))),
+        Row("a scene whose files lie loose, with no package", #"{"file": "scene.json", "type": "scene"}"#, .noScenePackage("scene.pkg")),
+        Row("a web item, which runs code", #"{"file": "index.html", "type": "web"}"#, .wallpaperEngine(.runsCode("web"))),
+        Row("an application, which runs code", #"{"file": "game.exe", "type": "application"}"#, .wallpaperEngine(.runsCode("application"))),
         Row("a project nobody could read", "{", .wallpaperEngine(.malformed)),
         Row("a file that is not there", #"{"file": "gone.mp4", "type": "video"}"#, .missingFile("gone.mp4")),
         Row("a path out of the folder", #"{"file": "../loop.mp4", "type": "video"}"#, .wallpaperEngine(.escapesFolder("../loop.mp4"))),
@@ -91,17 +116,19 @@ struct DiscoverTests {
         #expect(found == Discovery(skipped: [refusal]))
     }
 
-    @Test func `a folder of Workshop items gives the video items and says which it left out`() throws {
+    @Test func `a folder of Workshop items gives the video and scene items and says which it left out`() throws {
         try folder.write(Self.videoProject, to: "431960/111/project.json")
         try folder.write(to: "431960/111/rain.webm")
-        try folder.write(#"{"file": "scene.json", "type": "scene"}"#, to: "431960/222/project.json")
+        try folder.write(#"{"file": "index.html", "type": "web"}"#, to: "431960/222/project.json")
         try folder.write(to: "431960/222/materials/loop.mp4")
+        try folder.write(#"{"file": "scene.json", "title": "Lantern Street", "type": "scene"}"#, to: "431960/333/project.json")
+        try folder.write(to: "431960/333/scene.pkg")
         try folder.write(to: "431960/loose.mov")
 
         let found = try discoverSources(at: folder.folder("431960"))
 
-        #expect(found.candidates.map(\.name) == ["loose", "Rainy Night"])
-        #expect(found.skipped == [SkippedSource(url: folder.folder("431960/222"), reason: .wallpaperEngine(.unsupportedType("scene")))])
+        #expect(found.candidates.map(\.name) == ["loose", "Rainy Night", "Lantern Street"])
+        #expect(found.skipped == [SkippedSource(url: folder.folder("431960/222"), reason: .wallpaperEngine(.runsCode("web")))])
     }
 
     @Test func `nothing there is an error, not an empty answer`() {

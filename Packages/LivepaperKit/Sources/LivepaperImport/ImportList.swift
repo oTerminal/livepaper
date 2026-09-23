@@ -98,7 +98,7 @@ public struct ImportList: Equatable, Sendable {
         case .progress(let progress):
             rows[index].state = .running(stage: progress.stage, words: stageWords(progress.stage), fraction: progress.fraction)
             return []
-        case .finished(.imported(let wallpaper, _)):
+        case .finished(.imported(let wallpaper, _)), .finished(.importedScene(let wallpaper)):
             rows[index].state = .finished(wallpaper, at: date)
         case .finished(.duplicate(let wallpaper)):
             rows[index].state = .duplicate(of: wallpaper, at: date)

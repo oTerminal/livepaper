@@ -11,6 +11,7 @@ struct ImportWordsTests {
         Row("the ffmpeg helper", .convert, "Converting"),
         Row("writing the optimised copy", .normalise, "Optimising"),
         Row("the loop-seam validator", .validate, "Checking the loop"),
+        Row("a scene's files, and the renderer's own work on them", .prepare, "Preparing the scene"),
         Row("the poster and the hover preview", .artefacts, "Making the poster"),
         Row("the commit", .commit, "Finishing"),
     ]
@@ -54,6 +55,22 @@ struct ImportWordsTests {
             .final("The ffmpeg helper converted it, but Livepaper cannot read the result")
         ),
         Row("still a seam after the second try", ImportError.loopSeam(seamReport), .final("It would not loop without a gap")),
+        Row(
+            "a scene's package that is not one",
+            ImportError.scene(.notAPackage),
+            .final("Its Wallpaper Engine scene package cannot be read")
+        ),
+        Row(
+            "a scene that is not in its package",
+            ImportError.scene(.missingEntry("scene.json")),
+            .final("Its Wallpaper Engine scene cannot be read")
+        ),
+        Row("a scene's JSON nobody could read", ImportError.scene(.malformedScene), .final("Its Wallpaper Engine scene cannot be read")),
+        Row(
+            "a scene with no size of its own",
+            ImportError.sceneWithoutSize,
+            .final("Its Wallpaper Engine scene has no fixed size, which Livepaper needs to show it")
+        ),
 
         Row("no video track, found late", MediaError.noVideoTrack, .final("It has no picture to play")),
         Row("a read that failed: its drive may have gone", MediaError.readFailed("unknown"), .retryable("It could not be read")),
@@ -87,24 +104,24 @@ struct ImportWordsTests {
 
     static let skips: [Row<SkipReason, String>] = [
         Row(
-            "a scene (record 0005)",
-            .wallpaperEngine(.unsupportedType("scene")),
-            "It is a Wallpaper Engine scene; only video items can be imported"
-        ),
-        Row(
-            "a web item",
-            .wallpaperEngine(.unsupportedType("web")),
-            "It is a Wallpaper Engine web page; only video items can be imported"
+            "a web item (record 0007)",
+            .wallpaperEngine(.runsCode("web")),
+            "It is a web page for Wallpaper Engine, which runs code of its own; only video and scene items can be imported"
         ),
         Row(
             "an application",
-            .wallpaperEngine(.unsupportedType("application")),
-            "It is a Wallpaper Engine application; only video items can be imported"
+            .wallpaperEngine(.runsCode("application")),
+            "It is an application for Wallpaper Engine, which runs code of its own; only video and scene items can be imported"
         ),
         Row(
             "a type nobody knows, which is not repeated back",
             .wallpaperEngine(.unsupportedType("preset")),
-            "Only Wallpaper Engine video items can be imported"
+            "Only Wallpaper Engine video and scene items can be imported"
+        ),
+        Row(
+            "a scene whose files lie loose",
+            .noScenePackage("scene.pkg"),
+            "Its Wallpaper Engine scene has no “scene.pkg” in its folder"
         ),
         Row("a project.json nobody could read", .wallpaperEngine(.malformed), "Its Wallpaper Engine project cannot be read"),
         Row("a video item that names no file", .wallpaperEngine(.noFile), "Its Wallpaper Engine project names no file"),
@@ -141,11 +158,12 @@ struct ImportWordsTests {
         Row(
             "a skipped source is named as it was dropped, and says why",
             .skipped(SkippedSource(
-                url: URL(filePath: "/Users/tester/Workshop/2345678901"), reason: .wallpaperEngine(.unsupportedType("scene"))
+                url: URL(filePath: "/Users/tester/Workshop/2345678901"), reason: .wallpaperEngine(.runsCode("web"))
             )),
             ImportToast(
                 kind: .notImported,
-                words: "“2345678901” was not imported. It is a Wallpaper Engine scene; only video items can be imported."
+                words: "“2345678901” was not imported. It is a web page for Wallpaper Engine, which runs code of its own; "
+                    + "only video and scene items can be imported."
             )
         ),
         Row(

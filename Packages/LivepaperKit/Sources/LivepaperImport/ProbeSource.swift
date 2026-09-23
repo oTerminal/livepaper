@@ -28,8 +28,8 @@ public func probeSource(at url: URL) async throws -> ProbeResult {
 }
 
 private func probeVideo(_ track: AVAssetTrack, of asset: AVAsset) async throws -> VideoProbe {
-    let (formats, isDecodable, transform, nominalFrameRate, minFrameDuration, timeRange) = try await track.load(
-        .formatDescriptions, .isDecodable, .preferredTransform, .nominalFrameRate, .minFrameDuration, .timeRange
+    let (formats, isDecodable, transform, nominalFrameRate, minFrameDuration, timeRange, bitRate) = try await track.load(
+        .formatDescriptions, .isDecodable, .preferredTransform, .nominalFrameRate, .minFrameDuration, .timeRange, .estimatedDataRate
     )
     let format = formats.first
     let dimensions = format.map { CMVideoFormatDescriptionGetDimensions($0) } ?? CMVideoDimensions(width: 0, height: 0)
@@ -47,6 +47,7 @@ private func probeVideo(_ track: AVAssetTrack, of asset: AVAsset) async throws -
         timing: reading?.timing ?? .variable,
         frameCount: reading?.frames.count ?? 0,
         duration: timeRange.duration.seconds,
+        bitRate: Double(bitRate),
         hasEditList: reading?.hasEditList ?? false,
         hasFrameReordering: reading?.hasFrameReordering ?? false,
         startsOnSyncFrame: reading?.startsOnSyncFrame ?? false,

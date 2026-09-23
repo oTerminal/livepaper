@@ -50,6 +50,21 @@ extension SurfaceWallpaper {
     }
 }
 
+extension SurfaceWallpaper {
+    /// Wallpaper `number` as a scene of 3840 by 2160, resolved in `testLibrary` (record 0007).
+    static func scene(_ number: Int, presentation: Presentation = Presentation()) -> SurfaceWallpaper {
+        let id = WallpaperID.numbered(number)
+        return SurfaceWallpaper(
+            wallpaper: id,
+            video: testLibrary.url(for: .known("wallpapers/\(id)/scene.pkg")),
+            poster: testLibrary.url(for: .known("wallpapers/\(id)/poster.heic")),
+            presentation: presentation,
+            volume: 0,
+            scene: SurfaceScene(folder: testLibrary.wallpapers.appending(path: id.description), size: Size(width: 3840, height: 2160))
+        )
+    }
+}
+
 extension Presentation {
     static let fit = Presentation(fit: .fit)
 }

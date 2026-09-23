@@ -1,3 +1,4 @@
+import AVFoundation
 import CoreGraphics
 import Foundation
 import ImageIO
@@ -93,4 +94,10 @@ func picture(at url: URL) throws -> Picture {
         context?.draw(image, in: CGRect(x: 0, y: 0, width: 64, height: 64))
     }
     return Picture(brightness: Double(pixels.reduce(0) { $0 + Int($1) }) / Double(pixels.count), size: [image.width, image.height])
+}
+
+/// A movie file's video rate, in bits per second: its video samples' size over the track's duration, as AVFoundation reads it.
+func videoBitRate(of url: URL) async throws -> Double {
+    let track = try #require(try await AVURLAsset(url: url).loadTracks(withMediaType: .video).first)
+    return Double(try await track.load(.estimatedDataRate))
 }

@@ -2,6 +2,7 @@ import AVFoundation
 import CoreMedia
 import Foundation
 import Synchronization
+import VideoToolbox
 
 /// What a transcode is asked to make.
 struct Rendition: Sendable {
@@ -9,36 +10,56 @@ struct Rendition: Sendable {
     /// The longer side, in pixels. Nil keeps the picture's size.
     var maxDimension: Int?
     var includesAudio: Bool
-    /// 0 to 1, the encoder's constant quality.
-    var quality: Double
+    var spending: Spending
 
-    static func optimisedCopy(rate: FrameRate) -> Rendition {
-        Rendition(rate: rate, maxDimension: nil, includesAudio: true, quality: 0.75)
+    /// What the encoder is told to spend. VideoToolbox takes one or the other:
+    /// given a quality, it ignores an average rate.
+    enum Spending: Sendable {
+        /// 0 to 1: the same quality throughout, at whatever rate that takes.
+        case quality(Double)
+        /// Bits per second, over the whole file.
+        case averageBitRate(Int)
+    }
+
+    static func optimisedCopy(rate: FrameRate, spending: Spending) -> Rendition {
+        Rendition(rate: rate, maxDimension: nil, includesAudio: true, spending: spending)
     }
 
     /// Small, low rate, no audio.
     static func hoverPreview(of rate: FrameRate) -> Rendition {
-        Rendition(rate: rate.reduced(toAtMost: 15), maxDimension: 480, includesAudio: false, quality: 0.5)
+        Rendition(rate: rate.reduced(toAtMost: 15), maxDimension: 480, includesAudio: false, spending: .quality(0.5))
     }
 
     /// HEVC, SDR, and nothing in the stream that would need an edit list to play from zero.
-    func encoderSettings(width: Int, height: Int) -> [String: Any] {
-        [
+    func encoderSettings(size: (width: Int, height: Int), for writer: AVAssetWriter) -> [String: Any] {
+        var compression: [String: Any] = [
+            // No B-frames: reordered frames cannot be written with the first at zero and no edit list.
+            AVVideoAllowFrameReorderingKey: false,
+            AVVideoMaxKeyFrameIntervalDurationKey: 2,
+        ]
+        switch spending {
+        case .quality(let quality): compression[AVVideoQualityKey] = quality
+        case .averageBitRate(let bitRate): compression[AVVideoAverageBitRateKey] = bitRate
+        }
+        let settings: [String: Any] = [
             AVVideoCodecKey: AVVideoCodecType.hevc,
-            AVVideoWidthKey: width,
-            AVVideoHeightKey: height,
+            AVVideoWidthKey: size.width,
+            AVVideoHeightKey: size.height,
             AVVideoColorPropertiesKey: [
                 AVVideoColorPrimariesKey: AVVideoColorPrimaries_ITU_R_709_2,
                 AVVideoTransferFunctionKey: AVVideoTransferFunction_ITU_R_709_2,
                 AVVideoYCbCrMatrixKey: AVVideoYCbCrMatrix_ITU_R_709_2,
             ],
-            AVVideoCompressionPropertiesKey: [
-                // No B-frames: reordered frames cannot be written with the first at zero and no edit list.
-                AVVideoAllowFrameReorderingKey: false,
-                AVVideoMaxKeyFrameIntervalDurationKey: 2,
-                AVVideoQualityKey: quality,
-            ],
+            AVVideoCompressionPropertiesKey: compression,
         ]
+        guard case .averageBitRate = spending else { return settings }
+        // Without look-ahead the rate control starts starved: the first two seconds, the start of
+        // every loop, come out soft. Any count turns it on. The software encoder has none, and
+        // AVFoundation throws on settings the encoder cannot take rather than leave them out.
+        compression[kVTCompressionPropertyKey_SuggestedLookAheadFrameCount as String] = 48
+        var withLookAhead = settings
+        withLookAhead[AVVideoCompressionPropertiesKey] = compression
+        return writer.canApply(outputSettings: withLookAhead, forMediaType: .video) ? withLookAhead : settings
     }
 }
 
@@ -116,7 +137,7 @@ func transcode(_ source: URL, to destination: URL, as rendition: Rendition, prog
         reader.add(output)
 
         let job = try WritingJob(destination: destination, rate: rendition.rate, cancellation: cancellation)
-        let input = AVAssetWriterInput(mediaType: .video, outputSettings: rendition.encoderSettings(width: size.width, height: size.height))
+        let input = AVAssetWriterInput(mediaType: .video, outputSettings: rendition.encoderSettings(size: size, for: job.writer))
         let adaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: input, sourcePixelBufferAttributes: nil)
         try job.add(video: input)
         let audioCopy = try audio.map { try AudioCopy($0, into: job) }

@@ -57,7 +57,28 @@ struct RenderStateTests {
             RenderState(generation: 5_000_000_000, displays: [display(1)], pauseRules: PauseRules(), conditions: nil),
             ()
         ),
+        Row(
+            "a scene on one display and a video on the other",
+            RenderState(generation: 3, displays: [display(1), sceneDisplay(2, showing: 3)], pauseRules: PauseRules(), conditions: nil),
+            ()
+        ),
     ]
+
+    /// Display `number` showing scene `wallpaper`, as `render-state-v1.1.json` has it.
+    static func sceneDisplay(_ number: Int, showing wallpaper: Int) -> RenderState.Display {
+        let folder = "wallpapers/\(WallpaperID.numbered(wallpaper))"
+        var display = RenderState.Display(
+            identity: .numbered(number),
+            wallpaper: .numbered(wallpaper),
+            optimisedCopy: .known("\(folder)/scene.pkg"),
+            poster: .known("\(folder)/poster.heic"),
+            presentation: Presentation(fit: .fit),
+            volume: 0,
+            userPaused: false
+        )
+        display.scene = WallpaperScene(project: .known("\(folder)/project.json"), width: 3840, height: 2160)
+        return display
+    }
 
     @Test(arguments: roundTrips)
     func `survives a round trip`(row: Row<RenderState, Void>) throws {
@@ -79,7 +100,14 @@ struct RenderStateTests {
     @Test func `writes its schema version`() throws {
         let json = try #require(JSONSerialization.jsonObject(with: Self.fixtureState.encode()) as? [String: Any])
 
-        #expect(json["version"] as? [String: Int] == ["major": 1, "minor": 0])
+        #expect(json["version"] as? [String: Int] == ["major": 1, "minor": 1])
+    }
+
+    @Test func `a video's display is written as it was before scenes, with no scene field`() throws {
+        let json = try #require(JSONSerialization.jsonObject(with: Self.fixtureState.encode()) as? [String: Any])
+        let displays = try #require(json["displays"] as? [[String: Any]])
+
+        #expect(displays.allSatisfy { $0["scene"] == nil })
     }
 
     // MARK: Migration
@@ -88,6 +116,19 @@ struct RenderStateTests {
         let decoded = try RenderState.decode(Fixture.data("render-state-v1.0"))
 
         #expect(decoded == Self.fixtureState)
+    }
+
+    @Test func `the version 1.1 fixture decodes, with its scene`() throws {
+        let decoded = try RenderState.decode(Fixture.data("render-state-v1.1"))
+
+        var video = Self.display(1)
+        video.presentation = Presentation()
+        #expect(decoded == RenderState(
+            generation: 44,
+            displays: [video, Self.sceneDisplay(2, showing: 3)],
+            pauseRules: PauseRules(whenDesktopCovered: true, whenDisplayAsleepOrLocked: true, inLowPowerMode: true, onBattery: false),
+            conditions: nil
+        ))
     }
 
     @Test func `a newer minor version decodes, and its new fields are ignored`() throws {

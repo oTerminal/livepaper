@@ -1,13 +1,13 @@
 # Livepaper
 
-A macOS app that plays a video the user provides as their wallpaper, on the desktop and the lock screen.
+A macOS app that plays a video the user provides, or draws a Wallpaper Engine scene, as their wallpaper, on the desktop and the lock screen.
 
 ## Language
 
 ### Library
 
 **Wallpaper**:
-A looping video in the library that can be shown on a display.
+A looping video, or a Wallpaper Engine scene drawn live, in the library that can be shown on a display.
 _Avoid_: Video, clip, asset, item
 
 **Library**:
@@ -15,7 +15,7 @@ The user's collection of wallpapers, stored and managed by the app.
 _Avoid_: Collection, gallery, media
 
 **Import**:
-Bringing a file the user provides into the library as a wallpaper.
+Bringing a file or a Wallpaper Engine item the user provides into the library as a wallpaper.
 _Avoid_: Add, upload, ingest
 
 **Source file**:
@@ -23,7 +23,7 @@ The file the user provided for an import. It stays where it was and is never mod
 _Avoid_: Original, input
 
 **Optimised copy**:
-The one video file the library keeps for a wallpaper, prepared at import so it loops without a gap.
+The one video file the library keeps for a video wallpaper, prepared at import so it loops without a gap. A scene has none: the library keeps the scene's own files.
 _Avoid_: Transcode, converted file, cache
 
 **Poster**:
@@ -31,8 +31,16 @@ A still image of a wallpaper, shown wherever the wallpaper is not playing.
 _Avoid_: Thumbnail, preview image, snapshot
 
 **Wallpaper Engine video item**:
-A Wallpaper Engine Workshop folder whose project is of type video. The only kind of Wallpaper Engine content that can be imported.
-_Avoid_: WE wallpaper, workshop wallpaper, scene
+A Wallpaper Engine Workshop folder whose project is of type video. Its video is imported as any other source file is.
+_Avoid_: WE wallpaper, workshop wallpaper
+
+**Scene**:
+A Wallpaper Engine scene item: a package of layers, effects and particles, drawn live by the extension. Web and application items, which run code of their own, are never imported.
+_Avoid_: WE wallpaper, workshop wallpaper, 3D wallpaper
+
+**GIF scene**:
+A scene whose only content is one image layer with an animated sprite sheet. Imported as video, since its frames loop exactly.
+_Avoid_: GIF template, animated scene
 
 **Favourite**:
 A wallpaper the user has marked to find again quickly.

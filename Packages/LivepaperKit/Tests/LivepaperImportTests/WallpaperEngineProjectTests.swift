@@ -31,9 +31,19 @@ struct WallpaperEngineProjectTests {
             #"{"file": "loop.mp4", "preview": "../../secret.png", "type": "video"}"#,
             .success(.known(file: "loop.mp4"))
         ),
-        Row("a scene is refused (record 0005)", #"{"file": "scene.json", "type": "scene"}"#, .failure(.unsupportedType("scene"))),
-        Row("a web item is refused", #"{"file": "index.html", "type": "web"}"#, .failure(.unsupportedType("web"))),
-        Row("an application is refused", #"{"file": "game.exe", "type": "application"}"#, .failure(.unsupportedType("application"))),
+        Row(
+            "a scene gives its JSON, which is in its package (record 0007)",
+            #"{"file": "scene.json", "preview": "preview.jpg", "title": "Lantern Street", "type": "scene"}"#,
+            .success(.known(kind: .scene, title: "Lantern Street", file: "scene.json", preview: "preview.jpg"))
+        ),
+        Row(
+            "a scene made from the GIF template",
+            #"{"file": "gifscene.json", "type": "Scene"}"#,
+            .success(.known(kind: .scene, file: "gifscene.json"))
+        ),
+        Row("a web item is refused: it runs code", #"{"file": "index.html", "type": "web"}"#, .failure(.runsCode("web"))),
+        Row("an application is refused: it runs code", #"{"file": "game.exe", "type": "application"}"#, .failure(.runsCode("application"))),
+        Row("a type nobody knows", #"{"file": "x.json", "type": "preset"}"#, .failure(.unsupportedType("preset"))),
         Row("no type at all", #"{"file": "loop.mp4"}"#, .failure(.malformed)),
         Row("a type that is not a string", #"{"file": "loop.mp4", "type": 3}"#, .failure(.malformed)),
         Row("not JSON", "type: video", .failure(.malformed)),

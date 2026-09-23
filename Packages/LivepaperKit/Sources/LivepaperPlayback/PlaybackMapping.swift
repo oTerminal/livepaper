@@ -122,7 +122,8 @@ extension SurfaceWallpaper {
             video: location.url(for: display.optimisedCopy),
             poster: location.url(for: display.poster),
             presentation: display.presentation,
-            volume: display.volume
+            volume: display.volume,
+            scene: display.scene.map { SurfaceScene(folder: location.url(for: $0.project).deletingLastPathComponent(), size: $0.size) }
         )
     }
 }

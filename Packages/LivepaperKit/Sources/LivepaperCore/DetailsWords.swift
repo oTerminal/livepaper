@@ -4,6 +4,39 @@ import Foundation
 // English only for v1.0. Its size and the day it was imported are the system's
 // own formats, so the app formats those.
 
+/// One row of the inspector's details.
+public enum WallpaperDetail: Equatable, Sendable {
+    case kind
+    case resolution
+    case length
+    case frameRate
+    case codec
+    case size
+    case imported
+}
+
+extension Wallpaper {
+    /// The rows the inspector shows, in order. A video's are what they always
+    /// were. A scene has no length and no codec, and says what it is, since
+    /// nothing else on screen does (record 0007).
+    public var detailsShown: [WallpaperDetail] {
+        switch kind {
+        case .video: [.resolution, .length, .frameRate, .codec, .size, .imported]
+        case .scene: [.kind, .resolution, .frameRate, .size, .imported]
+        }
+    }
+}
+
+extension WallpaperKind {
+    /// "Video", or "Wallpaper Engine scene".
+    public var words: String {
+        switch self {
+        case .video: "Video"
+        case .scene: "Wallpaper Engine scene"
+        }
+    }
+}
+
 extension WallpaperDetails {
     /// "3840 × 2160".
     public var resolutionWords: String {
