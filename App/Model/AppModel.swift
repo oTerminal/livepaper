@@ -181,7 +181,7 @@ extension AppModel {
         case .keptAside(let url, let version):
             AppLog.logger.error("\(AppLog.stateKeptAside(at: url, version: version), privacy: .public)")
         }
-        // The next state carries on the generation the extension last read.
+        // The next state carries on the generation the extension last read; one that cannot be read is logged.
         do {
             renderState = try services.lastRenderState()
         } catch {

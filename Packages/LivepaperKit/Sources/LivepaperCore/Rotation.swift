@@ -4,6 +4,9 @@ import Foundation
 public struct Playlist: Equatable, Identifiable, Sendable {
     /// What a new playlist waits between rotations.
     public static let defaultInterval: Duration = .seconds(30 * 60)
+    /// A second to a year: what `app-state.json` may say, since it can be edited
+    /// by hand. Nothing shorter rotates, and a number too large for a `Duration` traps.
+    public static let intervalLimits: ClosedRange<Duration> = .seconds(1) ... .seconds(365 * 24 * 60 * 60)
 
     public let id: PlaylistID
     public var name: String
@@ -158,13 +161,21 @@ extension Playlist: Codable {
         case id, name, wallpapers, interval, shuffle
     }
 
-    // The interval is written in seconds, a plain number anyone can read and edit.
+    // The interval is written in seconds, a plain number anyone can read and edit,
+    // and is checked against `intervalLimits` before it becomes a `Duration`.
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(PlaylistID.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
         wallpapers = try container.decode([WallpaperID].self, forKey: .wallpapers)
-        interval = .seconds(try container.decode(Double.self, forKey: .interval))
+        let seconds = try container.decode(Double.self, forKey: .interval)
+        let limits = Self.intervalLimits
+        guard seconds.isFinite, seconds >= limits.lowerBound / .seconds(1), seconds <= limits.upperBound / .seconds(1) else {
+            throw DecodingError.dataCorruptedError(
+                forKey: .interval, in: container, debugDescription: "an interval of \(seconds) s is outside \(limits)"
+            )
+        }
+        interval = .seconds(seconds)
         shuffle = try container.decode(Bool.self, forKey: .shuffle)
     }
 

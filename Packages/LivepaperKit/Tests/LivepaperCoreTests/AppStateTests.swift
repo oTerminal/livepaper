@@ -219,7 +219,28 @@ struct AppStateTests {
                 """),
             nil
         ),
+        // A hand-edited interval: nothing to rotate by, or so large that a `Duration` of it would trap.
+        Row("a playlist that rotates every 0 seconds", appStateJSON(playlists: playlistJSON(interval: "0")), nil),
+        Row("a playlist that rotates every -60 seconds", appStateJSON(playlists: playlistJSON(interval: "-60")), nil),
+        Row("a playlist that rotates less than once a year", appStateJSON(playlists: playlistJSON(interval: "31536001")), nil),
+        Row("an interval too large for a duration", appStateJSON(playlists: playlistJSON(interval: "1e30")), nil),
+        Row("an interval past any number", appStateJSON(playlists: playlistJSON(interval: "1e400")), nil),
     ]
+
+    /// Playlist 1 with no wallpapers, rotating every `interval` seconds, as written in the file.
+    static func playlistJSON(interval: String) -> String {
+        #"{"id":"BBBBBBBB-0000-0000-0000-000000000001","name":"A","wallpapers":[],"interval":\#(interval),"shuffle":false}"#
+    }
+
+    @Test func `a playlist may rotate every second, or once a year`() throws {
+        let playlists = [1, 31_536_000].enumerated().map { index, seconds in
+            Self.playlistJSON(interval: "\(seconds)").replacingOccurrences(of: "000000000001", with: "00000000000\(index + 1)")
+        }
+
+        let decoded = try AppState.decode(Data(Self.appStateJSON(playlists: playlists.joined(separator: ",")).utf8))
+
+        #expect(decoded.playlists.map(\.interval) == [.seconds(1), .seconds(31_536_000)])
+    }
 
     /// A version 1.0 state with these pairs and playlists, and defaults for the rest.
     static func appStateJSON(assignments: String = "", playlists: String = "") -> String {

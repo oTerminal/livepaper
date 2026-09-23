@@ -17,7 +17,8 @@ struct AppServices {
     /// Clears what an import that was killed left behind; runs at launch, before any import.
     var sweep: () throws -> [URL]
     /// The render state the last run wrote, so that the generation carries on.
-    /// Nil when there is none; throws when it cannot be read.
+    /// Nil when there is none; throws when it cannot be read or trusted, which
+    /// the model logs before starting from none.
     var lastRenderState: () throws -> RenderState?
     /// Made once, at launch, on the model: the one writer of the library.
     var makeImporter: (any ImportLibrary) -> any ImportRunning
@@ -50,7 +51,12 @@ extension AppServices {
             systemServices: FakeSystemServices(),
             sweep: { try sweepInterruptedImports(in: location) },
             lastRenderState: {
-                guard let data = try? Data(contentsOf: location.renderState) else { return nil }
+                let data: Data
+                do {
+                    data = try Data(contentsOf: location.renderState)
+                } catch let error as CocoaError where [.fileReadNoSuchFile, .fileNoSuchFile].contains(error.code) {
+                    return nil
+                }
                 return try RenderState.decode(data)
             },
             makeImporter: { library in
