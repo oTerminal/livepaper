@@ -75,6 +75,70 @@ struct LibraryGridTests {
         #expect(grid.map(\.id) == row.expected.map(WallpaperID.numbered))
     }
 
+    // MARK: Empty states
+
+    struct Emptiness: Sendable {
+        /// Which of the five wallpapers the library still has.
+        var library = [1, 2, 3, 4, 5]
+        var section: LibrarySection
+        var search = ""
+    }
+
+    static let emptiness: [Row<Emptiness, EmptyGrid?>] = [
+        Row("wallpapers to show: no empty state", Emptiness(section: .all), nil),
+        Row("a search with matches: no empty state", Emptiness(section: .favourites, search: "cafe"), nil),
+        Row("an empty library", Emptiness(library: [], section: .all), .noWallpapers),
+        Row("an empty library, in any section: Import is the way on", Emptiness(library: [], section: .favourites), .noWallpapers),
+        Row("an empty library, on a display", Emptiness(library: [], section: .nowPlaying(third)), .noWallpapers),
+        Row("an empty library, searched", Emptiness(library: [], section: .all, search: "ocean"), .noWallpapers),
+        Row("no favourites", Emptiness(library: [1, 3, 5], section: .favourites), .noFavourites),
+        Row(
+            "no favourites and a search: clearing the search would not help",
+            Emptiness(library: [1, 3, 5], section: .favourites, search: "ocean"),
+            .noFavourites
+        ),
+        Row("an empty playlist", Emptiness(section: .playlist(.numbered(2))), .emptyPlaylist(.numbered(2))),
+        Row(
+            "a playlist whose wallpapers the library has lost",
+            Emptiness(library: [2, 3], section: .playlist(.numbered(1))),
+            .emptyPlaylist(.numbered(1))
+        ),
+        Row("a display showing nothing", Emptiness(section: .nowPlaying(third)), .nothingOnDisplay(third)),
+        Row(
+            "a display whose wallpaper the library has lost",
+            Emptiness(library: [1, 2, 4, 5], section: .nowPlaying(second)),
+            .nothingOnDisplay(second)
+        ),
+        Row("nothing matches the search", Emptiness(section: .all, search: "desert"), .noResults(search: "desert")),
+        Row("the search as typed, without the spaces around it", Emptiness(section: .all, search: "  desert "), .noResults(search: "desert")),
+        Row("a playlist searched, nothing matching", Emptiness(section: .playlist(.numbered(1)), search: "aurora"), .noResults(search: "aurora")),
+        Row("a display searched, nothing matching", Emptiness(section: .nowPlaying(second), search: "forest"), .noResults(search: "forest")),
+    ]
+
+    @Test(arguments: emptiness)
+    func `an empty grid says why`(row: Row<Emptiness, EmptyGrid?>) throws {
+        let all = try Self.library()
+        let library = try Library.of(contentsOf: all.wallpapers.filter { wallpaper in
+            row.input.library.map(WallpaperID.numbered).contains(wallpaper.id)
+        })
+
+        let empty = emptyGrid(library: library, state: Self.state, section: row.input.section, search: row.input.search)
+
+        #expect(empty == row.expected)
+    }
+
+    static let sortable: [Row<LibrarySection, Bool>] = [
+        Row("all", .all, true),
+        Row("favourites", .favourites, true),
+        Row("a playlist keeps the user's order", .playlist(.numbered(1)), false),
+        Row("a display shows its wallpaper, or its playlist in the user's order", .nowPlaying(first), false),
+    ]
+
+    @Test(arguments: sortable)
+    func `only the library's own sections follow the sort order`(row: Row<LibrarySection, Bool>) {
+        #expect(row.input.followsSortOrder == row.expected)
+    }
+
     // MARK: Selection
 
     /// Seven tiles, three to a row:

@@ -24,6 +24,10 @@ extension Wallpaper {
 
 extension Library {
     static func of(_ wallpapers: Wallpaper...) throws -> Library {
+        try of(contentsOf: wallpapers)
+    }
+
+    static func of(contentsOf wallpapers: [Wallpaper]) throws -> Library {
         try wallpapers.reduce(Library()) { try $0.inserting($1) }
     }
 }

@@ -226,4 +226,21 @@ struct RotationTests {
 
         #expect(shown == [nil, nil])
     }
+
+    // MARK: The inspector's interval
+
+    static func minutes(_ count: Int) -> Duration {
+        .seconds(count * 60)
+    }
+
+    static let intervalChoices: [Row<Duration, [Duration]>] = [
+        Row("the default is one of the choices", Playlist.defaultInterval, [5, 15, 30, 60, 180, 1440].map(minutes)),
+        Row("an interval set elsewhere joins them, in order", .seconds(45 * 60), [5, 15, 30, 45, 60, 180, 1440].map(minutes)),
+        Row("longer than any", .seconds(2 * 24 * 60 * 60), [5, 15, 30, 60, 180, 1440, 2880].map(minutes)),
+    ]
+
+    @Test(arguments: intervalChoices)
+    func `the interval choices are a few set ones and the playlist's own`(row: Row<Duration, [Duration]>) {
+        #expect(Playlist.intervalChoices(including: row.input) == row.expected)
+    }
 }
