@@ -47,6 +47,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// nothing fake is made, and the model drives the real wallpaper.
     private let fakes: Fakes?
     private var menuBarItem: MenuBarItem?
+    /// Takes the fakes run's commands from a script; nil when wired.
+    private var remote: FakesRemote?
 
     override init() {
         let options = LaunchOptions.current
@@ -71,7 +73,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         windows.willOpenWindow = { [weak item] in item?.closePopover() }
         windows.didCloseLibrary = { [model] in model.libraryWindowDidClose() }
         menuBarItem = item
+        if let fakes {
+            remote = FakesRemote { [weak self] verb, rest in self?.perform(verb, rest, fakes: fakes) }
+        }
         model.launch()
+    }
+
+    /// A command from `Tools/pr-media/fakes.sh`. The popover opens and closes with
+    /// motion, as a click would, so that a recording shows it.
+    private func perform(_ verb: String, _ rest: String, fakes: Fakes) {
+        switch (verb, rest) {
+        case ("open", "popover"): menuBarItem?.openPopover(animated: true)
+        case ("close", "popover"): menuBarItem?.closePopover(animated: true)
+        case ("open", "library"): windows.openLibrary()
+        case ("open", "settings"): windows.openSettings()
+        case ("menu", let title):
+            let menu = fakes.menu(model: model) { [weak self] in self?.menuBarItem?.openPopover(animated: true) }
+            if !menu.performItem(titled: title) { AppLog.logger.notice("fakes: no menu item \(title, privacy: .public)") }
+        case ("quit", _): NSApp.terminate(nil)
+        default: AppLog.logger.notice("fakes: unknown command \(verb, privacy: .public) \(rest, privacy: .public)")
+        }
     }
 
     /// Log Playback Metrics and Quit; the fakes run adds its Fakes submenu.

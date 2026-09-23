@@ -57,6 +57,15 @@ final class MenuBarItem: NSObject, NSMenuDelegate {
         popover.close(animated: Self.isPointerEvent(NSApp.currentEvent))
     }
 
+    /// For the fakes run's remote, which stands in for a click on an item that cannot be clicked.
+    func openPopover(animated: Bool) {
+        popover.open(animated: animated)
+    }
+
+    func closePopover(animated: Bool) {
+        popover.close(animated: animated)
+    }
+
     @objc private func clicked() {
         let event = NSApp.currentEvent
         let isControlClick = event?.type == .leftMouseDown && event?.modifierFlags.contains(.control) == true
