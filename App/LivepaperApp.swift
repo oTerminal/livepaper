@@ -26,6 +26,8 @@ struct LivepaperApp: App {
             CommandGroup(replacing: .newItem) {
                 Button("Import…") { delegate.model.chooseFilesToImport() }
                     .keyboardShortcut("o")
+                Divider()
+                DeleteWallpaperCommand(model: delegate.model)
             }
         }
 

@@ -3,9 +3,9 @@ import LivepaperCore
 import SwiftUI
 
 /// The section's wallpapers as tiles, one live at a time. One tile is selected:
-/// a click selects it, the arrow keys, Home and End move it, and Delete (or
-/// Command-Delete) deletes it. The grid is one tab stop, like a native grid;
-/// none of what a key does animates.
+/// a click selects it, the arrow keys, Home and End move it, and Delete, forward
+/// delete or Edit > Delete deletes it; Command-Delete is `DeleteWallpaperCommand`'s.
+/// The grid is one tab stop, like a native grid; none of what a key does animates.
 struct WallpaperGrid: View {
     @Environment(AppModel.self) private var model
     let grid: [Wallpaper]
@@ -57,10 +57,12 @@ struct WallpaperGrid: View {
                 withoutAnimation { model.moveSelection(press.key == .home ? .first : .last, columns: columns) }
                 return .handled
             }
-            .onKeyPress(keys: [.delete, .deleteForward]) { _ in
+            // macOS hands a focused view the Delete keys as the delete command, as
+            // it hands it the arrows as move commands: a key press handler missed them.
+            .onDeleteCommand {
                 withoutAnimation { model.deleteSelected() }
-                return .handled
             }
+            .focusedValue(\.gridSelection, model.selection.selected)
             .onChange(of: model.selection.selected) { _, selected in
                 guard let selected else { return }
                 withoutAnimation { scroller.scrollTo(selected) }
@@ -155,9 +157,32 @@ struct WallpaperMenu: View {
         Button("Delete", role: .destructive) {
             withoutAnimationIfKeyPress { model.delete(wallpaper.id) }
         }
-        // Shown here; the grid takes the key itself.
+        // Shown here; File > Delete Wallpaper takes the key while the grid has focus.
         .keyboardShortcut(.delete, modifiers: .command)
     }
+}
+
+/// File > Delete Wallpaper: Command-Delete without opening a menu. It acts only
+/// while the grid has focus, so a text field keeps Command-Delete (delete to the
+/// start of the line) for itself.
+struct DeleteWallpaperCommand: View {
+    let model: AppModel
+    @FocusedValue(\.gridSelection) private var selected: WallpaperID?
+
+    var body: some View {
+        Button("Delete Wallpaper") {
+            guard let selected else { return }
+            // Mostly chosen by its key, and a key press never animates.
+            withoutAnimation { model.delete(selected) }
+        }
+        .keyboardShortcut(.delete, modifiers: .command)
+        .disabled(selected == nil)
+    }
+}
+
+extension FocusedValues {
+    /// The grid's selected wallpaper, while the grid has focus.
+    @Entry var gridSelection: WallpaperID?
 }
 
 private nonisolated enum Layout {
