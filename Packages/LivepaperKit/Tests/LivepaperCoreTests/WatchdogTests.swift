@@ -74,6 +74,7 @@ struct AgentRestartLimitTests {
     }
 
     @Test func `the default gap is 10 minutes`() {
+        #expect(agentRestartGap == .seconds(600))
         #expect(!allowAgentRestart(last: Moment.launch, now: Moment.after(599)))
         #expect(allowAgentRestart(last: Moment.launch, now: Moment.after(600)))
     }
@@ -117,5 +118,9 @@ struct HeartbeatJudgementTests {
         let level = judgeHeartbeat(last: row.input.last, now: row.input.now, launchedAt: Moment.launch)
 
         #expect(level == row.expected)
+    }
+
+    @Test func `the extension sends a heartbeat more often than one lasts`() {
+        #expect(HeartbeatTiming.standard.interval < HeartbeatTiming.standard.lifetime)
     }
 }

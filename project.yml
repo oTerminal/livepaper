@@ -7,9 +7,11 @@ options:
   createIntermediateGroups: true
   generateEmptyDirectories: true
 
-# The wallpaper extension target is added after the M1 spike settles ADR-0001
-# (see docs/specs/M1-engine-spike.md). It will live in targets/extension.yml so
-# gate G1 can leave it out of release builds.
+# The wallpaper extension, the render host (record 0001), lives in its own file so
+# that it stays one include away from being left out.
+include:
+  - path: targets/extension.yml
+    relativePaths: false
 
 settings:
   base:
@@ -52,7 +54,15 @@ targets:
     dependencies:
       - package: LivepaperKit
         product: LivepaperCore
+      - package: LivepaperKit
+        product: LivepaperImport
+      - package: LivepaperKit
+        product: LivepaperPlayback
+      - package: LivepaperKit
+        product: LivepaperSystem
       - package: DesignSystem
+      # Embedded in Contents/Extensions, where ExtensionKit finds it.
+      - target: WallpaperExtension
 
   Gallery:
     type: application
