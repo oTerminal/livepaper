@@ -1,4 +1,5 @@
 import AppKit
+import DesignSystem
 import SwiftUI
 
 /// A menu-bar agent (`LSUIElement`) with a library window, which brings the Dock
@@ -65,11 +66,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.appearance = options.nsAppearance
-        let popover = PopoverPlaceholder()
+        let popover = PopoverView()
             .environment(model)
             .environment(windows)
             .background(SceneActionsReader(windows: windows))
-        let item = MenuBarItem(options: options, menu: menu, content: popover)
+        // The popover holds cards of `Radius.card`: 4 pt keeps them concentric with its 20 pt corners.
+        let item = MenuBarItem(options: options, menu: menu, contentPadding: Spacing.tight, content: popover)
         windows.willOpenWindow = { [weak item] in item?.closePopover() }
         windows.didCloseLibrary = { [model] in model.libraryWindowDidClose() }
         menuBarItem = item

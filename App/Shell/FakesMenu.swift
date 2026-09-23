@@ -4,8 +4,9 @@ import LivepaperCore
 extension Fakes {
     /// The fakes run's "Fakes" submenu, in the menu-bar item's secondary-click
     /// menu: the fake host's status and the fake conditions, for the manual
-    /// script and the screenshots, and the login item's four states for
-    /// Settings'. Built each time the menu opens, so the checkmarks are current.
+    /// script and the screenshots, the popover's buttons, and the login item's
+    /// four states for Settings'. Built each time the menu opens, so the
+    /// checkmarks are current.
     func menu(model: AppModel, openPopover: @escaping () -> Void) -> NSMenu {
         let menu = NSMenu(title: "Fakes")
         // The menu bar can be too full to show the item.
@@ -37,6 +38,24 @@ extension Fakes {
         condition("Locked", isOn: isLocked, toggle: toggleLocked)
         condition("Low Power Mode", isOn: isLowPowerMode, toggle: toggleLowPowerMode)
         condition("On Battery", isOn: isOnBattery, toggle: toggleOnBattery)
+
+        // What the popover's buttons do, for a run whose popover nothing can click:
+        // `Tools/pr-media/fakes.sh menu Pause All`.
+        menu.addItem(.separator())
+        menu.addItem(.sectionHeader(title: "Popover"))
+        let first = firstDisplay.identity
+        let second = Self.studio.identity
+        let secondName = Self.names[second] ?? "Second Display"
+        let cards = model.nowPlaying
+        condition("Pause \(display)", isOn: cards.first { $0.display == first }?.isUserPaused == true) {
+            model.togglePause(on: first)
+        }
+        let isOnPlaylist = cards.first { $0.display == second }?.playlist != nil
+        condition("Playlist on \(secondName)", isOn: isOnPlaylist) {
+            model.choosePlaylist(isOnPlaylist ? nil : model.playlists.first?.id, for: second)
+        }
+        condition("Pause All", isOn: model.isPausedAll) { model.togglePauseAll() }
+        condition("Mute", isOn: model.isMuted) { model.toggleMute() }
 
         menu.addItem(.separator())
         menu.addItem(.sectionHeader(title: "Login Item"))

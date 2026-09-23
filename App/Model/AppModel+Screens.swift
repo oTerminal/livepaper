@@ -38,6 +38,24 @@ extension AppModel {
         return state.playlists.map { PlaylistOption(id: $0.id, title: $0.name, count: counts[$0.id] ?? 0) }
     }
 
+    // The popover's two ways into the library, which the caller then opens.
+
+    /// Choose, on a card whose display shows nothing: the sidebar goes to All,
+    /// where a wallpaper is picked and set on the display.
+    func chooseWallpaperInLibrary() {
+        section = .all
+    }
+
+    /// New Playlist… in a card's playlist picker: an empty playlist, selected in
+    /// the sidebar so the library opens on it to be filled. The display keeps
+    /// what it shows: an empty playlist would show nothing.
+    @discardableResult
+    func startNewPlaylist() -> PlaylistID {
+        let id = createPlaylist(named: "New Playlist")
+        section = .playlist(id)
+        return id
+    }
+
     // MARK: The status line
 
     var statusLine: StatusLineContent {
