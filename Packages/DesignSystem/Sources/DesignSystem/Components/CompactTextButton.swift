@@ -1,15 +1,21 @@
 import SwiftUI
 
 /// A small text button: a compact capsule with the full 40 pt target, for a
-/// secondary action in a line of controls (StatusLine's Restart, PanZoomEditor's Reset).
-struct CompactTextButton: View {
+/// secondary action in a line of controls (StatusLine's Restart, PanZoomEditor's
+/// Reset, the popover's Choose on a display that shows nothing).
+public struct CompactTextButton: View {
     @Accessibility private var accessibility
     @Environment(\.isEnabled) private var isEnabled
     @State private var isHovered = false
-    let title: Text
-    let action: () -> Void
+    private let title: Text
+    private let action: () -> Void
 
-    var body: some View {
+    public init(title: Text, action: @escaping () -> Void) {
+        self.title = title
+        self.action = action
+    }
+
+    public var body: some View {
         Button {
             // A key press on the focused button must not animate what the action changes.
             withoutAnimationIfKeyPress(action)

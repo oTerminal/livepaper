@@ -31,5 +31,23 @@ struct PlaylistPickerPage: View {
             PlaylistPicker(selection: $disabled, playlists: playlists) {}
                 .disabled(true)
         }
+
+        StateSection(
+            title: "Plain, in a card",
+            note: "Inside a card or a popover, which already is the surface: borderless, so there is no glass on glass."
+        ) {
+            GlassPopover(contentPadding: Spacing.tight) {
+                DisplayNowPlayingCard(displayName: "Studio Display", title: "Slow Rain", poster: SamplePicture.image(seed: 11)) {
+                    VStack(alignment: .trailing, spacing: 0) {
+                        TransportCluster(isPlaying: true, onPrevious: {}, onPlayPause: {}, onNext: {})
+                        PlaylistPicker(selection: $chosen, playlists: playlists, style: .plain) { created += 1 }
+                            .controlSize(.small)
+                            .padding(.trailing, Spacing.small)
+                    }
+                }
+                .frame(width: 392)
+            }
+            .fixedSize()
+        }
     }
 }

@@ -17,7 +17,7 @@ VoiceOver on macOS speaks an element's value before its label ("3, Playlists, bu
 
 Reviewed on 2026-09-21 with `review-animations` and `make-interfaces-feel-better` (full mode); the findings are folded into the entries below. Looked at again on 2026-09-22: every page walked with VoiceOver (scripted, transcripts kept out of the repo), tabbed through with keyboard navigation on, and the motion recorded at 0.1x over the busy backdrop; what changed as a result is in the entries. Both skills were then re-run over all 22 components (2026-09-22): review-animations approved 21 and blocked OnboardingCard (the step crossfade sat on the card, so a height change animated; fixed below); make-interfaces-feel-better approved 9, blocked RecentsStrip (the strip did not clip; fixed below) and asked for changes on the rest, all applied or recorded under the component. A focused button pressed with Space was checked at 0.1x: the change lands in one frame, so `withoutAnimationIfKeyPress` reading `.keyDown` is right.
 
-Where a component's own action can arrive from a focused button (Space or Return), the component wraps it in `withoutAnimationIfKeyPress` itself: TransportCluster, RecentsStrip, ImportProgressRow, StatusLine's Restart and PanZoomEditor's Reset, as OnboardingCard and VolumeSlider already did. `CompactTextButton` is the shared small text button (Restart, Reset): a compact capsule with the full 40 pt target, that rule built in.
+Where a component's own action can arrive from a focused button (Space or Return), the component wraps it in `withoutAnimationIfKeyPress` itself: TransportCluster, RecentsStrip, ImportProgressRow, StatusLine's Restart and PanZoomEditor's Reset, as OnboardingCard and VolumeSlider already did. `CompactTextButton` is the shared small text button (Restart, Reset): a compact capsule with the full 40 pt target, that rule built in. It is public since M6, for the popover's Choose on a card whose display shows nothing: the same secondary action in a line of controls, which a native bordered button would have given a target under 40 pt.
 
 ## Tokens
 
@@ -153,6 +153,7 @@ Where a component's own action can arrive from a focused button (Space or Return
 - Not playing: the poster drops to 30% saturation and 70% opacity with `Spring.ui`; the status line is the static cue, so colour is never the only signal.
 - The status line is always laid out, so the card keeps its height when a status comes and goes: pressing Pause must not move the button under the pointer. Its opacity fades over the same `Spring.ui` as the poster muting beside it.
 - All three text lines truncate; the accessory keeps its size.
+- In the popover (M6) the accessory is two rows, the transport and the playlist picker under it, so a card showing a wallpaper is 20 pt taller than one row; the thumbnail and the words stay centred beside it. A card whose display shows nothing has `CompactTextButton`'s Choose, one row.
 
 ### TransportCluster
 - Three icon buttons with 40 pt circular hit areas and `.press`. Play/pause is `.title3`, skips are body size, so the primary action reads first.
@@ -164,6 +165,8 @@ Where a component's own action can arrive from a focused button (Space or Return
 - A native `Menu` with the glass button style: checkmarks, keyboard and VoiceOver come free. Counts use the native menu badge.
 - "No Playlist" is the first item, the only way back to `nil`; then a divider and "New Playlist…". An empty list shows only the latter.
 - No custom motion.
+- `style: .plain` (M6) is a borderless menu button, for inside a card or the popover: the glass button there was glass on glass, which the popover forbids. `.glass` stays the default, for the inspector. Like `TransportClusterStyle`, the caller says where it sits.
+- In the popover it sits under the card's `TransportCluster` at `.controlSize(.small)`, naming the playlist. Tried first beside the transport with its symbol only (`.labelStyle(.iconOnly)`): it left the card's words about 115 pt of a 400 pt popover, and nothing on screen said which playlist a display was on. Its target is the native menu button's, shorter than 40 pt: a SwiftUI `Menu` on macOS draws its label as an AppKit pop-up button, which ignores a frame or content shape given to the label.
 
 ### RecentsStrip
 - Thumbnails 72 x 45, `Radius.control`, outlined, `.press`. Title is the tooltip and the VoiceOver label.

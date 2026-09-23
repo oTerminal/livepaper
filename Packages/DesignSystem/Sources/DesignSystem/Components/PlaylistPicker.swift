@@ -16,17 +16,34 @@ public nonisolated struct PlaylistOption<ID: Hashable>: Identifiable {
 
 extension PlaylistOption: Sendable where ID: Sendable {}
 
-/// Chooses the playlist a wallpaper belongs to, or none. A native menu with a
-/// glass button, because it sits with the inspector's controls; a selection
-/// that matches no playlist reads as "No Playlist" rather than as a blank.
+/// Where a `PlaylistPicker` sits, which decides whether it brings its own surface.
+public nonisolated enum PlaylistPickerStyle: Sendable {
+    /// Among the inspector's controls, on a glass button of its own.
+    case glass
+    /// Inside a card or popover, which already is the surface: a borderless menu button.
+    case plain
+}
+
+/// Chooses a playlist, or none: the one a wallpaper belongs to in the inspector,
+/// the one a display shows in the menu-bar popover. A native menu, on a glass
+/// button among the inspector's controls and borderless inside a card, where
+/// glass would be glass on glass. A selection that matches no playlist reads as
+/// "No Playlist" rather than as a blank.
 public struct PlaylistPicker<ID: Hashable>: View {
     @Binding private var selection: ID?
     private let playlists: [PlaylistOption<ID>]
+    private let style: PlaylistPickerStyle
     private let onCreate: () -> Void
 
-    public init(selection: Binding<ID?>, playlists: [PlaylistOption<ID>], onCreate: @escaping () -> Void) {
+    public init(
+        selection: Binding<ID?>,
+        playlists: [PlaylistOption<ID>],
+        style: PlaylistPickerStyle = .glass,
+        onCreate: @escaping () -> Void
+    ) {
         _selection = selection
         self.playlists = playlists
+        self.style = style
         self.onCreate = onCreate
     }
 
@@ -35,6 +52,22 @@ public struct PlaylistPicker<ID: Hashable>: View {
     }
 
     public var body: some View {
+        styled
+            .fixedSize()
+            .accessibilityLabel(Text("Playlist", bundle: .module))
+            .accessibilityValue(current.map { Text(verbatim: $0.title) } ?? Text("No Playlist", bundle: .module))
+    }
+
+    @ViewBuilder private var styled: some View {
+        switch style {
+        case .glass:
+            menu.buttonStyle(.glass)
+        case .plain:
+            menu.buttonStyle(.borderless)
+        }
+    }
+
+    private var menu: some View {
         Menu {
             if !playlists.isEmpty {
                 // An inline picker gives the menu its native checkmarks.
@@ -69,9 +102,5 @@ public struct PlaylistPicker<ID: Hashable>: View {
             .lineLimit(1)
         }
         .menuStyle(.button)
-        .buttonStyle(.glass)
-        .fixedSize()
-        .accessibilityLabel(Text("Playlist", bundle: .module))
-        .accessibilityValue(current.map { Text(verbatim: $0.title) } ?? Text("No Playlist", bundle: .module))
     }
 }
