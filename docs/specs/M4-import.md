@@ -22,7 +22,7 @@ Turn a source file the user provides into a wallpaper in the library: one optimi
 
 | Stage | Does | Tested by |
 |---|---|---|
-| Discover | A file, a folder, or a Wallpaper Engine folder → candidate source files. WE folders are recognised by `project.json`; only `type: video` is accepted (record 0005), with the title and preview taken from the project | Table tests on `project.json` samples: video, scene, web, malformed, missing file, path escaping the folder |
+| Discover | A file, a folder, or a Wallpaper Engine folder → candidate source files. WE folders are recognised by `project.json`; only `type: video` is accepted (record 0005; scenes too since M11, record 0007), with the title and preview taken from the project | Table tests on `project.json` samples: video, scene, web, malformed, missing file, path escaping the folder |
 | Fingerprint | SHA-256 of the source file, before any conversion; a match in the library ends the import as a duplicate | Fixture pair with identical bytes and different names |
 | Probe | Container, codec, size, frame rate (constant or variable), duration of each track, edit list, transfer function (HDR or not), rotation | Fixture corpus |
 | Plan | Pure: probe result → `remux` (already H.264/HEVC, SDR, constant rate, clean timing) / `transcode` with AVFoundation / `ffmpeg` then normalise (WebM, MKV, AVI, WMV, GIF) / `reject` with a reason the UI can show | Table tests: one row per combination that changes the answer |
@@ -76,4 +76,4 @@ What M4 found out or decided on the way, for whoever builds on it (M6, M7, M9).
 
 ## Out of scope
 
-Drag and drop, the Open panel, Services and the URL scheme (M6, M7). Downloading anything. Wallpaper Engine scenes and web items, permanently.
+Drag and drop, the Open panel, Services and the URL scheme (M6, M7). Downloading anything (Workshop items since M12, record 0009). Wallpaper Engine scenes (drawn live since M11, record 0007). Web and application items, permanently.

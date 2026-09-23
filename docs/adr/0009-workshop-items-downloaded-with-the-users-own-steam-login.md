@@ -27,6 +27,6 @@ How it works, each part checked on this Mac on 2026-09-23:
 
 - A new target, `LivepaperWorkshop` (nonisolated), holds the pure parts, each table-tested: Workshop links, steamcmd's output read into typed lines and errors, the conversation that decides what to type and when, the download list, the words, and the item page's facts. The process driver and the installer are tested against a fake steamcmd script; tests never touch Steam or a Workshop file.
 - The account's password and codes never reach the log. steamcmd's own lines go to the log at debug level and private, since they name the account.
-- steamcmd runs one job at a time: two would both write Steam's folder. It runs in a session of its own, so Quit stops it.
+- steamcmd runs one job at a time: two would both write Steam's folder. It runs in a session of its own, and a cancel or Quit stops its whole process group.
 - A downloaded item stays in Steam's folder, where steamcmd put it, as Wallpaper Engine's own downloads do; the library keeps its own copy, as it does of any source file. Getting the same item again is a duplicate before any conversion.
 - Whether Steam lets a download through is Steam's decision. An account that does not own Wallpaper Engine is told `Failure`, and Livepaper says plainly that the item downloads only for an account that owns Wallpaper Engine.

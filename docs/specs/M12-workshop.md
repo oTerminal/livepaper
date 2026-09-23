@@ -94,6 +94,7 @@ What M12 decided or found on the way. Names are quoted from the code.
 - The archive's steamcmd (4,638,880 bytes, Intel only, Valve's Developer ID, signed 2 April 2020) fetched 15,667 KB of itself on its first run, said "Update complete, launching...", and went on as a universal build, still Valve's. Whether it relaunched itself or exited 42 for the driver to start it again, the job carried on; both are handled. Setting up took 18.7 s, the fetch of the archive included.
 - An account's saved login is found by its name, so `WorkshopServices` keeps the name in the defaults (`WorkshopAccount`). A download that meets `password:` is stopped at once with `signInNeeded` and nothing typed.
 - A downloaded item stays where steamcmd put it, in Steam's folder, and is imported from there as a dropped folder would be.
+- Where Get differs from Wallpaper Engine's own Workshop: it downloads once (`workshop_download_item`) and never subscribes, so the item is not among the account's subscriptions on Steam and is not updated when its author changes it; it gets the Windows copy, as Wallpaper Engine would; and it is one item at a time, never a collection. Once imported, a scene is drawn with the differences M11-wallpaper-engine-scenes.md lists ("As built").
 
 ### The app
 
@@ -131,10 +132,12 @@ Through a scratch harness linking `LivepaperWorkshop` and `LivepaperImport`, wit
 
 With the merged build installed and running, on this Mac:
 
-1. Popover > the globe (Wallpaper Engine Workshop): the Workshop window opens on Wallpaper Engine's Workshop and the Dock icon comes.
-2. The person menu > Sign In to Steam…: the account name and password. Then, as Steam asks, the code from the Steam Mobile app, the emailed code, or the approval in the app. The sheet closes signed in; Settings shows the account. Also try a wrong password once: the sheet says Steam did not accept it, and the fields keep what was typed.
+1. Popover > the globe (Wallpaper Engine Workshop): the Workshop window opens on Wallpaper Engine's Workshop and the Dock icon comes. The library window's toolbar button and File > Wallpaper Engine Workshop (⇧⌘O) open the same window. A link off Steam Community opens in the browser.
+2. The person menu > Sign In to Steam…: the sheet first sets steamcmd up in `~/Library/Application Support/Livepaper/steamcmd/` (about 20 s; the check above ran in a scratch folder, so the app's own setup has not run), then asks for the account name and password. Then, as Steam asks, the code from the Steam Mobile app, the emailed code, or the approval in the app. The sheet closes signed in; Settings shows the account. Also try a wrong password once: the sheet says Steam did not accept it, and the fields keep what was typed.
 3. Open a scene's page (Lonely Cat, 3289988463) and press Get: the row goes Starting, Signing in, Downloading, then the import's row, and a scene wallpaper appears in the library. Get on the same page again: the import says it is already in the library.
 4. Open a video item's page and Get it; open a Web item's page: Get is disabled with the reason.
 5. In the library window, paste `https://steamcommunity.com/sharedfiles/filedetails/?id=3775394622` (Edit > Paste), and drag an item's link from Safari onto the window: each is got.
-6. Settings > Sign Out of Steam…: the account goes; a Get then asks to sign in. (This revokes steamcmd's saved login, so sign in again after.)
-7. `log show --last 30m --predicate 'subsystem == "app.livepaper.Livepaper" && category == "workshop"'` shows the lines above and no password.
+6. Settings > Sign Out of Steam…: the account goes; a Get then asks to sign in. (This revokes steamcmd's saved login, so sign in again after.) Sign in again from Settings this time: the sheet opens on the Settings window.
+7. Get a large item and cancel its row while it downloads; Get another and Quit Livepaper while it downloads. Each time `pgrep -fl steamcmd` finds nothing a few seconds later.
+8. VoiceOver on the sign-in sheet and the Get button, which `DECISIONS.md` records as not yet walked.
+9. `log show --last 30m --predicate 'subsystem == "app.livepaper.Livepaper" && category == "workshop"'` shows the lines above and no password.

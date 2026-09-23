@@ -42,6 +42,10 @@ _Avoid_: WE wallpaper, workshop wallpaper, 3D wallpaper
 A scene whose only content is one image layer with an animated sprite sheet. Imported as video, since its frames loop exactly.
 _Avoid_: GIF template, animated scene
 
+**Programs**:
+A scene's shaders translated to Metal by the app, kept beside the scene's files (record 0008). Preparing a scene writes them, at import and again at launch when they are missing or from another translation; the extension only compiles them, and a scene without them holds its poster.
+_Avoid_: Compiled shaders, shader cache
+
 **Workshop**:
 Wallpaper Engine's Workshop on Steam Community, where its items are published. Livepaper shows Steam's own pages in its Workshop window (record 0009).
 _Avoid_: Store, marketplace, catalogue
@@ -113,6 +117,10 @@ _Avoid_: Renderer, backend, engine
 **Surface**:
 One place a display's wallpaper is drawn: a desktop Space, the lock screen, or the System Settings preview.
 _Avoid_: Layer, window, view
+
+**Metal slot**:
+The layer in a surface's tree where a scene is drawn, made with the rest of the tree before the surface is hosted, and shown or hidden by an opacity change (record 0007).
+_Avoid_: Scene layer, canvas, Metal view
 
 **Loop seam**:
 The moment a wallpaper's last frame is followed by its first. A visible flash or stall there is a defect.

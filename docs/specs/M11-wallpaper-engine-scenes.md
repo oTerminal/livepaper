@@ -145,7 +145,7 @@ public protocol SceneDrawing: AnyObject {
 ```
 
 - `init` runs on a load queue of its own, then the drawing is used on the render thread only, one call at a time. A throw holds the poster (`scene: surface … cannot load …`). `folder` is the wallpaper's folder (`SceneFolder`: `project.json`, the package named by `SceneFolder.package(for:)`, `poster.heic`, `hover.mov`). The texture is `SceneFolder.pixelFormat` (`bgra8Unorm`), the Metal slot's drawable; the engine commits the buffer and presents it. `resize` comes before the first `draw` and whenever the drawable's size changes, on the render thread.
-- The extension names the one implementation in `HostedSurfaces.host` (`drawingType: WallpaperEngineScene.self`, since the port). Its import-time work goes in `ScenePreparation.prepare(_:)`, which runs on the staged folder with the item's files in it; what it writes is committed with them, and a throw fails the import with nothing left behind. S9's `ProgramManifest` (`scene-programs.json` beside the item's files, `Spikes/results/S9.md`) fits there as it is.
+- The extension names the one implementation in `HostedSurfaces.host` (`drawingType: WallpaperEngineScene.self`, since the port). Its import-time work goes in `ScenePreparation.prepare(_:tools:)`, which runs on the staged folder with the item's files in it; what it writes is committed with them. Only a cancel throws, and it leaves nothing behind; a scene that cannot be prepared is imported without programs ("Preparation", below). S9's `ProgramManifest` (`scene-programs.json` beside the item's files, `Spikes/results/S9.md`) fits there as it is.
 - `PosterScene`, the stand-in that drew the poster drifting and pulsing, is gone: the user found it looked like a bouncing logo. Until a scene can be drawn for real its surface holds the poster, perfectly still.
 
 ### Model and import
@@ -238,7 +238,7 @@ The rows are in `SceneClockTests` and `WatchdogSchedulingTests` ("a covered scen
 | Jet Lag | The cabin, the clouds scrolling past the window with motion blur and fisheye, dust motes, a light shaft | The window's pulse is audio-reactive and stays still. Its music is not heard while the wallpaper is muted. The dust motes do not move out of the pointer's way: their control point follows the pointer, which particles do not use yet |
 | Backstreet Lofi | The street, reflections, the animated vending-machine screen, five pulses, motion blur, rain and splashes, hue shift, scan lines, god rays, bloom | The visualiser bars on the blue machine are flat, since audio-reactive input is silent; the preview shows them moving. The video screen (an MP4 texture) is on a screen the default property does not show, and is not decoded. Rain and splashes are our textures; perspective rain is drawn flat. The dust motes do not move out of the pointer's way |
 | Agamemnon | The background with depth parallax, the puppet swaying, water waves, film grain, the vignette, ash, fog and light shafts | Parallax follows the pointer by an inferred formula. Ash, fog and shafts are our textures |
-| All | | Scripts are not run (their stored values are used). Blend-mode numbering, an effect pass's `compose`, the camera's `center` and `eye` offsets, and render-target formats are as S9 guessed them (`Spikes/results/S9.md`, open questions) |
+| All | | Scripts are not run (their stored values are used). Audio-reactive uniforms hear silence. Text, lights and 3D models are not drawn, nor particle emitters, initialisers, operators and renderers outside S9's set (`ParticleSystem.understood`), nor a video used as a texture; each is named in the `draws … without:` line. Wallpaper Engine's own textures are our stand-ins. Particle control points do not follow the pointer. User properties keep the item's defaults. A scene is drawn at 30 fps whatever it or Wallpaper Engine would choose, with no crossfade into or out of it. Blend-mode numbering, an effect pass's `compose`, the camera's `center` and `eye` offsets, the size a layer's effects run at (the layer's, here), and render-target formats are as S9 guessed them (`Spikes/results/S9.md`, open questions) |
 
 **The checks, 2026-09-23, on this MacBook's display, under the user's windows, pointer and keyboard untouched** (the Library window was driven by Accessibility presses):
 
@@ -249,5 +249,15 @@ The rows are in `SceneClockTests` and `WatchdogSchedulingTests` ("a covered scen
 | 3 | The watchdog on a scene under the user's windows | Pass on the last build: `healthy`, 61 to 63 of 60 displayed, 1 to 8 presented (Liveness). A covering fullscreen app was not tried: the pointer and the keyboard stayed untouched |
 | 4 | The desktop left on Lonely Cat | Pass. It is set to Fit in the library, as it was before this work, so it shows with bars; Fill in its inspector removes them |
 | 5 | The prototype Botanical (`14F5E54A`) deleted through the inspector's Delete | Pass: `app: deleted wallpaper 14F5E54A-… "Botanical", undo offered`; its folder went to the Trash when the undo ended |
+
+**Not checked yet.** The pointer and the keyboard stayed untouched and the desktop stayed under the user's windows, so these wait for a check on screen, the first four for the user:
+
+- A fullscreen app covering a scene, and leaving: `pause.desktopCovered`, the link stopped, then resumed from where it stopped.
+- A scene on the lock screen and in System Settings' Wallpaper preview, and across sleep and wake with the lid (S10 did not run cover, sleep or wake with Metal either).
+- A scene's sound heard: Jet Lag's music or Backstreet Lofi's storm with the wallpaper's volume up.
+- Agamemnon's parallax with the pointer moving, against Wallpaper Engine's if a PC is at hand.
+- The watchdog's count with the desktop in view, and whether the window server then presents a scene every frame.
+- The decoder check of check 4: no decoder session in the extension while a scene shows.
+- A scene on a second display, and two displays showing the same scene.
 
 One agent restart was not planned: a `make build` run while the extension ran (to check lint fixes) ended the running extension at 23:15 (inferred from the timing; there is no crash report), and the app's ladder restarted WallpaperAgent 50 s later, 21 minutes after the one before. The memory's rule holds: after a build, unregister the DerivedData copy, and do not build while a check is under way.

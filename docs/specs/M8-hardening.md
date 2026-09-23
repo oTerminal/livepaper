@@ -17,11 +17,12 @@ Run the finished product for a day and a night, hurt it on purpose, measure what
 | Covered gives `.pause`, decoder kept; asleep, Low Power Mode and battery with its rule on give `.suspend`, decoder released; conditions over 30 s old are ignored | `PlaybackPolicy.swift` |
 | A covered surface shows no new pictures and is never a stall; a replug is a new surface ID for the same display UUID; a mode change is stretched | `S3.md`, M5-engine.md |
 | Replacing the bundle kills the extension once and the agent does not restart it; `killall WallpaperAgent` does. The spiral detector has never fired. A restart redraws every desktop | `S0.md`, `S7.md`, `S8.md` |
+| A scene (M11) is drawn by the extension with Metal at 30 fps. Its watchdog count is the pictures its GPU finished; a display link the system stops calling while the engine answers is `withheld`, read as `notComposited`, never a stall. Its cost is GPU time, which `top`'s power score does not see. Cover, sleep, wake and the lock screen were not run with a scene | M11-wallpaper-engine-scenes.md, "As built"; `S10.md` |
 | 4K60, one display, desktop visible: extension at or under 4 % CPU and `top` power 5; `VTDecoderXPCService` summed 5 % and 5; WindowServer at most 25 over its paused score that session; all three back at paused levels within 5 s of covering or display sleep. One run, machine in use. At 60 fps a frame is sometimes one refresh late mid-pass, never at a seam | `S2.md`, `energy-suite.sh` |
 
 ## The soak
 
-24 hours on the development Mac from a stable install, no bundle replaced since the last agent restart; the clock starts at the first `.live`. Five wallpapers go in through the product importer: two bundled CC0 samples, a 1080p60 and a 4K60 HEVC clip from `Tools/soak/clips.sh` (frame counter burned in, as `make-clips.sh` did), one of the person's own with audio. The built-in display rotates all five, shuffled, every 5 minutes and on wake; the external holds the 4K60 clip. `Tools/soak/soak.sh` keeps "Log playback metrics" on (M5-engine.md, kept past M6-screens.md) and samples CPU and RSS every 5 minutes: 288 samples.
+24 hours on the development Mac from a stable install, no bundle replaced since the last agent restart; the clock starts at the first `.live`. Six wallpapers go in through the product importer: two bundled CC0 samples, a 1080p60 and a 4K60 HEVC clip from `Tools/soak/clips.sh` (frame counter burned in, as `make-clips.sh` did), one of the person's own with audio, and one scene imported from the person's Workshop items (M11-wallpaper-engine-scenes.md). The built-in display rotates all six, shuffled, every 5 minutes and on wake; the external holds the 4K60 clip. `Tools/soak/soak.sh` keeps "Log playback metrics" on (M5-engine.md, kept past M6-screens.md) and samples CPU and RSS every 5 minutes: 288 samples.
 
 A lid cannot be closed by a script, and `pmset schedule` and `pmset relative` need root (`pmset: This operation must be run as root`), so the sleep rows take one `sudo`.
 
@@ -57,6 +58,7 @@ Once during the soak, both displays live, a person on the cable.
 |---|---|
 | The 4K60 clip, one display, desktop visible, machine idle | Inside the S2 budget, line for line |
 | Then a fullscreen app over it, then `pmset displaysleepnow` | All three back at paused levels within 5 s; decoder kept when covered, `VTDecoderXPCService` gone when the display sleeps |
+| A scene on one display, desktop visible, then covered, then `pmset displaysleepnow` | First measured here, as M11 left it: `top` and, with `sudo`, `powermetrics`' GPU power, recorded as a baseline; the link stopped and the GPU back at paused levels within 5 s of covering or sleep |
 | Idle 5 minutes each (60 samples): the app with popover and window closed, then the extension with every display covered | The roadmap's "about 0 %" read as a mean at or under 0.1 % CPU, no sample above 1 % |
 | Memory over the soak | Hour 24's mean RSS at most 10 % over hour 2's, app and extension; hour 1 is warm-up; under 200 samples, inconclusive |
 
