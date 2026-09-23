@@ -38,7 +38,7 @@ let package = Package(
         // Fakes and deterministic inputs, for this package's tests and for screens built on fakes (M6).
         .target(
             name: "LivepaperTestSupport",
-            dependencies: ["LivepaperCore", "LivepaperSystem"],
+            dependencies: ["LivepaperCore", "LivepaperImport", "LivepaperSystem"],
             swiftSettings: approachableConcurrency
         ),
         .testTarget(
@@ -49,7 +49,7 @@ let package = Package(
         ),
         .testTarget(
             name: "LivepaperImportTests",
-            dependencies: ["LivepaperImport", "LivepaperCore"],
+            dependencies: ["LivepaperImport", "LivepaperCore", "LivepaperTestSupport"],
             resources: [.copy("Fixtures")],
             swiftSettings: approachableConcurrency
         ),
