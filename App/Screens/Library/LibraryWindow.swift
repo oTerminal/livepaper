@@ -8,9 +8,15 @@ import SwiftUI
 struct LibraryWindow: View {
     @Environment(AppModel.self) private var model
     @State private var isInspectorShown = true
-    @State private var isDropTargeted = false
+    @State private var isDropTargeted: Bool
     @State private var prompt: NamePrompt?
     @State private var playlistToDelete: Playlist?
+
+    /// The window opens with neither; a preview can show it asking a name, or under a drop.
+    init(prompt: NamePrompt? = nil, isDropTargeted: Bool = false) {
+        _prompt = State(initialValue: prompt)
+        _isDropTargeted = State(initialValue: isDropTargeted)
+    }
 
     var body: some View {
         @Bindable var model = model
@@ -140,4 +146,35 @@ private nonisolated enum Layout {
     LibraryWindow()
         .frame(width: 1200, height: 760)
         .environment(AppModel.preview(.empty))
+}
+
+#Preview("A delete's undo toast") {
+    LibraryWindow()
+        .frame(width: 1200, height: 760)
+        .environment(AppModel.preview().previewing { $0.delete($0.library.wallpapers[2].id) })
+}
+
+#Preview("A plain toast: a duplicate") {
+    LibraryWindow()
+        .frame(width: 1200, height: 760)
+        .environment(AppModel.preview().previewing { $0.showToast(.duplicate(of: $0.library.wallpapers[0])) })
+}
+
+#Preview("A drop over the window") {
+    LibraryWindow(isDropTargeted: true)
+        .frame(width: 1200, height: 760)
+        .environment(AppModel.preview())
+}
+
+#Preview("Naming a new playlist") {
+    LibraryWindow(prompt: .newPlaylist(with: nil))
+        .frame(width: 1200, height: 760)
+        .environment(AppModel.preview())
+}
+
+#Preview("Renaming a wallpaper") {
+    let model = AppModel.preview()
+    LibraryWindow(prompt: .renameWallpaper(model.library.wallpapers[0].id, name: model.library.wallpapers[0].name))
+        .frame(width: 1200, height: 760)
+        .environment(model)
 }
