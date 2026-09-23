@@ -8,9 +8,13 @@ import AppKit
 ///     Tools/pr-media/fakes.sh menu "Recovering at Restart Agent"
 ///
 /// A command is words: a verb, then what it acts on. Unknown commands are logged and ignored.
+/// Two fakes runs at once keep apart by name: `-fakesRemote <name>` on the run,
+/// `LIVEPAPER_FAKES=<name>` for the script.
 final class FakesRemote {
     /// The distributed notification a command arrives by; its object is the command.
-    static let notification = Notification.Name("app.livepaper.fakes.command")
+    static let notification = Notification.Name(
+        "app.livepaper.fakes.command" + (LaunchOptions.current.fakesRemote.map { ".\($0)" } ?? "")
+    )
 
     /// Kept for the life of the run, as the remote is.
     private var observer: (any NSObjectProtocol)?

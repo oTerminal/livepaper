@@ -1,5 +1,5 @@
 #!/bin/zsh
-# usage: shot.sh <out.png> [app name [layer] | --desktop [n]]
+# usage: shot.sh <out.png> [app name or pid [layer] | --desktop [n]]
 # Captures the app's main window (default: Livepaper Gallery) to a PNG, even when covered.
 # The layer picks a window above the normal level (default 0): 101 is Livepaper's menu-bar
 # popover, `shot.sh popover.png Livepaper 101`. The popover's panel is transparent around the

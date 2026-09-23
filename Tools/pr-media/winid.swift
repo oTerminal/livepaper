@@ -1,7 +1,8 @@
 import CoreGraphics
 import Foundation
 
-// Prints "id x y w h" of the largest on-screen window owned by the app named in argv[1], at the
+// Prints "id x y w h" of the largest on-screen window owned by the app named in argv[1] (or, when
+// argv[1] is a number, by that process ID: two copies of an app can run at once), at the
 // window layer in argv[2] (default 0, a normal window). Livepaper's menu-bar popover is a panel at
 // the pop-up menu level, layer 101: `winid Livepaper 101`. Above layer 0 a window that is off
 // screen counts when none is on screen: the popover's panel keeps its id while it is closed, so
@@ -49,7 +50,12 @@ let name = arguments.first ?? "Livepaper Gallery"
 guard let layer = arguments.count > 1 ? Int(arguments[1]) : 0 else { fail("the layer is a number, such as 0 or 101") }
 let list = CGWindowListCopyWindowInfo([layer == 0 ? .optionOnScreenOnly : .optionAll], kCGNullWindowID) as? [[String: Any]] ?? []
 var best: (Int, CGRect, Bool)?
-for window in list where (window[kCGWindowOwnerName as String] as? String) == name {
+let pid = Int(name)
+func isOwned(_ window: [String: Any]) -> Bool {
+    if let pid { return (window[kCGWindowOwnerPID as String] as? Int) == pid }
+    return (window[kCGWindowOwnerName as String] as? String) == name
+}
+for window in list where isOwned(window) {
     guard (window[kCGWindowLayer as String] as? Int) == layer,
           let frame = rect(of: window),
           let id = window[kCGWindowNumber as String] as? Int else { continue }

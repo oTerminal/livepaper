@@ -21,6 +21,8 @@ struct LaunchOptions: Equatable {
     var isFakes = false
     /// What the fakes run's library starts with: `-fakeLibrary seeded` for screenshots.
     var fakeLibrary = FakeLibrary.empty
+    /// The name the fakes run's remote answers to (`FakesRemote`), when two runs are up at once.
+    var fakesRemote: String?
     var slowMotion: Bool?
     var reduceMotion: Bool?
     var reduceTransparency: Bool?
@@ -35,6 +37,7 @@ struct LaunchOptions: Equatable {
     init(arguments: [String: Any]) {
         isFakes = Self.flag(arguments["fakes"]) ?? false
         fakeLibrary = (arguments["fakeLibrary"] as? String).flatMap(FakeLibrary.init) ?? .empty
+        fakesRemote = arguments["fakesRemote"] as? String
         slowMotion = Self.flag(arguments["slowMotion"])
         reduceMotion = Self.flag(arguments["reduceMotion"])
         reduceTransparency = Self.flag(arguments["reduceTransparency"])
