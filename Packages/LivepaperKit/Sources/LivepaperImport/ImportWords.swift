@@ -52,8 +52,8 @@ public func skipWords(_ reason: SkipReason) -> String {
 private func words(for error: ImportError) -> (reason: String, canRetry: Bool) {
     switch error {
     case .rejected(.unrecognised): ("It is not a kind of file Livepaper can read", false)
-    case .rejected(.noVideo): ("It has no video in it", false)
-    case .rejected(.noFrames): ("Its video is empty", false)
+    case .rejected(.noVideo): ("It has no picture to play", false)
+    case .rejected(.noFrames): ("It has no frames to play", false)
     case .rejected(.protected): ("It is copy-protected", false)
     // The helper is looked for once, when the importer is made: Retry would meet the same importer.
     case .helperMissing: ("Its format needs the ffmpeg helper, which is missing", false)
@@ -64,7 +64,7 @@ private func words(for error: ImportError) -> (reason: String, canRetry: Bool) {
 
 private func words(for error: MediaError) -> (reason: String, canRetry: Bool) {
     switch error {
-    case .noVideoTrack: ("It has no video in it", false)
+    case .noVideoTrack: ("It has no picture to play", false)
     case .readFailed: ("It could not be read", true)
     case .writeFailed: ("Its optimised copy could not be written", true)
     }

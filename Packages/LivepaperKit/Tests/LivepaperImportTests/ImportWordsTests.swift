@@ -40,8 +40,8 @@ struct ImportWordsTests {
 
     static let failures: [Row<any Error, Words>] = [
         Row("not a kind of file it reads", ImportError.rejected(.unrecognised), .final("It is not a kind of file Livepaper can read")),
-        Row("audio only", ImportError.rejected(.noVideo), .final("It has no video in it")),
-        Row("a video track with nothing in it", ImportError.rejected(.noFrames), .final("Its video is empty")),
+        Row("audio only", ImportError.rejected(.noVideo), .final("It has no picture to play")),
+        Row("a video track with nothing in it", ImportError.rejected(.noFrames), .final("It has no frames to play")),
         Row("copy-protected", ImportError.rejected(.protected), .final("It is copy-protected")),
         Row(
             "a format that needs the helper, and no helper",
@@ -55,7 +55,7 @@ struct ImportWordsTests {
         ),
         Row("still a seam after the second try", ImportError.loopSeam(seamReport), .final("It would not loop without a gap")),
 
-        Row("no video track, found late", MediaError.noVideoTrack, .final("It has no video in it")),
+        Row("no video track, found late", MediaError.noVideoTrack, .final("It has no picture to play")),
         Row("a read that failed: its drive may have gone", MediaError.readFailed("unknown"), .retryable("It could not be read")),
         Row("a write that failed: the disk may be full", MediaError.writeFailed(""), .retryable("Its optimised copy could not be written")),
 
