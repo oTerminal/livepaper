@@ -244,3 +244,17 @@ Where a component's own action can arrive from a focused button (Space or Return
 - No motion: it is state, and `.animation(nil, value:)` keeps a caller's `withAnimation` off it. A key press goes through `withoutAnimationIfKeyPress`.
 - The tooltip says what a click does, "Favourite" or "Unfavourite". VoiceOver reads a toggle labelled "Favourite", On or Off; the word is the one WallpaperTile reads for a favourite. Not yet walked with VoiceOver.
 - Disabled dims to 40%, as the other M6 controls do.
+
+### WorkshopGetButton
+- The Workshop window's primary action (M12, record 0009), built as SetOnDisplayButton is: one `glassProminent` button in the toolbar, the title "Get" fixed, and a 16 pt icon slot shared by the arrow, the spinner and the checkmark, so the title never moves. Idle to done is a symbol replace (`arrow.down` to `checkmark`); the spinner crossfades over `Duration.hover`, with the same `accessibility.fade` and `symbolReplace` as SetOnDisplayButton.
+- Four states: idle; working (disabled, while the item is downloaded or imported); done (enabled, as SetOnDisplayButton's `.done` is: getting it again is a duplicate the import names); unavailable, disabled with its reason as the tooltip and as what VoiceOver reads after "Get". The reason is the import's own words, for a web or application item, or "Go to an item’s page to get it".
+- It lives in the toolbar rather than over the page: the page is Steam's, and the toolbar is the floating layer where glass belongs. A key press goes through `withoutAnimationIfKeyPress`.
+- Seen in the Gallery on 2026-09-23, dark, window inactive (the accent needs a key window); not yet walked with VoiceOver or recorded at 0.1x.
+
+### SteamSignInForm
+- The sign-in sheet's content (M12): the account name and password, then what Steam Guard asks, a code from the email or the Steam Mobile app, or an approval in the app, and the working step while Steam's download tool is set up or signs in. It is told the step and holds nothing: the fields are the caller's bindings, so the password stays in the sheet's state and in the one sign-in it is handed to.
+- No motion at all: every step comes from Steam's answer, not from the user's hand, as LoginItemRow's states come from outside. The sheet's height snaps to the step's.
+- 440 pt wide, `Spacing.extraLarge` around, `Spacing.large` between parts, as NamePrompt's sheet. The header's symbol and the approval's spinner share one 40 pt column, so the step's words line up with the title. The fields are a `.columns` form, labels trailing, with `textContentType` `username`, `password` and `oneTimeCode`, so the user's password manager can fill them.
+- A problem is a symbol and words in red, never colour alone, as ImportProgressRow's failure, and is announced; so are the code and approval steps, which appear while focus stays where it was. Focus moves to the first empty field on each step.
+- The code field is `title3` monospaced, 140 pt: a five-character Steam Guard code with room to spare. Its prompt is "Code" (the whole label, "Steam Guard code", is VoiceOver's), because the longer prompt was cut off at that size (seen in the Gallery).
+- Seen in the Gallery on 2026-09-23 in every step, dark, window inactive; not yet walked with VoiceOver.

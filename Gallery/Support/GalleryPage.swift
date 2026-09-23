@@ -33,6 +33,9 @@ struct GalleryPage: Identifiable {
         GalleryPage("RecentsStrip", systemImage: "clock.arrow.circlepath") { RecentsStripPage() },
         GalleryPage("DropZoneOverlay", systemImage: "square.and.arrow.down") { DropZoneOverlayPage() },
         GalleryPage("ImportProgressRow", systemImage: "arrow.down.circle") { ImportProgressRowPage() },
+        // M12's, for the Workshop window.
+        GalleryPage("WorkshopGetButton", systemImage: "arrow.down.to.line") { WorkshopGetButtonPage() },
+        GalleryPage("SteamSignInForm", systemImage: "person.badge.key") { SteamSignInFormPage() },
         GalleryPage("Toast and UndoToast", systemImage: "rectangle.bottomthird.inset.filled") { ToastPage() },
         GalleryPage("EmptyState", systemImage: "tray") { EmptyStatePage() },
         GalleryPage("OnboardingCard", systemImage: "rectangle.stack.badge.play") { OnboardingCardPage() },
