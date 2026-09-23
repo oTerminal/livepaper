@@ -87,4 +87,8 @@ enum AppLog {
     static func quit(lastGeneration: UInt64?) -> String {
         "app: quit, stopped after render state \(lastGeneration.map(String.init) ?? "none")"
     }
+
+    static func choosingFiles(asSheet: Bool) -> String {
+        "app: choosing files to import, \(asSheet ? "in a sheet on the library window" : "in a panel of its own")"
+    }
 }
