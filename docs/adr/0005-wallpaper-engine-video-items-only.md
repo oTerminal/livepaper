@@ -1,6 +1,6 @@
 # Wallpaper Engine support stops at video items
 
-**Status:** Superseded by record 0007 on 2026-09-23: scenes are imported and drawn live; web and application items are still refused.
+**Status:** Superseded by record 0007 on 2026-09-23: scenes are imported and drawn live; web and application items are still refused. Its last paragraph is replaced by record 0009 the same day: Livepaper downloads Workshop items with the user's own Steam login.
 
 Wallpaper Engine's Workshop is roughly 41% video items (a plain mp4 or webm beside a `project.json`), 54% scenes and 4% web pages. Livepaper imports video items and nothing else, permanently.
 

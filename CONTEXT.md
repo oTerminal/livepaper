@@ -42,6 +42,26 @@ _Avoid_: WE wallpaper, workshop wallpaper, 3D wallpaper
 A scene whose only content is one image layer with an animated sprite sheet. Imported as video, since its frames loop exactly.
 _Avoid_: GIF template, animated scene
 
+**Workshop**:
+Wallpaper Engine's Workshop on Steam Community, where its items are published. Livepaper shows Steam's own pages in its Workshop window (record 0009).
+_Avoid_: Store, marketplace, catalogue
+
+**Workshop item**:
+One entry in the Workshop, known by its number. Downloaded, it is a Wallpaper Engine folder: a video item, a scene or a GIF scene, which is imported as any such folder is, or a web or application item, which is not.
+_Avoid_: Mod, asset, download
+
+**Get**:
+Downloading a Workshop item with the user's Steam account and handing its folder to the import. The Workshop window's primary action; a pasted or dropped Workshop link does the same.
+_Avoid_: Subscribe, install, fetch
+
+**Steam account**:
+The user's own account on Steam, which must own Wallpaper Engine for its Workshop items to download. Livepaper keeps its name, never its password.
+_Avoid_: Login, user, profile
+
+**Saved login**:
+What Steam's download tool (Valve's steamcmd) keeps after the user signs in, so that later downloads need no password. Signing out revokes it.
+_Avoid_: Session, token, cached credentials
+
 **Favourite**:
 A wallpaper the user has marked to find again quickly.
 _Avoid_: Starred, liked

@@ -19,12 +19,12 @@ Research that shaped it:
 | Distribution | GitHub Releases DMG, **not notarized** (no paid Apple account). Signed with our own self-signed certificate for a stable identity across updates; revisit only if the second-Mac test fails. First-launch "Open Anyway" instructions. Sparkle 2 with EdDSA. Repo goes public at the first milestone |
 | Telemetry | None. "Copy diagnostics" export only |
 | App shape | Menu-bar resident agent + library window (Dock icon only while open) |
-| Menu bar | Custom glass popover: per-display current wallpaper, pause/next/mute, playlist picker, recents, Open Library, Settings |
+| Menu bar | Custom glass popover: per-display current wallpaper, pause/next/mute, playlist picker, recents, the Workshop (record 0009), Open Library, Settings |
 | Library window | Glass sidebar (All, Favourites, Playlists, per-display Now Playing) + thumbnail grid with hover previews + trailing inspector. Whole window is a drop target |
 | Wallpaper types | Video (mp4/mov/m4v; H.264/HEVC/ProRes) + GIF + Wallpaper Engine video items and scenes (record 0007): a scene is drawn live in the extension, a GIF scene is imported as video. Never web or application items, which run code of their own |
 | HDR | SDR only, permanently; HDR sources are tone-mapped |
 | WebM/MKV/AVI/WMV/GIF | Converted once at import by a bundled LGPL ffmpeg helper built from source (no GPL parts), run as a separate process |
-| Import | Drag & drop (window, Dock icon, menu bar item), Open panel, batch. Finder: "Open With", right-click Services/Quick Actions "Set as Live Wallpaper", URL scheme, CLI. WE folders recognised on drop. No URL or Steam downloading, no Share extension |
+| Import | Drag & drop (window, Dock icon, menu bar item), Open panel, batch. Finder: "Open With", right-click Services/Quick Actions "Set as Live Wallpaper", URL scheme, CLI. WE folders recognised on drop. Wallpaper Engine Workshop items got from Steam (record 0009): Steam's own Workshop pages in a Workshop window with Get, or a Workshop link pasted or dropped, downloaded with the user's own Steam login through Valve's steamcmd, then imported as a dropped folder is. No other URL downloading, no Share extension |
 | Storage | Copy into an app-managed library. A video keeps only the optimised copy (lossless remux when already H.264/HEVC, transcode only when required). A scene, which is drawn live, keeps its package, project and preview, never the `shaders/` cache |
 | Library features | Favourites, rename, delete (Trash + undo), sort, search, file details, duplicate detection. No tags |
 | Per-wallpaper settings | Fill (default) / Fit / Stretch, focal point, pan & zoom, volume. No dim/blur, loop crossfade, trim or speed |
@@ -72,6 +72,7 @@ Resources/Samples/ + PROVENANCE.md   docs/adr/   docs/specs/   docs/design/skill
 | `LivepaperImport` | nonisolated | Discover, WE `project.json` parser, fingerprint, probe, plan, `FFmpegTool`, normalise, artefacts, loop-seam validator |
 | `LivepaperPlayback` | nonisolated | `LoopEngine` (actor on its own serial queue, since decode blocks), `PlaybackSupervisor`, layer tree, rate ramp |
 | `LivepaperSystem` | MainActor | Sensors as `AsyncStream`s (displays, power, thermal, lock, sleep, occlusion), Carbon hotkeys, login item, tint service |
+| `LivepaperWorkshop` | nonisolated | Workshop links, steamcmd's output and the conversation with its console, the download list, its words, steamcmd fetched and checked for Valve's signature, and driven over a pty (record 0009) |
 | `WallpaperAgentBridge` | nonisolated, ObjC shim | **All** private API: dlopen, type introspection, remote context, snapshot fix, caller validation, reconnect-spiral detector. Linked only by the extension |
 | `RenderWindowHost` | MainActor | Desktop-level window per screen. **Built only if gate G1 fails** |
 | `DesignSystem` | MainActor | Tokens, modifiers, components |
@@ -126,6 +127,7 @@ After M1, three lanes can run in parallel: A engine (M5), B design system and sc
 | M9 | Release engineering: inside-out signing script, DMG, Sparkle + appcast, release workflow, samples + provenance, README install steps, move-to-Applications prompt | Second Mac installs from a real download; an N → N+1 Sparkle update keeps login item, extension and assignments |
 | M10 | 1.0 | Checklist for testing each macOS beta seed exists |
 | M11 | Wallpaper Engine scenes: imported and drawn live in the extension at 30 fps, behind a `SceneDrawing` seam that S9's renderer plugs into; a GIF scene imported as video (record 0007). Built before M7 | The product owner's nine samples import; a scene is live on the desktop, pauses, resumes and switches with video both ways; a GIF scene plays as video with no seam |
+| M12 | Wallpaper Engine Workshop (record 0009): sign in to Steam once in Livepaper, browse Steam's Workshop pages in a Workshop window, Get an item or paste its link, and it is downloaded with the user's own login through Valve's steamcmd and imported. Built beside M11's renderer port | A real item downloads through `LivepaperWorkshop` byte for byte as Wallpaper Engine's copy and discovery reads it; the sign-in sheet works against real Steam with a password and Steam Guard |
 
 Spike matrix (M1):
 

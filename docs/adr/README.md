@@ -16,3 +16,4 @@ Numbers 0001 to 0004 are the outcomes of the M1 engine spike (`docs/specs/M1-eng
 | [0006](0006-bundled-lgpl-ffmpeg-helper.md) | Converting the formats AVFoundation cannot open, with a bundled LGPL ffmpeg helper |
 | [0007](0007-wallpaper-engine-scenes-drawn-live.md) | Wallpaper Engine scenes drawn live in the extension, a GIF scene imported as video; web and application items still refused |
 | [0008](0008-bundled-shader-tools-helper.md) | Translating scene shaders to Metal with bundled glslang and SPIRV-Cross helpers |
+| [0009](0009-workshop-items-downloaded-with-the-users-own-steam-login.md) | Workshop items downloaded with the user's own Steam login, through Valve's steamcmd, fetched on first use and checked for Valve's signature |
