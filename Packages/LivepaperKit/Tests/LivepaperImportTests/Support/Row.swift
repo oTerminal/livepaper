@@ -16,3 +16,12 @@ struct Row<Input: Sendable, Expected: Sendable>: Sendable, CustomTestStringConve
 
     var testDescription: String { name }
 }
+
+/// Fixed points in time. No test reads the clock.
+enum Moment {
+    static let launch = Date(timeIntervalSince1970: 1_790_000_000)
+
+    static func after(_ seconds: TimeInterval) -> Date {
+        launch.addingTimeInterval(seconds)
+    }
+}

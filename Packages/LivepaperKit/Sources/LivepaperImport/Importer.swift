@@ -38,6 +38,12 @@ public struct ImportReport: Equatable, Sendable {
     public var writtenBy: CopyWriter
     /// The validator's findings on the optimised copy.
     public var seam: LoopSeamReport
+
+    public init(plan: ImportPlan, writtenBy: CopyWriter, seam: LoopSeamReport) {
+        self.plan = plan
+        self.writtenBy = writtenBy
+        self.seam = seam
+    }
 }
 
 public enum ImportOutcome: Equatable, Sendable {
@@ -73,6 +79,14 @@ public func judgeAttempt(_ report: LoopSeamReport, transcodesSoFar retries: Int)
     if report.passes { return .keep }
     return retries == 0 ? .transcodeAgain : .reject
 }
+
+/// What runs an import: the real `Importer`, or a fake one in tests and the app's fakes run.
+public protocol ImportRunning: Sendable {
+    /// The import as a stream of events, ending with `.finished`. Letting go of the stream cancels the import.
+    func events(importing candidate: ImportCandidate) -> AsyncThrowingStream<ImportEvent, any Error>
+}
+
+extension Importer: ImportRunning {}
 
 /// Turns a source file into a wallpaper in the library: one optimised copy
 /// that loops without a gap, a poster and a hover preview.
