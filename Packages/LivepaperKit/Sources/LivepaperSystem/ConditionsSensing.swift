@@ -21,10 +21,14 @@ public final class ConditionsSensing {
     public var latest: SensedConditions? { folder.latest }
     public var isRunning: Bool { !watches.isEmpty }
 
-    /// The user's pause rules. Changing them can hand the conditions on again at once.
+    /// The user's pause rules. Changing them can hand the conditions on again at
+    /// once, and tells the covered-display sensor whether covering pauses.
     public var rules: PauseRules {
         get { folder.rules }
-        set { fold(.rules(newValue)) }
+        set {
+            covered.coveringPauses = newValue.whenDesktopCovered
+            fold(.rules(newValue))
+        }
     }
 
     private var folder: ConditionsFolder
@@ -57,6 +61,7 @@ public final class ConditionsSensing {
         self.clock = clock
         self.logger = logger
         self.onChange = onChange
+        covered.coveringPauses = rules.whenDesktopCovered
     }
 
     public func start() {
