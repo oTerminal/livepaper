@@ -100,8 +100,6 @@ final class AppModel: ImportLibrary {
     /// What came of the status line's Restart, and the clock that ends its waits.
     var serviceRestart = ServiceRestart()
     @ObservationIgnored var serviceRestartTick: Task<Void, Never>?
-    /// Commands' imports, waiting for their rows to be done (AppModel+Commands.swift).
-    @ObservationIgnored var importWaiters: [ImportWaiter] = []
 
     init(services: AppServices) {
         self.services = services
@@ -286,7 +284,7 @@ extension AppModel {
 
     private func stop() async {
         await launching?.value
-        stopRotationAndCommands()
+        stopRotationAndRestart()
         // Edits in progress are kept; the displays have them at the next launch.
         settleDrafts()
         runningImport?.task.cancel()

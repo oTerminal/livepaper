@@ -33,7 +33,7 @@ nonisolated public enum CommandServerError: KindNamingError, Equatable, Sendable
 /// off the main actor, each on its own, so a slow client holds up no one.
 public final class CommandServer {
     /// Runs a command and answers it. It may take as long as the command does:
-    /// an import can answer once it has finished.
+    /// the diagnostics take a second or two.
     public typealias Handler = @MainActor @Sendable (Command) async -> CommandReply
 
     nonisolated public struct Limits: Sendable {
@@ -50,8 +50,8 @@ public final class CommandServer {
             self.replyTime = replyTime
         }
 
-        /// A megabyte, room for an import of thousands of files; any other request is a line of a hundred bytes or so.
-        public static let standard = Limits(requestBytes: 1 << 20, requestTime: .seconds(5), replyTime: .seconds(5))
+        /// A kilobyte: the longest request, `set` naming a playlist and a display, is 106 bytes.
+        public static let standard = Limits(requestBytes: 1024, requestTime: .seconds(5), replyTime: .seconds(5))
     }
 
     public let socket: URL

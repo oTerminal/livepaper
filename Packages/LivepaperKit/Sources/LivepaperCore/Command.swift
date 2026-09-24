@@ -11,14 +11,11 @@ public enum DisplayTarget: Hashable, Sendable {
 /// URL scheme, the command socket and the `livepaper` tool (M7).
 ///
 /// `livepaper://<verb>?<key>=<value>`, the verb being the host. Wallpapers and
-/// playlists are named by ID, never by path; `file` is a path for the importer
-/// alone to read; no verb runs anything. Every door's input becomes one of
-/// these, which the app model runs, so that the app stays the only writer.
+/// playlists are named by ID, never by path, and no verb names a file or runs
+/// anything: importing is done in the app's window alone. Every door's input
+/// becomes one of these, which the app model runs, so that the app stays the
+/// only writer.
 public enum Command: Hashable, Sendable {
-    /// Imports each file through `discoverSources`. With `setEverywhere`, the
-    /// one wallpaper that results, new or already there, goes on every display
-    /// (`wallpaperToSetEverywhere(resulting:)`).
-    case `import`([URL], setEverywhere: Bool)
     /// Assigns a wallpaper or a playlist. An ID the library does not hold is the app's to refuse.
     case set(Assignment, on: DisplayTarget)
     case pause(DisplayTarget)
@@ -37,12 +34,11 @@ public enum Command: Hashable, Sendable {
 
     /// The URL's host.
     public enum Verb: String, CaseIterable, Sendable {
-        case `import`, set, pause, resume, next, mute, unmute, library, settings, diagnostics, status
+        case set, pause, resume, next, mute, unmute, library, settings, diagnostics, status
 
         /// The keys the verb takes; any other is a rejection.
         var keys: Set<String> {
             switch self {
-            case .import: [Key.file, Key.set]
             case .set: [Key.wallpaper, Key.playlist, Key.display]
             case .pause, .resume, .next: [Key.display]
             case .mute, .unmute, .library, .settings, .diagnostics, .status: []
@@ -54,7 +50,6 @@ public enum Command: Hashable, Sendable {
 
     public var verb: Verb {
         switch self {
-        case .import: .import
         case .set: .set
         case .pause: .pause
         case .resume: .resume
@@ -74,9 +69,10 @@ public enum Command: Hashable, Sendable {
 extension Command {
     /// The command as its URL, keys in the grammar's order. `display=all` is the
     /// default, so it is left out. Parsing the URL gives this command back.
+    /// Every value is a UUID, so none needs escaping.
     public var url: URL {
         var string = "\(Self.scheme)://\(verb.rawValue)"
-        let query = queryItems.map { "\($0.key)=\(Self.escaped($0.value))" }
+        let query = queryItems.map { "\($0.key)=\($0.value)" }
         if !query.isEmpty { string += "?" + query.joined(separator: "&") }
         guard let url = URL(string: string) else { preconditionFailure("a rendered command is a URL: \(string)") }
         return url
@@ -84,8 +80,6 @@ extension Command {
 
     private var queryItems: [(key: String, value: String)] {
         switch self {
-        case .import(let files, let setEverywhere):
-            files.map { (Key.file, $0.path(percentEncoded: false)) } + (setEverywhere ? [(Key.set, Key.all)] : [])
         case .set(let assignment, let target):
             [Self.item(for: assignment)] + Self.items(for: target)
         case .pause(let target), .resume(let target), .next(let target):
@@ -108,16 +102,6 @@ extension Command {
         case .display(let display): [(Key.display, display.description)]
         }
     }
-
-    /// Everything but the unreserved characters and `/` is escaped, so that a
-    /// name holding `&`, `=`, `+` or `#` cannot end its value early.
-    private static func escaped(_ value: String) -> String {
-        value.addingPercentEncoding(withAllowedCharacters: queryValueCharacters) ?? value
-    }
-
-    private static let queryValueCharacters = CharacterSet(
-        charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~/"
-    )
 }
 
 // MARK: - Parsing
@@ -153,8 +137,6 @@ extension Command {
 }
 
 private enum Key {
-    static let file = "file"
-    static let set = "set"
     static let wallpaper = "wallpaper"
     static let playlist = "playlist"
     static let display = "display"
@@ -164,7 +146,7 @@ private enum Key {
 /// The query's items, gathered by key and checked against the verb.
 private struct Query {
     let verb: Command.Verb
-    private var values: [String: [String]] = [:]
+    private var values: [String: String] = [:]
 
     init(verb: Command.Verb) {
         self.verb = verb
@@ -172,14 +154,12 @@ private struct Query {
 
     mutating func add(_ item: URLQueryItem) throws(CommandRejection) {
         guard verb.keys.contains(item.name) else { throw .unknownKey(verb: verb, key: item.name) }
-        // Only `file` may repeat.
-        if item.name != Key.file, values[item.name] != nil { throw .repeatedKey(item.name) }
-        values[item.name, default: []].append(item.value ?? "")
+        guard values[item.name] == nil else { throw .repeatedKey(item.name) }
+        values[item.name] = item.value ?? ""
     }
 
     func command() throws(CommandRejection) -> Command {
         switch verb {
-        case .import: return .import(try files(), setEverywhere: try setEverywhere())
         case .set: return .set(try assignment(), on: try target())
         case .pause, .resume, .next: return try transport()
         case .mute: return .mute
@@ -197,27 +177,8 @@ private struct Query {
         return verb == .pause ? .pause(target) : verb == .resume ? .resume(target) : .next(target)
     }
 
-    private func files() throws(CommandRejection) -> [URL] {
-        let files = try (values[Key.file] ?? []).map { path throws(CommandRejection) in try Self.file(path) }
-        guard !files.isEmpty else { throw .missingKey(verb: verb, key: Key.file) }
-        return files
-    }
-
-    private static func file(_ path: String) throws(CommandRejection) -> URL {
-        guard !path.isEmpty else { throw .emptyFile }
-        guard path.hasPrefix("/") else { throw .relativeFile(path) }
-        guard !path.contains("\u{0}") else { throw .invalidValue(key: Key.file, value: path) }
-        return URL(filePath: path)
-    }
-
-    private func setEverywhere() throws(CommandRejection) -> Bool {
-        guard let value = values[Key.set]?.first else { return false }
-        guard value == Key.all else { throw .invalidValue(key: Key.set, value: value) }
-        return true
-    }
-
     private func assignment() throws(CommandRejection) -> Assignment {
-        switch (values[Key.wallpaper]?.first, values[Key.playlist]?.first) {
+        switch (values[Key.wallpaper], values[Key.playlist]) {
         case (let wallpaper?, nil): .wallpaper(WallpaperID(uuid: try Self.uuid(wallpaper, key: Key.wallpaper)))
         case (nil, let playlist?): .playlist(PlaylistID(uuid: try Self.uuid(playlist, key: Key.playlist)))
         default: throw .needsWallpaperOrPlaylist
@@ -225,7 +186,7 @@ private struct Query {
     }
 
     private func target() throws(CommandRejection) -> DisplayTarget {
-        guard let value = values[Key.display]?.first, value != Key.all else { return .all }
+        guard let value = values[Key.display], value != Key.all else { return .all }
         return .display(DisplayIdentity(uuid: try Self.uuid(value, key: Key.display)))
     }
 
@@ -249,16 +210,11 @@ public enum CommandRejection: KindNamingError, Hashable, Sendable, CustomStringC
     /// A user name or a password.
     case credentials
     case unknownKey(verb: Command.Verb, key: String)
-    /// A key given twice where it may be given once: any but `file`.
+    /// A key given twice: each is given once at most.
     case repeatedKey(String)
-    case missingKey(verb: Command.Verb, key: String)
     /// `set` names one wallpaper or one playlist: not neither, not both.
     case needsWallpaperOrPlaylist
-    case emptyFile
-    /// A `file` that is not an absolute path.
-    case relativeFile(String)
     case notAUUID(key: String, value: String)
-    case invalidValue(key: String, value: String)
     /// A command this door does not take: `status` through the scheme.
     case notThroughThisDoor(Command.Verb)
 
@@ -275,12 +231,8 @@ public enum CommandRejection: KindNamingError, Hashable, Sendable, CustomStringC
         case .credentials: "A command has no user name or password"
         case .unknownKey(let verb, let key): "“\(verb.rawValue)” does not take “\(Self.quoted(key))”"
         case .repeatedKey(let key): "“\(key)” is given more than once"
-        case .missingKey(let verb, let key): "“\(verb.rawValue)” needs a “\(key)”"
         case .needsWallpaperOrPlaylist: "“set” names one wallpaper or one playlist"
-        case .emptyFile: "A “file” is empty"
-        case .relativeFile(let path): "A “file” must be an absolute path, not “\(Self.quoted(path))”"
         case .notAUUID(let key, let value): "“\(key)” must be a UUID\(key == "display" ? " or “all”" : ""), not “\(Self.quoted(value))”"
-        case .invalidValue(let key, let value): "“\(key)” cannot be “\(Self.quoted(value))”"
         case .notThroughThisDoor(let verb): "“\(verb.rawValue)” is answered over the command socket only"
         }
     }
@@ -288,7 +240,7 @@ public enum CommandRejection: KindNamingError, Hashable, Sendable, CustomStringC
     public var description: String { reason }
 
     /// The rejection without anything the sender wrote, for a log line: a link
-    /// can come from any web page, and name a path or a file.
+    /// can come from any web page, and carry anything.
     public var kind: String {
         switch self {
         case .notLivepaper: "not a livepaper:// command"
@@ -300,12 +252,8 @@ public enum CommandRejection: KindNamingError, Hashable, Sendable, CustomStringC
         case .credentials: "a user name or password"
         case .unknownKey(let verb, _): "a key “\(verb.rawValue)” does not take"
         case .repeatedKey(let key): "“\(key)” given more than once"
-        case .missingKey(let verb, let key): "“\(verb.rawValue)” without a “\(key)”"
         case .needsWallpaperOrPlaylist: "“set” without one wallpaper or one playlist"
-        case .emptyFile: "an empty “file”"
-        case .relativeFile: "a “file” that is not an absolute path"
         case .notAUUID(let key, _): "a “\(key)” that is not a UUID"
-        case .invalidValue(let key, _): "a value “\(key)” cannot take"
         case .notThroughThisDoor(let verb): "“\(verb.rawValue)”, which is answered over the command socket only"
         }
     }

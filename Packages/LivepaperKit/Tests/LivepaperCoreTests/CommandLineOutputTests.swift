@@ -11,8 +11,8 @@ struct CommandLineOutputTests {
         Row("done says nothing", .done(message: nil), CommandLineOutput(standardOutput: "", standardError: "", exit: .done)),
         Row(
             "done with words prints them",
-            .done(message: "Imported “Ocean”"),
-            CommandLineOutput(standardOutput: "Imported “Ocean”\n", standardError: "", exit: .done)
+            .done(message: "Studio Display now shows “Ocean”."),
+            CommandLineOutput(standardOutput: "Studio Display now shows “Ocean”.\n", standardError: "", exit: .done)
         ),
         Row(
             "a refusal goes to standard error, status 1",

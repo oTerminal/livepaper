@@ -91,7 +91,7 @@ struct CommandServerTests {
         try server.start()
         defer { server.stop() }
 
-        let long = "livepaper://import?file=/" + String(repeating: "a", count: 100) + "\n"
+        let long = "livepaper://set?wallpaper=" + String(repeating: "a", count: 100) + "\n"
         let answer = try await SocketClient.exchange(socket, Data(long.utf8))
 
         #expect(try CommandReply(line: answer) == .refused(reason: "The request is longer than 64 bytes"))

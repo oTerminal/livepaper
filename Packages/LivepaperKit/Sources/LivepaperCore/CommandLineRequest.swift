@@ -19,7 +19,6 @@ public enum CommandLineRequest: Hashable, Sendable {
 
         Commands:
           status [--json]                        What Livepaper shows, and the library's wallpapers and playlists
-          import <file>... [--set]               Import files or folders; with --set, show the one wallpaper on every display
           set <name-or-UUID> [--display <UUID>]  Show a wallpaper or a playlist on every display, or on one
           pause [--display <UUID>]               Pause every display, or one
           resume [--display <UUID>]              Play again
@@ -33,15 +32,14 @@ public enum CommandLineRequest: Hashable, Sendable {
 
         A display is named by a UUID that `livepaper status` lists, or `all`. A
         name that more than one wallpaper or playlist has is refused: use the UUID.
+        Wallpapers are imported in Livepaper's window, not here.
         Livepaper is opened when it is not running, unless LIVEPAPER_NO_LAUNCH is set.
 
         Exit status: 0 done, 1 refused, 2 usage, 3 Livepaper could not be reached.
         """
 
-    /// The request the arguments make, the command's name first. A relative
-    /// file is made absolute against `workingDirectory`, by name alone: the
-    /// tool never looks at the file.
-    public init(arguments: [String], workingDirectory: URL) throws(CommandLineUsageError) {
+    /// The request the arguments make, the command's name first.
+    public init(arguments: [String]) throws(CommandLineUsageError) {
         guard let name = arguments.first else { throw .noCommand }
         if ["help", "-h", "--help"].contains(name) {
             self = .help
@@ -53,8 +51,6 @@ public enum CommandLineRequest: Hashable, Sendable {
             let json = try parsed.flag("--json")
             try parsed.finish(positionals: 0)
             self = .status(json: json)
-        case "import":
-            self = try Self.importing(&parsed, workingDirectory: workingDirectory)
         case "set":
             let target = try parsed.display()
             try parsed.finish(positionals: 1)
@@ -76,26 +72,12 @@ public enum CommandLineRequest: Hashable, Sendable {
     private static let plainCommands: [String: Command] = [
         "mute": .mute, "unmute": .unmute, "library": .library, "settings": .settings, "diagnostics": .diagnostics,
     ]
-
-    private static func importing(_ parsed: inout ParsedArguments, workingDirectory: URL) throws(CommandLineUsageError) -> Self {
-        let setEverywhere = try parsed.flag("--set")
-        try parsed.finish()
-        guard !parsed.positionals.isEmpty else { throw .noFile }
-        let directory = URL(filePath: workingDirectory.path(percentEncoded: false), directoryHint: .isDirectory)
-        let files = try parsed.positionals.map { path throws(CommandLineUsageError) in
-            // An empty argument would be the working directory itself.
-            guard !path.isEmpty else { throw CommandLineUsageError.emptyArgument }
-            return URL(filePath: path, relativeTo: directory).absoluteURL.standardized
-        }
-        return .send(.import(files, setEverywhere: setEverywhere))
-    }
 }
 
 /// What was wrong with the arguments. The tool prints `message` and the usage, and exits with status 2.
 public enum CommandLineUsageError: Error, Hashable, Sendable {
     case noCommand
     case unknownCommand(String)
-    case noFile
     case noName
     case emptyArgument
     case unknownOption(command: String, option: String)
@@ -108,7 +90,6 @@ public enum CommandLineUsageError: Error, Hashable, Sendable {
         switch self {
         case .noCommand: "No command given"
         case .unknownCommand(let name): "“\(name)” is not a command"
-        case .noFile: "import needs a file or a folder"
         case .noName: "set needs the name or UUID of a wallpaper or a playlist"
         case .emptyArgument: "An argument is empty"
         case .unknownOption(let command, let option): "\(command) does not take \(option)"
@@ -166,10 +147,10 @@ private struct ParsedArguments {
         return .display(DisplayIdentity(uuid: uuid))
     }
 
-    /// Nothing is left but up to `limit` positional arguments, or any number when nil.
-    func finish(positionals limit: Int? = nil) throws(CommandLineUsageError) {
+    /// Nothing is left but up to `limit` positional arguments.
+    func finish(positionals limit: Int) throws(CommandLineUsageError) {
         if let option = options.first { throw .unknownOption(command: command, option: option.name) }
-        if let limit, positionals.count > limit { throw .unexpectedArgument(command: command, argument: positionals[limit]) }
+        if positionals.count > limit { throw .unexpectedArgument(command: command, argument: positionals[limit]) }
     }
 
     private mutating func take(_ name: String) throws(CommandLineUsageError) -> (name: String, value: String?)? {

@@ -95,7 +95,11 @@ struct StatusReportTests {
 
     static let replies: [Row<CommandReply, String>] = [
         Row("done", .done(message: nil), #"{"ok":true}"#),
-        Row("done, saying what was done", .done(message: "Imported “Ocean”"), #"{"message":"Imported “Ocean”","ok":true}"#),
+        Row(
+            "done, saying what was done",
+            .done(message: "Studio Display now shows “Ocean”."),
+            #"{"message":"Studio Display now shows “Ocean”.","ok":true}"#
+        ),
         Row(
             "diagnostics, lines and all",
             .diagnostics("Livepaper 0.1.0 (1)\nmacOS 26.0\n"),

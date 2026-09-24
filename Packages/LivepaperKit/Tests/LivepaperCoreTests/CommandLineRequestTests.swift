@@ -3,7 +3,6 @@ import Testing
 import LivepaperCore
 
 struct CommandLineRequestTests {
-    static let movies = URL(filePath: "/Users/sam/Movies", directoryHint: .isDirectory)
     static let builtIn = DisplayIdentity.numbered(1)
     static let studio = DisplayIdentity.numbered(2)
     static let evening = PlaylistID.numbered(1)
@@ -30,7 +29,7 @@ struct CommandLineRequestTests {
     )
 
     static func request(_ arguments: [String]) throws(CommandLineUsageError) -> CommandLineRequest {
-        try CommandLineRequest(arguments: arguments, workingDirectory: movies)
+        try CommandLineRequest(arguments: arguments)
     }
 
     /// What the tool sends for the request: for `set <name>`, what it sends once `status` has answered.
@@ -48,23 +47,6 @@ struct CommandLineRequestTests {
     static let commands: [Row<[String], String>] = [
         Row("status", ["status"], "livepaper://status"),
         Row("status as JSON", ["status", "--json"], "livepaper://status"),
-        Row("import a file here", ["import", "Ocean.mov"], "livepaper://import?file=/Users/sam/Movies/Ocean.mov"),
-        Row(
-            "import from elsewhere, and set",
-            ["import", "../Downloads/431960/", "/Volumes/Clips/Forest.mp4", "--set"],
-            "livepaper://import?file=/Users/sam/Downloads/431960/&file=/Volumes/Clips/Forest.mp4&set=all"
-        ),
-        Row("--set before the file", ["import", "--set", "./Ocean.mov"], "livepaper://import?file=/Users/sam/Movies/Ocean.mov&set=all"),
-        Row(
-            "a file that looks like an option, after --",
-            ["import", "--", "--Ocean.mov"],
-            "livepaper://import?file=/Users/sam/Movies/--Ocean.mov"
-        ),
-        Row(
-            "a name with a space",
-            ["import", "My Clips/Sea & Sky.mov"],
-            "livepaper://import?file=/Users/sam/Movies/My%20Clips/Sea%20%26%20Sky.mov"
-        ),
         Row("set a wallpaper by name, everywhere", ["set", "Ocean"], "livepaper://set?wallpaper=AAAAAAAA-0000-0000-0000-000000000001"),
         Row(
             "set a playlist by name, on one display",
@@ -99,15 +81,9 @@ struct CommandLineRequestTests {
         #expect(try Self.request(["status", "--json"]) == .status(json: true))
     }
 
-    @Test(arguments: [["help"], ["--help"], ["-h"], ["help", "import"]])
+    @Test(arguments: [["help"], ["--help"], ["-h"], ["help", "set"]])
     func `help sends nothing`(arguments: [String]) throws {
         #expect(try Self.request(arguments) == .help)
-    }
-
-    @Test func `a working directory given without its slash is still the folder`() throws {
-        let request = try CommandLineRequest(arguments: ["import", "Ocean.mov"], workingDirectory: URL(filePath: "/Users/sam/Movies"))
-
-        #expect(request == .send(.import([URL(filePath: "/Users/sam/Movies/Ocean.mov")], setEverywhere: false)))
     }
 
     // MARK: Usage errors
@@ -115,11 +91,11 @@ struct CommandLineRequestTests {
     static let usage: [Row<[String], CommandLineUsageError>] = [
         Row("nothing", [], .noCommand),
         Row("an unknown command", ["play"], .unknownCommand("play")),
-        Row("import with no file", ["import"], .noFile),
-        Row("import with only --set", ["import", "--set"], .noFile),
-        Row("an empty file, which would be the folder it runs in", ["import", ""], .emptyArgument),
-        Row("an unknown option", ["import", "--sett", "a.mov"], .unknownOption(command: "import", option: "--sett")),
-        Row("--set given twice", ["import", "a.mov", "--set", "--set"], .repeatedOption("--set")),
+        // Importing is done in the app's window alone.
+        Row("import", ["import", "Ocean.mov"], .unknownCommand("import")),
+        Row("import that would set everywhere", ["import", "Ocean.mov", "--set"], .unknownCommand("import")),
+        Row("an unknown option", ["status", "--jsn"], .unknownOption(command: "status", option: "--jsn")),
+        Row("--json given twice", ["status", "--json", "--json"], .repeatedOption("--json")),
         Row("set with no name", ["set"], .noName),
         Row("set with an empty name", ["set", " "], .emptyArgument),
         Row("set with two names", ["set", "Ocean", "Forest"], .unexpectedArgument(command: "set", argument: "Forest")),
@@ -131,7 +107,7 @@ struct CommandLineRequestTests {
         Row("mute takes no display", ["mute", "--display", "all"], .unknownOption(command: "mute", option: "--display")),
         Row("library takes nothing", ["library", "Ocean"], .unexpectedArgument(command: "library", argument: "Ocean")),
         Row("status takes no other format", ["status", "--yaml"], .unknownOption(command: "status", option: "--yaml")),
-        Row("import takes no display", ["import", "a.mov", "--display", "all"], .unknownOption(command: "import", option: "--display")),
+        Row("set takes no --set", ["set", "Ocean", "--set"], .unknownOption(command: "set", option: "--set")),
     ]
 
     @Test(arguments: usage)
@@ -193,5 +169,10 @@ struct CommandLineRequestTests {
         for command in Command.Verb.allCases.map(\.rawValue) + ["help"] {
             #expect(CommandLineRequest.usage.contains("\n  \(command) "))
         }
+    }
+
+    @Test func `the usage offers no import, and says where importing is done`() {
+        #expect(!CommandLineRequest.usage.contains("\n  import "))
+        #expect(CommandLineRequest.usage.contains("Wallpapers are imported in Livepaper's window, not here."))
     }
 }
