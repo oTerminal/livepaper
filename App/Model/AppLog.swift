@@ -8,8 +8,8 @@ import os
 /// `app`. The checks on screen and the manual script are read against them.
 ///
 /// M7's lines never hold a path, a user name or a source file's name: a
-/// command is logged by IDs and counts, an error by its kind (`LogWords`), the
-/// socket by its folder. M6's lines that name a wallpaper are M6's convention.
+/// command is logged by IDs, an error by its kind (`LogWords`), the socket by
+/// its folder. M6's lines that name a wallpaper are M6's convention.
 enum AppLog {
     static let category = "app"
 
@@ -148,33 +148,20 @@ enum AppLog {
 
     static func words(for door: EntryPoint) -> String {
         switch door {
-        case .services: "Services"
-        case .menuBarDrop: "the menu-bar item"
-        case .openWith: "Open With"
-        case .dock: "the Dock"
         case .urlScheme: "a livepaper:// link"
         case .commandSocket: "the command socket"
         }
     }
 
-    static func handed(_ count: Int, to door: EntryPoint) -> String {
-        "door: \(words(for: door)) handed over \(count) \(count == 1 ? "file" : "files")"
+    /// Files LaunchServices handed over, from `open -a` or wherever, by count.
+    static func filesLeft(_ count: Int) -> String {
+        "door: \(count) \(count == 1 ? "file" : "files") handed over and left: importing is done in the app's window"
     }
 
     /// By its kind: anything can open a link, and what it carried can name a path.
     static func linkRefused(_ rejection: CommandRejection) -> String {
         "door: livepaper:// link refused: \(rejection.kind)"
     }
-
-    static func confirming(_ command: Command) -> String {
-        "door: \(summary(of: command)) from a livepaper:// link, asking first"
-    }
-
-    static func confirmed(_ isConfirmed: Bool) -> String {
-        "door: import from a livepaper:// link \(isConfirmed ? "confirmed" : "cancelled")"
-    }
-
-    static let noLibraryWindow = "door: import from a livepaper:// link not asked: the library window did not open"
 
     static func command(_ command: Command, from door: EntryPoint) -> String {
         "command: \(summary(of: command)) from \(words(for: door))"
@@ -189,12 +176,7 @@ enum AppLog {
         "command: \(command.verb.rawValue) refused: \(refusal.reason)"
     }
 
-    /// What an import came to, by counts: its reply names the source files, so it is not logged.
-    static func imported(_ sources: [ImportedSource], refused: Bool) -> String {
-        "command: import \(refused ? "refused" : "done"): \(ImportedSource.summary(of: sources))"
-    }
-
-    /// The command without the paths an import names: IDs and counts only.
+    /// The command by IDs, never by names.
     static func summary(of command: Command) -> String {
         func target(_ target: DisplayTarget) -> String {
             switch target {
@@ -202,13 +184,11 @@ enum AppLog {
             case .display(let display): "display \(display)"
             }
         }
-        switch command {
-        case .import(let files, let setEverywhere):
-            return "import of \(files.count) \(files.count == 1 ? "file" : "files")\(setEverywhere ? ", set everywhere" : "")"
-        case .set(.wallpaper(let id), let on): return "set wallpaper \(id) on \(target(on))"
-        case .set(.playlist(let id), let on): return "set playlist \(id) on \(target(on))"
-        case .pause(let on), .resume(let on), .next(let on): return "\(command.verb.rawValue) \(target(on))"
-        case .mute, .unmute, .library, .settings, .diagnostics, .status: return command.verb.rawValue
+        return switch command {
+        case .set(.wallpaper(let id), let on): "set wallpaper \(id) on \(target(on))"
+        case .set(.playlist(let id), let on): "set playlist \(id) on \(target(on))"
+        case .pause(let on), .resume(let on), .next(let on): "\(command.verb.rawValue) \(target(on))"
+        case .mute, .unmute, .library, .settings, .diagnostics, .status: command.verb.rawValue
         }
     }
 

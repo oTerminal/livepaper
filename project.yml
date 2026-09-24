@@ -47,59 +47,21 @@ targets:
         type: folder
         buildPhase: resources
     scheme: {}
-    # The doors that are not the window (M7). XcodeGen writes App/Info.plist from this
-    # at `make gen`, and Xcode merges it with the keys GENERATE_INFOPLIST_FILE makes
-    # from the INFOPLIST_KEY_ settings below.
+    # The URL scheme (M7). XcodeGen writes App/Info.plist from this at `make gen`, and
+    # Xcode merges it with the keys GENERATE_INFOPLIST_FILE makes from the INFOPLIST_KEY_
+    # settings below. No NSServices and no CFBundleDocumentTypes: importing is done in
+    # the app's window alone, so neither Services, Open With nor the Dock offers it a file.
     info:
       path: App/Info.plist
       properties:
         # XcodeGen's own defaults for these would win over the build settings.
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
-        # livepaper://<verb>?<key>=<value> (Command in LivepaperCore). An import through
-        # it is confirmed in the library window first: any web page can open the scheme.
+        # livepaper://<verb>?<key>=<value> (Command in LivepaperCore). Any web page can
+        # open the scheme, so it names wallpapers by ID and has no verb that imports.
         CFBundleURLTypes:
           - CFBundleURLName: app.livepaper.Livepaper.command
             CFBundleURLSchemes: [livepaper]
-        # "Set as Live Wallpaper" on the files the importer takes and on folders, for
-        # Wallpaper Engine items: an import that sets the one wallpaper it makes on every
-        # display. NSRequiredContext, even empty, has the service on without a visit to
-        # the Keyboard pane's Services list.
-        NSServices:
-          - NSMenuItem:
-              default: Set as Live Wallpaper
-            NSMessage: setAsLiveWallpaper
-            NSPortName: Livepaper
-            NSRequiredContext: {}
-            NSSendFileTypes:
-              - public.mpeg-4
-              - com.apple.m4v-video
-              - com.apple.quicktime-movie
-              - org.webmproject.webm
-              - org.matroska.mkv
-              - public.avi
-              - com.microsoft.windows-media-wmv
-              - com.compuserve.gif
-              - public.folder
-        # Open With, and a drop on the Dock icon while the window is open: an import alone.
-        # Alternate, so Livepaper is offered and is never a video file's default app.
-        # The types are LivepaperImport's importableExtensions.
-        CFBundleDocumentTypes:
-          - CFBundleTypeName: Movie
-            CFBundleTypeRole: Viewer
-            LSHandlerRank: Alternate
-            LSItemContentTypes:
-              - public.mpeg-4
-              - com.apple.m4v-video
-              - com.apple.quicktime-movie
-              - org.webmproject.webm
-              - org.matroska.mkv
-              - public.avi
-              - com.microsoft.windows-media-wmv
-          - CFBundleTypeName: GIF Image
-            CFBundleTypeRole: Viewer
-            LSHandlerRank: Alternate
-            LSItemContentTypes: [com.compuserve.gif]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.livepaper.Livepaper

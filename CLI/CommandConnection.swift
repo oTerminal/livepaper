@@ -34,7 +34,7 @@ enum CommandConnection {
             sent += count
         }
 
-        // No time limit: an import answers once it has finished.
+        // No time limit of its own: the app answers every command, the diagnostics after a second or two.
         var reply = Data()
         var chunk = [UInt8](repeating: 0, count: 64 * 1024)
         while true {

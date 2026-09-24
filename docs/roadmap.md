@@ -24,7 +24,7 @@ Research that shaped it:
 | Wallpaper types | Video (mp4/mov/m4v; H.264/HEVC/ProRes) + GIF + Wallpaper Engine video items and scenes (record 0007): a scene is drawn live in the extension, a GIF scene is imported as video. Never web or application items, which run code of their own |
 | HDR | SDR only, permanently; HDR sources are tone-mapped |
 | WebM/MKV/AVI/WMV/GIF | Converted once at import by a bundled LGPL ffmpeg helper built from source (no GPL parts), run as a separate process |
-| Import | Drag & drop (window, Dock icon, menu bar item), Open panel, batch. Finder: "Open With", right-click Services/Quick Actions "Set as Live Wallpaper", URL scheme, CLI. WE folders recognised on drop. Wallpaper Engine Workshop items got from Steam (record 0009): Steam's own Workshop pages in a Workshop window with Get, or a Workshop link pasted or dropped, downloaded with the user's own Steam login through Valve's steamcmd, then imported as a dropped folder is. No other URL downloading, no Share extension |
+| Import | In the app only: drag & drop on the library window, the Open panel, batch, and onboarding's first card. No Dock or menu-bar drop, Open With, Services entry, or import through the URL scheme or CLI (built in M7, removed on 2026-09-24). WE folders recognised on drop. Wallpaper Engine Workshop items got from Steam (record 0009): Steam's own Workshop pages in a Workshop window with Get, or a Workshop link pasted or dropped, downloaded with the user's own Steam login through Valve's steamcmd, then imported as a dropped folder is. No other URL downloading, no Share extension |
 | Storage | Copy into an app-managed library. A video keeps only the optimised copy (lossless remux when already H.264/HEVC, transcode only when required). A scene, which is drawn live, keeps its package, project and preview, never the `shaders/` cache |
 | Library features | Favourites, rename, delete (Trash + undo), sort, search, file details, duplicate detection. No tags |
 | Per-wallpaper settings | Fill (default) / Fit / Stretch, focal point, pan & zoom, volume. No dim/blur, loop crossfade, trim or speed |
@@ -32,7 +32,7 @@ Research that shaped it:
 | Displays | Per-display assignment keyed by display UUID + "apply to all"; independent playback |
 | Rotation | Playlists with interval + shuffle; rotate on interval / wake / login, with a crossfade. No time-of-day scheduling |
 | Pause rules | Each toggleable. Default on: desktop fully covered on that display, display asleep/locked, Low Power Mode. Default off: pause on battery |
-| System integration | Launch at login, user-assignable global hotkeys. No App Intents, Control Center widget, iCloud sync or Media Sync |
+| System integration | Launch at login, user-assignable global hotkeys, a `livepaper://` URL scheme and a `livepaper` CLI for every action but import. No App Intents, Control Center widget, iCloud sync or Media Sync |
 | Menu-bar tint | Colour-matched still set as the system wallpaper, original restored when disabled. Only needed if the window renderer ends up being used; in extension mode macOS handles it |
 | Rendering | Private wallpaper extension in v1.0 for desktop + lock screen + screensaver. **Extension only, no fallback renderer** |
 | Contingency | If the downloaded build's extension does not load on a second Mac, the public desktop-window renderer becomes the main path and the extension becomes a bonus for source builders |
@@ -125,7 +125,7 @@ After M1, three lanes can run in parallel: A engine (M5), B design system and sc
 | M4 | Import pipeline + ffmpeg CI build | Fixture corpus imports correctly (audio longer than video, edit lists, VFR, HDR, WebM, GIF, WE folder, duplicates); validator finds no seam; cancel leaves no staging residue; CI publishes the ffmpeg artefact and source |
 | M5 | Production engine, supervisor, render host | Spike tests S2-S7 pass again on product code; inspector preview reuses the engine |
 | M6 | Screens on fakes, then wired | Manual script: drop → tile → hover preview → Set on display → delete → undo |
-| M7 | Login item, hotkeys, Services entry, URL scheme, CLI, Dock/menu-bar drop, rotation driver, onboarding, diagnostics export | Each shown working end to end; login toggle always matches real status |
+| M7 | Login item, hotkeys, URL scheme, CLI, rotation driver, onboarding, diagnostics export | Each shown working end to end; login toggle always matches real status |
 | M8 | Hardening | 24 h soak with lid cycles, zero unrecovered stalls; hot-plug loop; idle app ~0% CPU; 4K60 energy within the M1 budget (`Spikes/results/S2.md`, "Energy budget"); VoiceOver and keyboard pass |
 | M9 | Release engineering: inside-out signing script, DMG, Sparkle + appcast, release workflow, samples + provenance, README install steps, move-to-Applications prompt | Second Mac installs from a real download; an N → N+1 Sparkle update keeps login item, extension and assignments |
 | M10 | 1.0 | Checklist for testing each macOS beta seed exists |

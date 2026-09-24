@@ -9,6 +9,8 @@ import LivepaperCore
 // or with `--json` as the report, `diagnostics` as it is, a refusal on standard
 // error. `set <name>` asks for `status` first and resolves the name against it.
 // The tool reads and writes no library file, so the app stays the only writer.
+// There is no `import`: wallpapers are imported in the app's window alone
+// (M7, As built).
 //
 // It uses the socket, not the URL scheme: LaunchServices reports only that the
 // app took a URL, so there would be no reply and no exit code, and an XPC Mach
@@ -89,8 +91,7 @@ signal(SIGPIPE, SIG_IGN)
 
 let request: CommandLineRequest
 do throws(CommandLineUsageError) {
-    let workingDirectory = URL(filePath: FileManager.default.currentDirectoryPath, directoryHint: .isDirectory)
-    request = try CommandLineRequest(arguments: Array(CommandLine.arguments.dropFirst()), workingDirectory: workingDirectory)
+    request = try CommandLineRequest(arguments: Array(CommandLine.arguments.dropFirst()))
 } catch {
     write("livepaper: \(error.message)\n\n\(CommandLineRequest.usage)\n", to: .standardError)
     exit(CommandLineExit.usage.rawValue)

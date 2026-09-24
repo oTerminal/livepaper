@@ -1,12 +1,11 @@
 import Foundation
 import LivepaperCore
-import LivepaperImport
 
-// Commands from the doors that are not the window (M7): Open With, the Dock,
-// Services, the menu-bar drop, `livepaper://` links and the command socket.
-// Every door's input becomes one `Command` (`EntryPoint`), and this runs it
-// through the same actions the window's controls use, so the app stays the one
-// writer. What is refused says why, in `CommandRefusal`'s words.
+// Commands from outside the app's windows (M7): `livepaper://` links and the
+// command socket. Each door's input becomes one `Command` (`EntryPoint`), and
+// this runs it through the same actions the window's controls use, so the app
+// stays the one writer. None imports: importing is done in the window alone.
+// What is refused says why, in `CommandRefusal`'s words.
 
 /// What a command can ask of the app beyond the model: its windows, and the
 /// Steam account's name, which the diagnostics report leaves out.
@@ -19,12 +18,12 @@ struct CommandShell {
 extension AppModel {
     /// How long a command waits for the launch to read the library and the
     /// displays before it is refused: the tool waits for its reply with no
-    /// time limit of its own, since an import answers once it is done.
+    /// time limit of its own.
     static let readyWait: Duration = .seconds(10)
 
     /// Runs a command from a door and answers it. A command that arrives
     /// before the launch has read the library and the displays waits for it,
-    /// for `readyWait` at most. An import answers once its rows are done.
+    /// for `readyWait` at most.
     func perform(_ command: Command, from door: EntryPoint, shell: CommandShell) async -> CommandReply {
         AppLog.logger.notice("\(AppLog.command(command, from: door), privacy: .public)")
         guard await untilReady(within: Self.readyWait) else { return refuse(command, isQuitting ? .quitting : .stillStarting) }
@@ -34,8 +33,6 @@ extension AppModel {
         } catch {
             return refuse(command, error)
         }
-        // An import logs what it came to itself, by counts.
-        if case .import = command { return reply }
         AppLog.logger.notice("\(AppLog.commandDone(command), privacy: .public)")
         return reply
     }
@@ -58,9 +55,9 @@ extension AppModel {
 
     /// Returns once the launch has read the library and the display sensor has
     /// named the displays, and at once after that, or at quit; answers whether
-    /// it is ready. A door can hand over a command before either: a file opened
-    /// with Livepaper arrives before the launch has finished. With a `limit`,
-    /// it gives up after that long.
+    /// it is ready. A door can hand over a command before either: a link that
+    /// launched Livepaper arrives before the launch has finished. With a
+    /// `limit`, it gives up after that long.
     @discardableResult
     func untilReady(within limit: Duration? = nil) async -> Bool {
         _ = await Polling.wait(until: { isReady || isQuitting }, every: .milliseconds(20), within: limit, clock: ContinuousClock())
@@ -76,18 +73,17 @@ extension AppModel {
         case .diagnostics: return .diagnostics(await diagnosticsReport(steamAccount: shell.steamAccount()).text)
         case .library: shell.openLibrary()
         case .settings: shell.openSettings()
-        case .import, .set, .pause, .resume, .next, .mute, .unmute:
+        case .set, .pause, .resume, .next, .mute, .unmute:
             if isQuitting { throw .quitting }
             if libraryProblem != nil { throw .libraryUnreadable }
-            return try await carryOut(command)
+            return try carryOut(command)
         }
         return .done(message: nil)
     }
 
     /// The commands that change something, through the actions the window's controls use.
-    private func carryOut(_ command: Command) async throws(CommandRefusal) -> CommandReply {
+    private func carryOut(_ command: Command) throws(CommandRefusal) -> CommandReply {
         switch command {
-        case .import(let files, _): return await importing(files, for: command)
         case .set(let assignment, let target): try set(assignment, on: target)
         case .pause(let target): try setPaused(true, target)
         case .resume(let target): try setPaused(false, target)
@@ -96,21 +92,6 @@ extension AppModel {
         case .status, .diagnostics, .library, .settings: break
         }
         return .done(message: nil)
-    }
-
-    /// Through the import list, as a drop is: the rows show in the library
-    /// window, and the reply waits for them. With `setEverywhere`, the one
-    /// wallpaper that resulted, new or already there, goes on every display.
-    private func importing(_ files: [URL], for command: Command) async -> CommandReply {
-        let enqueued = await enqueueImport(files)
-        let sources = await outcomes(of: enqueued.rows) + enqueued.notListed
-        if let wallpaper = command.wallpaperToSetEverywhere(resulting: sources.compactMap(\.wallpaper)), library[wallpaper] != nil {
-            setOnAllDisplays(.wallpaper(wallpaper))
-        }
-        let reply = command.importReply(sources)
-        let refused = if case .refused = reply { true } else { false }
-        AppLog.logger.notice("\(AppLog.imported(sources, refused: refused), privacy: .public)")
-        return reply
     }
 
     private func set(_ assignment: Assignment, on target: DisplayTarget) throws(CommandRefusal) {

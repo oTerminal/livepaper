@@ -83,7 +83,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let model: AppModel
     /// The Workshop (record 0009): Valve's steamcmd, or the fakes' stand-in.
     let workshop: WorkshopModel
-    /// Open With, the Dock, links, Services, the menu-bar drop and the socket (M7).
+    /// `livepaper://` links and the command socket (M7).
     let doors: Doors
     /// First-run onboarding (M7), decided as the app starts.
     let onboarding: Onboarding
@@ -126,9 +126,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .environment(windows)
             .background(SceneActionsReader(windows: windows))
         // The popover holds cards of `Radius.card`: 4 pt keeps them concentric with its 20 pt corners.
-        let item = MenuBarItem(options: options, menu: menu, contentPadding: Spacing.tight, content: popover) { [doors] files in
-            doors.hand(files, to: .menuBarDrop)
-        }
+        let item = MenuBarItem(options: options, menu: menu, contentPadding: Spacing.tight, content: popover)
         windows.willOpenWindow = { [weak item] in item?.closePopover() }
         windows.didCloseLibrary = { [model] in model.libraryWindowDidClose() }
         workshop.showWorkshop = { [windows] in windows.openWorkshop() }
@@ -139,16 +137,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // A turn later, once SwiftUI has its scenes up.
             Task { [windows] in windows.openOnboarding() }
         }
-        NSApp.servicesProvider = doors
-        NSUpdateDynamicServices()
         if let socket = model.services.commandSocket {
             doors.openSocket(at: socket)
         }
     }
 
-    /// Open With, a drop on the Dock icon, and `livepaper://` links. Files
-    /// opened with the app arrive before `applicationDidFinishLaunching`; the
-    /// model runs them once the launch has read the library.
+    /// `livepaper://` links. A link that launched the app arrives before
+    /// `applicationDidFinishLaunching`; the model runs it once the launch has
+    /// read the library. A file is left, with a log line: importing is done in
+    /// the app's window alone.
     func application(_ application: NSApplication, open urls: [URL]) {
         guard startsLivepaper else {
             AppLog.logger.notice("\(AppLog.translocatedDoor(urls.count), privacy: .public)")
@@ -174,7 +171,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if !menu.performItem(titled: title) { AppLog.logger.notice("fakes: no menu item \(title, privacy: .public)") }
         case ("quit", _): NSApp.terminate(nil)
         default:
-            let commands = FakesCommands(model: model, doors: doors) { (try? fakes.writeSampleFiles()) ?? [] }
+            let commands = FakesCommands(model: model, doors: doors)
             let system = FakesSystemCommands(onboarding: onboarding, fakes: fakes, windows: windows)
             guard !commands.perform(verb, rest), !system.perform(verb, rest) else { return }
             AppLog.logger.notice("fakes: unknown command \(verb, privacy: .public) \(rest, privacy: .public)")

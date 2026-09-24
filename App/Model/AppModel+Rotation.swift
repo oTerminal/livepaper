@@ -33,12 +33,10 @@ extension AppModel {
         rotationDriver?.update(state: state, connected: displays.map(\.identity), isPausedAll: isPausedAll)
     }
 
-    /// At quit: nothing rotates, Restart's clock stops, and a command waiting
-    /// on an import is answered with what it has.
-    func stopRotationAndCommands() {
+    /// At quit: nothing rotates, and Restart's clock stops.
+    func stopRotationAndRestart() {
         rotationDriver?.stop()
         serviceRestartTick?.cancel()
-        settleImportWaiters(quitting: true)
     }
 
     /// A tick, a wake or the login moved playlists on: what each display left
