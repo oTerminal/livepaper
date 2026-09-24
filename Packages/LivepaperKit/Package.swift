@@ -70,6 +70,7 @@ let package = Package(
         .testTarget(
             name: "LivepaperSystemTests",
             dependencies: ["LivepaperSystem", "LivepaperCore", "LivepaperTestSupport"],
+            resources: [.copy("Fixtures")],
             swiftSettings: approachableConcurrency
         ),
         .testTarget(
