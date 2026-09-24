@@ -109,7 +109,8 @@ public struct FFmpegTool: Equatable, Sendable {
             var limit: FFmpegError?
             while let ending = try await group.next() {
                 switch ending {
-                case .exited: return limit.map(Ending.stopped) ?? .exited
+                // The exit a limit caused can come before the watch says which limit it was.
+                case .exited: return (limit ?? running.limitPassed).map(Ending.stopped) ?? .exited
                 case .stopped(let error): limit = error
                 case .watchEnded: break
                 }
@@ -168,10 +169,14 @@ private final class RunningProcess: @unchecked Sendable {
     // Process is not Sendable. What is used across tasks here (run, terminate, the
     // identifier and isRunning) is safe to call from any thread.
     private let process: Process
+    /// The limit the watch stopped the process for, set before it is stopped.
+    private let passed = Mutex<FFmpegError?>(nil)
 
     init(_ process: Process) {
         self.process = process
     }
+
+    var limitPassed: FFmpegError? { passed.withLock { $0 } }
 
     func exit() async throws {
         try await withTaskCancellationHandler {
@@ -209,6 +214,7 @@ private final class RunningProcess: @unchecked Sendable {
             let size = FFmpegTool.size(of: destination) ?? 0
             let limit: FFmpegError? = size > limits.outputBytes ? .sizeLimitExceeded : clock.now >= deadline ? .timeLimitExceeded : nil
             if let limit {
+                passed.withLock { $0 = limit }
                 stop()
                 return .stopped(limit)
             }

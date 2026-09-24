@@ -29,8 +29,9 @@ nonisolated public enum CommandServerError: KindNamingError, Equatable, Sendable
 /// answers one line of JSON (`CommandReply`) and closes. A line that is not a
 /// command the socket takes is refused with the reason and never reaches the
 /// app; any other goes to `handler` on the main actor, where the app model
-/// runs it as it runs every door's commands. Connections are accepted and read
-/// off the main actor, each on its own, so a slow client holds up no one.
+/// runs it as it runs every door's commands. Connections are accepted off the
+/// main actor and each is read and answered on a thread of its own, so a slow
+/// client holds up no one, nor does blocking work elsewhere in the app.
 public final class CommandServer {
     /// Runs a command and answers it. It may take as long as the command does:
     /// the diagnostics take a second or two.
@@ -190,7 +191,10 @@ nonisolated private enum Connection {
         var on: Int32 = 1
         _ = setsockopt(client, SOL_SOCKET, SO_NOSIGPIPE, &on, socklen_t(MemoryLayout<Int32>.size))
 
-        DispatchQueue.global(qos: .userInitiated).async {
+        // A thread of its own, not the shared pool: the read blocks for as long
+        // as the client takes, and the pool is held back while other work in the
+        // app blocks (on CI's virtual Mac a client waited 7 s for a thread).
+        Thread.detachNewThread {
             let reply: CommandReply
             switch read(client, limits: limits) {
             case .line(let line):
@@ -198,7 +202,7 @@ nonisolated private enum Connection {
                     let command = try EntryPoint.commandSocket.command(from: line)
                     Task { @MainActor in
                         let reply = await handler(command)
-                        DispatchQueue.global(qos: .userInitiated).async { finish(client, reply, limits: limits) }
+                        Thread.detachNewThread { finish(client, reply, limits: limits) }
                     }
                     return
                 } catch {
