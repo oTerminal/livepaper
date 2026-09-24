@@ -92,7 +92,7 @@ extension SurfacePlayerTests {
         let scene = scene()
         await player.show(scene, crossfade: false)
         // A layer on no screen is given a few frames, then none: enough for the scene to be past its start.
-        if DisplayLinkProbe.fires { _ = await eventually { times(scene).count >= 2 } }
+        _ = await eventually { times(scene).count >= 2 }
         let hides = SlotHides()
         let watch = hides.watch(player.layers.tree.scene)
         defer { watch.invalidate() }
@@ -193,7 +193,7 @@ extension SurfacePlayerTests {
         let first = scene()
         let second = scene()
         await player.show(first, crossfade: false)
-        if DisplayLinkProbe.fires { _ = await eventually { times(first).count >= 2 } }
+        _ = await eventually { times(first).count >= 2 }
         await player.holdStill(poster: first)
         let hides = SlotHides()
         let watch = hides.watch(player.layers.tree.scene)
