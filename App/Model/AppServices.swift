@@ -25,10 +25,14 @@ struct AppServices {
     var makeImporter: (any ImportLibrary) -> any ImportRunning
     /// Prepares again, one at a time and off the main actor, the scenes whose
     /// programs are missing or were written by an older translator
-    /// (`ScenePreparation.refresh`); `log` hears each outcome. Runs at launch,
-    /// after the sweep. Nothing in the fakes run.
+    /// (`ScenePreparation.refresh`), then draws the poster of each scene that
+    /// can be drawn and whose poster was not drawn from it by this build
+    /// (`ScenePoster.refresh`); `prepared` and `drawn` hear each outcome. Runs at
+    /// launch, after the sweep. Nothing in the fakes run.
     var prepareScenes: (
-        _ wallpapers: [Wallpaper], _ log: @escaping @Sendable (Wallpaper, ScenePreparation.Outcome) async -> Void
+        _ wallpapers: [Wallpaper],
+        _ prepared: @escaping @Sendable (Wallpaper, ScenePreparation.Outcome) async -> Void,
+        _ drawn: @escaping @Sendable (Wallpaper, ScenePoster.Outcome) async -> Void
     ) async -> Void
     /// The sensors behind the pause rules and the connected displays.
     var makeSensing: (_ rules: PauseRules, _ onChange: @escaping @MainActor (SensedConditions) -> Void) -> ConditionsSensing
@@ -73,8 +77,9 @@ extension AppServices {
                     sceneDrawing: WallpaperEngineScene.self
                 )
             },
-            prepareScenes: { wallpapers, log in
-                _ = await ScenePreparation.refresh(wallpapers, in: location, tools: shaderTools, log: log)
+            prepareScenes: { wallpapers, prepared, drawn in
+                _ = await ScenePreparation.refresh(wallpapers, in: location, tools: shaderTools, log: prepared)
+                _ = await ScenePoster.refresh(wallpapers, in: location, drawingType: WallpaperEngineScene.self, log: drawn)
             },
             makeSensing: { rules, onChange in
                 ConditionsSensing(rules: rules, host: host.capabilities, onChange: onChange)

@@ -9,19 +9,22 @@ import SwiftUI
 /// the design system's components take a poster. Nil until it has loaded.
 struct PosterImage<Content: View>: View {
     let url: URL?
+    /// Changes when the file is written again (`WallpaperArt.posterChanged`), and it is read again.
+    let revision: Int
     private let content: (Image?) -> Content
 
     @Environment(\.displayScale) private var displayScale
     @State private var size = CGSize.zero
     @State private var loaded: PosterCache.Entry?
 
-    init(url: URL?, @ViewBuilder content: @escaping (Image?) -> Content) {
+    init(url: URL?, revision: Int = 0, @ViewBuilder content: @escaping (Image?) -> Content) {
         self.url = url
+        self.revision = revision
         self.content = content
     }
 
     var body: some View {
-        let request = url.map { PosterCache.Request(url: $0, size: size, scale: displayScale) }
+        let request = url.map { PosterCache.Request(url: $0, size: size, scale: displayScale, revision: revision) }
         // One decoded before shows at once; a smaller one stays up while a larger one decodes.
         let entry = request.flatMap(PosterCache.shared.cached) ?? loaded.flatMap { $0.url == url ? $0 : nil }
         content(entry.map { Image(decorative: $0.image, scale: displayScale) })
@@ -62,11 +65,13 @@ struct PosterFill: View {
 nonisolated final class PosterCache: @unchecked Sendable {
     static let shared = PosterCache()
 
-    /// A poster to show at `size` points on a display of `scale`.
+    /// A poster to show at `size` points on a display of `scale`, as its file
+    /// was after it had been written `revision` times since launch.
     struct Request: Hashable, Sendable {
         var url: URL
         var size: CGSize
         var scale: CGFloat
+        var revision = 0
 
         /// The longest side the decoded image needs, rounded up to the next step.
         var pixels: Int {
@@ -82,6 +87,8 @@ nonisolated final class PosterCache: @unchecked Sendable {
         let image: CGImage
         /// The longest side it was decoded to cover.
         let pixels: Int
+        /// The file's revision it was decoded from (`Request.revision`).
+        let revision: Int
     }
 
     private static let step: CGFloat = 128
@@ -94,9 +101,11 @@ nonisolated final class PosterCache: @unchecked Sendable {
         init(_ entry: Entry) { self.entry = entry }
     }
 
-    /// The poster, if it has been decoded at this size or larger.
+    /// The poster, if it has been decoded at this size or larger, from this revision of its file or a later one.
     func cached(_ request: Request) -> Entry? {
-        entries.object(forKey: request.url.path as NSString).flatMap { $0.entry.pixels >= request.pixels ? $0.entry : nil }
+        entries.object(forKey: request.url.path as NSString).flatMap {
+            $0.entry.pixels >= request.pixels && $0.entry.revision >= request.revision ? $0.entry : nil
+        }
     }
 
     /// Decodes the poster to cover `request.size`, off the main actor. Nil when the
@@ -104,7 +113,11 @@ nonisolated final class PosterCache: @unchecked Sendable {
     func load(_ request: Request) async -> Entry? {
         if let entry = cached(request) { return entry }
         guard let entry = await Self.decode(request) else { return nil }
-        entries.setObject(Box(entry), forKey: request.url.path as NSString)
+        // One decoded from a later revision meanwhile is kept.
+        let kept = entries.object(forKey: request.url.path as NSString)?.entry
+        if kept.map({ $0.revision <= entry.revision }) ?? true {
+            entries.setObject(Box(entry), forKey: request.url.path as NSString)
+        }
         return entry
     }
 
@@ -127,7 +140,7 @@ nonisolated final class PosterCache: @unchecked Sendable {
             kCGImageSourceThumbnailMaxPixelSize: pixels,
         ]
         guard let image = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else { return nil }
-        return Entry(url: request.url, image: image, pixels: pixels)
+        return Entry(url: request.url, image: image, pixels: pixels, revision: request.revision)
     }
 }
 
