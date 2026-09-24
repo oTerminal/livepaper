@@ -113,8 +113,7 @@ public struct SteamConversation: Equatable, Sendable {
         case .signingIn: return signingIn(line)
         case .signedIn: return signedIn(line)
         case .downloading: return downloading(line)
-        case .forgettingSavedLogin, .loggedOut: return loggingOut(line)
-        case .leavingLoggedOut: return []
+        case .forgettingSavedLogin, .loggedOut, .leavingLoggedOut: return loggingOut(line)
         case .confirmingSignOut: return confirmingSignOut(line)
         case .closing:
             guard line == .console else { return [] }
@@ -247,7 +246,8 @@ public struct SteamConversation: Equatable, Sendable {
     /// the login down as gone. Back at the prompt says nothing of whether it worked: the
     /// next run tries the login again, and steamcmd asking for the password is the proof.
     private mutating func loggingOut(_ line: SteamLine) -> [Effect] {
-        guard line == .console else { return [] }
+        // After `quit`, what steamcmd says on its way out.
+        guard line == .console, phase != .leavingLoggedOut else { return [] }
         if phase == .forgettingSavedLogin {
             phase = .loggedOut
             return [.type("logout")]
