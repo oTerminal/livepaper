@@ -135,10 +135,9 @@ extension Importer {
     /// when it cannot be drawn, cut from the item's preview; with neither, the import fails.
     private func writeScenePoster(in staging: URL, size: Size, preview: URL?) async throws -> ScenePoster.Outcome {
         let poster = staging.appending(path: File.poster)
-        let drawn = if let sceneDrawing {
-            try await ScenePoster.draw(staging, size: size, drawing: sceneDrawing, to: poster)
-        } else {
-            ScenePoster.Outcome.notDrawn(reason: "nothing draws scenes here")
+        var drawn = ScenePoster.Outcome.notDrawn(reason: "nothing draws scenes here")
+        if let sceneDrawing {
+            drawn = try await ScenePoster.draw(staging, size: size, drawing: sceneDrawing, to: poster)
         }
         if case .notDrawn = drawn { try makeScenePoster(from: preview, shape: size, at: poster) }
         return drawn

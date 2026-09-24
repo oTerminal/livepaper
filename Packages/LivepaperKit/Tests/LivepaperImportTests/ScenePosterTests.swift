@@ -112,6 +112,10 @@ struct ScenePosterRefreshTests {
         return wallpaper
     }
 
+    func posterBytes(of wallpapers: [Wallpaper]) throws -> [Data] {
+        try wallpapers.map { try Data(contentsOf: bench.location.url(for: $0.poster)) }
+    }
+
     static let current = ScenePrograms.currentTranslator
     static let old = ScenePrograms.currentTranslator - 1
 
@@ -146,7 +150,7 @@ struct ScenePosterRefreshTests {
         let drawn = try scene(2, translator: Self.current, poster: .drawn)
         let unprepared = try scene(3, translator: nil, poster: .fromPreview)
         let alsoPreview = try scene(4, translator: Self.current, poster: .fromPreview)
-        let untouched = try [drawn, unprepared].map { try Data(contentsOf: bench.location.url(for: $0.poster)) }
+        let untouched = try posterBytes(of: [drawn, unprepared])
         let heard = Mutex<[WallpaperID]>([])
 
         let outcomes = await ScenePoster.refresh(
@@ -155,14 +159,15 @@ struct ScenePosterRefreshTests {
             heard.withLock { $0.append(wallpaper.id) }
         }
 
-        #expect(outcomes == [preview.id: .drawn(width: 1920, height: 1080), alsoPreview.id: .drawn(width: 1920, height: 1080)])
+        let full = ScenePoster.Outcome.drawn(width: 1920, height: 1080)
+        #expect(outcomes == [preview.id: full, alsoPreview.id: full])
         #expect(heard.withLock(\.self) == [preview.id, alsoPreview.id], "one at a time, in the library's order")
         for wallpaper in [preview, alsoPreview] {
             let poster = bench.location.url(for: wallpaper.poster)
             #expect(ScenePoster.isDrawn(poster))
             #expect(try picture(at: poster).size == [1920, 1080])
         }
-        #expect(try [drawn, unprepared].map { try Data(contentsOf: bench.location.url(for: $0.poster)) } == untouched)
+        #expect(try posterBytes(of: [drawn, unprepared]) == untouched)
     }
 
     @Test(.enabled(if: GPU.device != nil))
@@ -172,8 +177,9 @@ struct ScenePosterRefreshTests {
 
         let outcomes = await ScenePoster.refresh([wallpaper], in: bench.location, drawingType: UnpreparedScene.self) { _, _ in }
 
-        #expect(outcomes == [wallpaper.id: .notDrawn(reason: "it has no programs")])
-        #expect(try Data(contentsOf: bench.location.url(for: wallpaper.poster)) == before)
+        let notDrawn = ScenePoster.Outcome.notDrawn(reason: "it has no programs")
+        #expect(outcomes == [wallpaper.id: notDrawn])
+        #expect(try posterBytes(of: [wallpaper]) == [before])
         #expect(ScenePoster.needsDrawing(wallpaper, in: bench.location))
     }
 }
