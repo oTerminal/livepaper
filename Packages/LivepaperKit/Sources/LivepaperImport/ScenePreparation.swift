@@ -42,7 +42,7 @@ public enum ScenePreparation {
     @discardableResult
     public static func refresh(
         _ wallpapers: [Wallpaper], in location: LibraryLocation, tools: ShaderTools?,
-        log: @escaping @Sendable (Wallpaper, Outcome) async -> Void = { _, _ in }
+        log: (@Sendable (Wallpaper, Outcome) async -> Void)? = nil
     ) async -> [WallpaperID: Outcome] {
         var outcomes: [WallpaperID: Outcome] = [:]
         for wallpaper in wallpapers where !Task.isCancelled {
@@ -51,7 +51,7 @@ public enum ScenePreparation {
             guard ScenePrograms.translator(in: folder) != ScenePrograms.currentTranslator else { continue }
             guard let outcome = try? await prepare(folder, tools: tools) else { break }
             outcomes[wallpaper.id] = outcome
-            await log(wallpaper, outcome)
+            await log?(wallpaper, outcome)
         }
         return outcomes
     }

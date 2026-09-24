@@ -130,7 +130,7 @@ public struct Importer: Sendable {
         library: any ImportLibrary,
         ffmpeg: FFmpegTool?,
         shaderTools: ShaderTools?,
-        validate: @escaping @Sendable (URL) async throws -> LoopSeamReport = { try await validateLoopSeam(of: $0) },
+        validate: (@Sendable (URL) async throws -> LoopSeamReport)? = nil,
         prepareScene: (@Sendable (URL) async throws -> ScenePreparation.Outcome)? = nil,
         makeID: @escaping @Sendable () -> WallpaperID = { WallpaperID(uuid: UUID()) },
         now: @escaping @Sendable () -> Date = { Date() }
@@ -138,7 +138,9 @@ public struct Importer: Sendable {
         self.location = location
         self.library = library
         self.ffmpeg = ffmpeg
-        self.validate = validate
+        // Made here, not as a default argument: Swift 6.2 miscompiles an async closure
+        // there, and the import aborted with "freed pointer was not the last allocation".
+        self.validate = validate ?? { try await validateLoopSeam(of: $0) }
         // The shader tools are the default hook's: a hook given in their place needs none.
         self.prepareScene = prepareScene ?? { try await ScenePreparation.prepare($0, tools: shaderTools) }
         self.makeID = makeID

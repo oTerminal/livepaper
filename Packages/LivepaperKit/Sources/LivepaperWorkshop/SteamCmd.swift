@@ -111,7 +111,8 @@ public struct SteamCmd: Sendable {
     public func run(
         _ job: SteamJob,
         password: SteamSecret? = nil,
-        code: @escaping @Sendable (SteamGuard, _ again: Bool) async -> SteamSecret? = { _, _ in nil },
+        // No async closure as a default argument: Swift 6.2 miscompiles one (see `Importer.init`).
+        code: (@Sendable (SteamGuard, _ again: Bool) async -> SteamSecret?)? = nil,
         progress: @escaping @Sendable (SteamProgress) -> Void = { _ in },
         line: @escaping @Sendable (String) -> Void = { _ in }
     ) async throws -> SteamOutcome {
@@ -130,7 +131,7 @@ public struct SteamCmd: Sendable {
             } catch {
                 throw WorkshopError.toolNotStarted
             }
-            let session = Session(process: process, password: password, code: code, progress: progress, line: line)
+            let session = Session(process: process, password: password, code: code ?? { _, _ in nil }, progress: progress, line: line)
             let ending = try await session.run(&conversation, limit: limits.limit(for: job), leaving: limits.leaving)
             switch ending {
             case .restart:
