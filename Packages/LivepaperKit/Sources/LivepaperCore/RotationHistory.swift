@@ -48,6 +48,16 @@ public struct RotationHistories: Equatable, Sendable {
         return after
     }
 
+    /// A rotation the user did not ask for, the rotation driver's tick, wake or
+    /// login: each display whose playlist moved on keeps what it showed, as Next does.
+    public mutating func rotated(from before: AppState, to after: AppState, library: Library) {
+        for display in after.rotation.keys where before.assignment(for: display) == after.assignment(for: display) {
+            guard let left = before.wallpaper(shownOn: display, in: library)?.id,
+                  after.wallpaper(shownOn: display, in: library)?.id != left else { continue }
+            byDisplay[display, default: RotationHistory()].leaving(left)
+        }
+    }
+
     /// Back through what the display's playlist showed this session, then back
     /// through the playlist's order. The state as it was when there is nowhere to go.
     public mutating func previous(on display: DisplayIdentity, in state: AppState, library: Library) -> AppState {
