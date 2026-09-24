@@ -32,7 +32,7 @@ struct SceneImportTests {
 
         let outcome = try await bench.importer().run(try candidate(at: item))
 
-        guard case .importedScene(let wallpaper, _) = outcome else {
+        guard case .importedScene(let wallpaper, _, _) = outcome else {
             Issue.record("not imported as a scene: \(outcome)")
             return
         }
@@ -89,7 +89,7 @@ struct SceneImportTests {
 
         let outcome = try await importer.run(try candidate(at: item))
 
-        guard case .importedScene(let wallpaper, let preparation) = outcome else {
+        guard case .importedScene(let wallpaper, let preparation, _) = outcome else {
             Issue.record("not imported as a scene: \(outcome)")
             return
         }
@@ -117,7 +117,7 @@ struct SceneImportTests {
 
         let outcome = try await bench.importer(shaderTools: row.input == "gone" ? gone : nil).run(try candidate(at: item))
 
-        guard case .importedScene(let wallpaper, .notPrepared(let reason)) = outcome else {
+        guard case .importedScene(let wallpaper, .notPrepared(let reason), _) = outcome else {
             Issue.record("not imported as an unprepared scene: \(outcome)")
             return
         }
@@ -134,7 +134,7 @@ struct SceneImportTests {
 
         let outcome = try await bench.importer(shaderTools: try ShaderToolsHelper.required()).run(try candidate(at: item))
 
-        guard case .importedScene(let wallpaper, let preparation) = outcome else {
+        guard case .importedScene(let wallpaper, let preparation, _) = outcome else {
             Issue.record("not imported as a scene: \(outcome)")
             return
         }
@@ -161,7 +161,7 @@ struct SceneImportTests {
     @Test func `the same scene again is a duplicate, found before anything is written`() async throws {
         let item = try workshop.writeSceneItem("3000000001", entries: SyntheticScene.liveScene())
         let first = try await bench.importer().run(try candidate(at: item))
-        guard case .importedScene(let wallpaper, _) = first else {
+        guard case .importedScene(let wallpaper, _, _) = first else {
             Issue.record("not imported as a scene: \(first)")
             return
         }
@@ -217,7 +217,7 @@ struct SceneImportTests {
 
         let outcome = try await bench.importer(ffmpeg: try Helper.required()).run(try candidate(at: item))
 
-        guard case .importedScene(let wallpaper, _) = outcome else {
+        guard case .importedScene(let wallpaper, _, _) = outcome else {
             Issue.record("not imported as a scene: \(outcome)")
             return
         }

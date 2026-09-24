@@ -18,7 +18,7 @@ extension SceneImportTests {
 
         let outcome = try await bench.importer().run(try candidate(at: item))
 
-        guard case .importedScene(let wallpaper, _) = outcome else {
+        guard case .importedScene(let wallpaper, _, _) = outcome else {
             Issue.record("not imported as a scene: \(outcome)")
             return
         }
@@ -52,7 +52,7 @@ extension SceneImportTests {
 
         let outcome = try await bench.importer().run(try candidate(at: item))
 
-        guard case .importedScene(let wallpaper, _) = outcome else {
+        guard case .importedScene(let wallpaper, _, _) = outcome else {
             Issue.record("not imported as a scene: \(outcome)")
             return
         }

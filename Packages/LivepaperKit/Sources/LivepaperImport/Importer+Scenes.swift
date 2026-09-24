@@ -8,7 +8,8 @@ import LivepaperScene
 // loop, so they become a video and go the video's way. Any other scene is
 // kept as its own files, to be drawn live: fingerprint, probe (the package
 // read), prepare (the files copied in, then its shaders translated), artefacts
-// (the poster and the hover preview, from the item's preview), commit.
+// (the poster, drawn from the scene or else cut from the item's preview, and
+// the hover preview), commit.
 
 extension Importer {
     func importScene(
@@ -39,7 +40,7 @@ extension Importer {
 
             try Task.checkCancellation()
             progress(ImportProgress(stage: .artefacts))
-            try makeScenePoster(from: candidate.preview, shape: size, at: staging.appending(path: File.poster))
+            let poster = try await writeScenePoster(in: staging, size: size, preview: candidate.preview)
             let hasHoverPreview = try await makeHoverPreview(fromGIF: candidate.preview, in: staging)
 
             let folder = "\(location.wallpapers.lastPathComponent)/\(id)"
@@ -64,7 +65,8 @@ extension Importer {
             try Task.checkCancellation()
             progress(ImportProgress(stage: .commit))
             // From here the import runs to its end, as a video's does.
-            return try await commit(staging, as: wallpaper, answering: .importedScene(wallpaper, preparation: preparation))
+            let outcome = ImportOutcome.importedScene(wallpaper, preparation: preparation, poster: poster)
+            return try await commit(staging, as: wallpaper, answering: outcome)
         } catch {
             try? FileManager.default.removeItem(at: staging)
             throw error
@@ -127,6 +129,19 @@ extension Importer {
             try FileManager.default.copyItem(at: from.resolvingSymlinksInPath(), to: to)
         }
         return packageName
+    }
+
+    /// The scene's poster, drawn from the scene prepared in `staging` (`ScenePoster`), or,
+    /// when it cannot be drawn, cut from the item's preview; with neither, the import fails.
+    private func writeScenePoster(in staging: URL, size: Size, preview: URL?) async throws -> ScenePoster.Outcome {
+        let poster = staging.appending(path: File.poster)
+        let drawn = if let sceneDrawing {
+            try await ScenePoster.draw(staging, size: size, drawing: sceneDrawing, to: poster)
+        } else {
+            ScenePoster.Outcome.notDrawn(reason: "nothing draws scenes here")
+        }
+        if case .notDrawn = drawn { try makeScenePoster(from: preview, shape: size, at: poster) }
+        return drawn
     }
 
     /// A scene's hover preview, from the item's `preview.gif` when it has one:

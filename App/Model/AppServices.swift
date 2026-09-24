@@ -1,6 +1,7 @@
 import AppKit
 import LivepaperCore
 import LivepaperImport
+import LivepaperScene
 import LivepaperSystem
 import LivepaperTestSupport
 
@@ -61,21 +62,15 @@ extension AppServices {
             art: .library(location),
             systemServices: FakeSystemServices(),
             sweep: { try sweepInterruptedImports(in: location) },
-            lastRenderState: {
-                let data: Data
-                do {
-                    data = try Data(contentsOf: location.renderState)
-                } catch let error as CocoaError where [.fileReadNoSuchFile, .fileNoSuchFile].contains(error.code) {
-                    return nil
-                }
-                return try RenderState.decode(data)
-            },
+            lastRenderState: { try lastRenderState(at: location.renderState) },
             makeImporter: { library in
                 Importer(
                     location: location,
                     library: library,
                     ffmpeg: FFmpegTool.locate(replacement: replacement, bundled: Bundle.main.url(forAuxiliaryExecutable: "ffmpeg")),
-                    shaderTools: shaderTools
+                    shaderTools: shaderTools,
+                    // A scene's poster is drawn by what draws it on the desktop.
+                    sceneDrawing: WallpaperEngineScene.self
                 )
             },
             prepareScenes: { wallpapers, log in
@@ -95,6 +90,17 @@ extension AppServices {
             isPlaybackMetricsOn: { host.isPlaybackMetricsOn },
             setPlaybackMetrics: { host.setPlaybackMetrics($0) }
         )
+    }
+
+    /// The render state in `file`; nil when there is none.
+    private static func lastRenderState(at file: URL) throws -> RenderState? {
+        let data: Data
+        do {
+            data = try Data(contentsOf: file)
+        } catch let error as CocoaError where [.fileReadNoSuchFile, .fileNoSuchFile].contains(error.code) {
+            return nil
+        }
+        return try RenderState.decode(data)
     }
 }
 

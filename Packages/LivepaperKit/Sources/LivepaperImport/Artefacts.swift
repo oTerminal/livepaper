@@ -40,10 +40,11 @@ func makePoster(of optimisedCopy: URL, at destination: URL) async throws {
     try writePoster(image, to: destination)
 }
 
-/// Writes a scene's poster (record 0007): the first picture of the item's
-/// preview, a still or a GIF, cut about its middle to the scene's shape. A
-/// Workshop preview is square, and a poster that is not the scene's shape would
-/// not line up with it on the desktop or in the inspector.
+/// Writes a scene's poster (record 0007) when the scene cannot be drawn for one
+/// (`ScenePoster`): the first picture of the item's preview, a still or a GIF,
+/// cut about its middle to the scene's shape. A Workshop preview is square, and
+/// a poster that is not the scene's shape would not line up with it on the
+/// desktop or in the inspector.
 func makeScenePoster(from preview: URL?, shape: Size, at destination: URL) throws {
     guard
         let preview,

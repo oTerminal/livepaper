@@ -154,9 +154,10 @@ extension AppModel {
             switch outcome {
             case .imported(let wallpaper, _):
                 AppLog.logger.notice("\(AppLog.importFinished(wallpaper), privacy: .public)")
-            case .importedScene(let wallpaper, let preparation):
+            case .importedScene(let wallpaper, let preparation, let poster):
                 AppLog.logger.notice("\(AppLog.importFinished(wallpaper), privacy: .public)")
                 AppLog.log(preparation, of: wallpaper.id)
+                AppLog.log(poster, of: wallpaper.id)
             case .duplicate(let wallpaper):
                 AppLog.logger.notice("\(AppLog.importDuplicate(of: wallpaper), privacy: .public)")
             }

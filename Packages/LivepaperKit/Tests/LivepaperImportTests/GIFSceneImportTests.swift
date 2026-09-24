@@ -132,7 +132,7 @@ struct GIFSceneImportTests {
 
         let outcome = try await bench.importer().run(candidate)
 
-        guard case .importedScene(let wallpaper, _) = outcome else {
+        guard case .importedScene(let wallpaper, _, _) = outcome else {
             Issue.record("not kept as a scene: \(outcome)")
             return
         }
