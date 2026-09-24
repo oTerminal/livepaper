@@ -28,6 +28,7 @@ struct CoveredDisplaysTests {
     static let dockPID: Int32 = 300
     static let windowServerPID: Int32 = 400
     static let loginwindowPID: Int32 = 500
+    static let windowManagerPID: Int32 = 600
     static let shieldLevel = Int(CGShieldingWindowLevel())
 
     static func rect(_ x: Double, _ y: Double, _ width: Double, _ height: Double) -> Rect {
@@ -41,6 +42,8 @@ struct CoveredDisplaysTests {
     // The built-in's menu bar and the Dock's window, as the window list gives them.
     static let menuBar = window(rect(0, 0, 1800, 39), layer: 24, owner: windowServerPID)
     static let dock = window(builtIn.frame, layer: 20, owner: dockPID)
+    // What Show Desktop adds, macOS 27: WindowManager's window over the whole display, above the normal level.
+    static let showDesktop = window(builtIn.frame, layer: 18, owner: windowManagerPID)
 
     static let rows: [Row<[WindowListEntry], Set<DisplayIdentity>>] = [
         Row("nothing on screen covers nothing", [], []),
@@ -97,6 +100,13 @@ struct CoveredDisplaysTests {
             []
         ),
         Row("loginwindow's windows never count, whatever their level", [window(builtIn.frame, owner: loginwindowPID)], []),
+        Row("Show Desktop's window, WindowManager's, as large as the display, covers nothing", [menuBar, dock, showDesktop], []),
+        Row(
+            "a display-sized window Show Desktop moved aside, a sliver left at the display's edge, covers nothing",
+            [menuBar, dock, showDesktop, window(rect(0, 1157, 1800, 1169))],
+            []
+        ),
+        Row("WindowManager's windows never count, whatever their level", [window(builtIn.frame, owner: windowManagerPID)], []),
         Row("someone else's window at the shield's level covers it", [window(builtIn.frame, layer: shieldLevel)], [builtIn.identity]),
         Row(
             "two windows that tile do not cover it, v1's known gap",
@@ -113,9 +123,35 @@ struct CoveredDisplaysTests {
     @Test(arguments: rows)
     func `a display is covered by one window that contains it`(row: Row<[WindowListEntry], Set<DisplayIdentity>>) {
         let covered = coveredDisplays(
-            windows: row.input, displays: Self.displays, ignoringOwners: [Self.ownPID, Self.dockPID, Self.loginwindowPID]
+            windows: row.input,
+            displays: Self.displays,
+            ignoringOwners: [Self.ownPID, Self.dockPID, Self.loginwindowPID, Self.windowManagerPID]
         )
 
         #expect(covered == row.expected)
+    }
+
+    static let showingDesktopRows: [Row<[WindowListEntry], Bool>] = [
+        Row("nothing on screen is not Show Desktop", [], false),
+        Row("Show Desktop: WindowManager's window over the whole display", [menuBar, dock, showDesktop], true),
+        Row(
+            "Show Desktop on the external display",
+            [window(external.frame, layer: 18, owner: windowManagerPID)],
+            true
+        ),
+        Row(
+            "a window of WindowManager's smaller than the display is not",
+            [window(rect(0, 100, 200, 800), owner: windowManagerPID)],
+            false
+        ),
+        Row("WindowManager's window below the normal level is not", [window(builtIn.frame, layer: -1, owner: windowManagerPID)], false),
+        Row("someone else's window over the whole display is not", [menuBar, dock, window(builtIn.frame, layer: 18)], false),
+    ]
+
+    @Test(arguments: showingDesktopRows)
+    func `a window of WindowManager's over a whole display means Show Desktop`(row: Row<[WindowListEntry], Bool>) {
+        let showing = isShowingDesktop(windows: row.input, displays: Self.displays, windowManager: [Self.windowManagerPID])
+
+        #expect(showing == row.expected)
     }
 }
