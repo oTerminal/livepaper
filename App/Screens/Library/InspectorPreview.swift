@@ -4,8 +4,9 @@ import SwiftUI
 
 /// The inspector's preview: the wallpaper in a frame the shape of the first
 /// display, fitted by the presentation being edited, as the display would fit
-/// it (`pictureRect`). The optimised copy plays over its poster; in the fakes
-/// run there is no copy, and the poster stays.
+/// it (`pictureRect`). The optimised copy plays over its poster, or a scene's
+/// hover preview (record 0007); in the fakes run there is no copy, and the
+/// poster stays.
 struct InspectorPreview: View {
     @Environment(AppModel.self) private var model
     let wallpaper: Wallpaper
@@ -33,7 +34,7 @@ struct InspectorPreview: View {
                 }
             }
             .overlay {
-                if let copy = model.art.optimisedCopyURL(for: wallpaper) {
+                if let copy = model.art.inspectorPreviewURL(for: wallpaper) {
                     PreviewPlayerView(url: copy, presentation: presentation, volume: volume)
                 }
             }

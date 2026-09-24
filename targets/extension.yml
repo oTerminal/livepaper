@@ -31,3 +31,6 @@ targets:
         product: LivepaperPlayback
       - package: LivepaperKit
         product: WallpaperAgentBridge
+      # What draws a scene in the Metal slot (record 0007).
+      - package: LivepaperKit
+        product: LivepaperScene

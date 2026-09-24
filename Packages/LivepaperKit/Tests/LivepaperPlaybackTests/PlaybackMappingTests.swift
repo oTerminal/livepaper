@@ -116,13 +116,40 @@ struct PlaybackMappingTests {
             .reach(suspended(oneFitted), from: .suspended, showing: one),
             [.holdStill(oneFitted)]
         ),
+
+        // A scene is mapped as a video is (record 0007): the surface tells them apart.
+        Row("a video playing switches to a scene", .reach(play(scene3), from: .playing, showing: one), [.show(scene3, crossfade: true)]),
+        Row("a scene playing switches to a video", .reach(play(one), from: .playing, showing: scene3), [.show(one, crossfade: true)]),
+        Row("a scene playing goes on", .reach(play(scene3), from: .playing, showing: scene3), []),
+        Row("a scene pauses where a video would", .reach(paused(scene3), from: .playing, showing: scene3), [.pause]),
+        Row("a scene suspends where a video would", .reach(suspended(scene3), from: .paused, showing: scene3), [.suspend]),
+        Row("a suspended scene resumes", .reach(play(scene3), from: .suspended, showing: scene3), [.resume]),
+        Row("a stopped state holds a scene's poster", .reach(.still(scene3), from: .playing, showing: scene3), [.holdStill(scene3)]),
     ]
+
+    /// Wallpaper 3, a scene.
+    static let scene3 = SurfaceWallpaper.scene(3)
 
     @Test(arguments: rows)
     func `maps a decision onto a surface`(row: Row<Situation, [SurfaceCall]>) {
         let calls = surfaceCalls(toReach: row.input.target, from: row.input.state, showing: row.input.showing)
 
         #expect(calls == row.expected)
+    }
+
+    @Test func `a scene's display is resolved to the scene's folder and size, a video's to no scene`() throws {
+        let id = WallpaperID.numbered(3)
+        var display = RenderState.Display.numbered(1, showing: 3)
+        display.optimisedCopy = .known("wallpapers/\(id)/scene.pkg")
+        display.scene = WallpaperScene(project: .known("wallpapers/\(id)/project.json"), width: 1920, height: 1080)
+
+        let wallpaper = SurfaceWallpaper(display, in: testLibrary)
+
+        let scene = try #require(wallpaper.scene)
+        #expect(scene.folder.path == testLibrary.wallpapers.appending(path: id.description).path)
+        #expect(scene.size == Size(width: 1920, height: 1080))
+        #expect(wallpaper.video == testLibrary.url(for: .known("wallpapers/\(id)/scene.pkg")))
+        #expect(SurfaceWallpaper(.numbered(1), in: testLibrary).scene == nil)
     }
 }
 

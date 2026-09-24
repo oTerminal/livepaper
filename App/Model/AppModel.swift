@@ -74,7 +74,8 @@ final class AppModel: ImportLibrary {
     @ObservationIgnored private(set) var sensing: ConditionsSensing?
     /// Made once the launch has swept: observed, so Import is offered then.
     private(set) var importer: (any ImportRunning)?
-    @ObservationIgnored private var watches: [Task<Void, Never>] = []
+    /// Work that goes on beside the app, the scenes' preparation among it, cancelled at quit.
+    @ObservationIgnored var watches: [Task<Void, Never>] = []
     @ObservationIgnored private var launching: Task<Void, Never>?
     @ObservationIgnored private var quitting: Task<Void, Never>?
     /// Render states are applied in the order they were made, each after the one before.
@@ -145,6 +146,7 @@ extension AppModel {
     private func start() async {
         AppLog.logger.notice("\(AppLog.launched(fakes: self.services.isFakes), privacy: .public)")
         load()
+        prepareScenes()
         watchHostStatus()
         do {
             try await services.host.activate()

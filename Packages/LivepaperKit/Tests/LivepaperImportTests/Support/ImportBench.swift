@@ -1,3 +1,4 @@
+import AVFoundation
 import CoreGraphics
 import Foundation
 import ImageIO
@@ -23,8 +24,11 @@ final class ImportBench: Sendable {
         library = try StoredLibrary(store: store)
     }
 
-    func importer(library: (any ImportLibrary)? = nil, ffmpeg: FFmpegTool? = nil) -> Importer {
-        Importer(location: location, library: library ?? self.library, ffmpeg: ffmpeg, makeID: { self.nextID() }, now: { Self.importedAt })
+    func importer(library: (any ImportLibrary)? = nil, ffmpeg: FFmpegTool? = nil, shaderTools: ShaderTools? = nil) -> Importer {
+        Importer(
+            location: location, library: library ?? self.library, ffmpeg: ffmpeg, shaderTools: shaderTools,
+            makeID: { self.nextID() }, now: { Self.importedAt }
+        )
     }
 
     private func nextID() -> WallpaperID {
@@ -93,4 +97,16 @@ func picture(at url: URL) throws -> Picture {
         context?.draw(image, in: CGRect(x: 0, y: 0, width: 64, height: 64))
     }
     return Picture(brightness: Double(pixels.reduce(0) { $0 + Int($1) }) / Double(pixels.count), size: [image.width, image.height])
+}
+
+/// A movie file's video rate, in bits per second: its video samples' size over the track's duration, as AVFoundation reads it.
+func videoBitRate(of url: URL) async throws -> Double {
+    let track = try #require(try await AVURLAsset(url: url).loadTracks(withMediaType: .video).first)
+    return Double(try await track.load(.estimatedDataRate))
+}
+
+/// The same for the movie's audio.
+func audioBitRate(of url: URL) async throws -> Double {
+    let track = try #require(try await AVURLAsset(url: url).loadTracks(withMediaType: .audio).first)
+    return Double(try await track.load(.estimatedDataRate))
 }

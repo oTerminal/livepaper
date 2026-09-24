@@ -13,7 +13,7 @@ struct ProbeTests {
             video: VideoProbe(
                 codec: "avc1", isDecodable: true, width: 320, height: 180, orientation: .upright, nominalFrameRate: 30,
                 minFrameDuration: 512.0 / 15360, timing: .constant(FrameRate(duration: 512, timescale: 15360)), frameCount: 60, duration: 2,
-                hasEditList: false, hasFrameReordering: false, startsOnSyncFrame: true, transferFunction: .sdr
+                bitRate: 311_756, hasEditList: false, hasFrameReordering: false, startsOnSyncFrame: true, transferFunction: .sdr
             )
         ))
         #expect(planImport(probe) == .remux)

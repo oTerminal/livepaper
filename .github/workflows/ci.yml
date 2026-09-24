@@ -38,10 +38,38 @@ jobs:
           path: Helpers/ffmpeg/out/
           if-no-files-found: error
 
+  shader-tools:
+    # glslang and SPIRV-Cross, which translate a scene's shaders to Metal at import
+    # (decision record 0008), built from pinned source by Helpers/shader-tools/build.sh.
+    # The artefact carries the source archives, the build script and the licence
+    # texts next to the binaries.
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      # As for ffmpeg: build.sh holds the versions, the sha256s and the flags.
+      - name: Restore the last build
+        uses: actions/cache@v4
+        with:
+          path: |
+            Helpers/shader-tools/out
+            Helpers/shader-tools/src
+          key: shader-tools-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Helpers/shader-tools/build.sh') }}
+      - name: Build
+        run: make shader-tools
+      - name: Build info
+        run: cat Helpers/shader-tools/out/BUILD-INFO.txt
+      - name: Publish
+        uses: actions/upload-artifact@v4
+        with:
+          name: shader-tools-arm64
+          path: Helpers/shader-tools/out/
+          if-no-files-found: error
+
   check:
     # macos-26 (arm64) ships Xcode 26.x. The code targets that Swift floor, so
     # Swift features newer than the image's default Xcode stay out until it moves.
-    needs: ffmpeg
+    needs: [ffmpeg, shader-tools]
     runs-on: macos-26
     timeout-minutes: 30
     steps:
@@ -60,11 +88,24 @@ jobs:
       # Artefacts do not keep file modes.
       - name: Make the helper executable
         run: chmod +x Helpers/ffmpeg/out/ffmpeg && Helpers/ffmpeg/out/ffmpeg -hide_banner -version
-      # With the variable set, the import tests fail instead of skipping when the
-      # helper is missing: this is where CI runs it on the fixtures.
+      - name: Fetch the shader tools
+        uses: actions/download-artifact@v4
+        with:
+          name: shader-tools-arm64
+          path: Helpers/shader-tools/out
+      - name: Make the shader tools executable
+        run: |
+          chmod +x Helpers/shader-tools/out/glslang Helpers/shader-tools/out/spirv-cross
+          Helpers/shader-tools/out/glslang --version
+          Helpers/shader-tools/out/spirv-cross --revision
+      # With the variables set, the import tests fail instead of skipping when a
+      # helper is missing: this is where CI runs them on the fixtures.
       - name: Test
         env:
           LIVEPAPER_REQUIRE_FFMPEG: "1"
+          LIVEPAPER_REQUIRE_SHADER_TOOLS: "1"
+          # A test process that crashes prints where, not only its signal.
+          SWIFT_BACKTRACE: "enable=yes,interactive=no,sanitize=no,threads=crashed"
         run: make test
       - name: Build
         run: make build

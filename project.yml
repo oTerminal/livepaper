@@ -64,6 +64,9 @@ targets:
         product: LivepaperPlayback
       - package: LivepaperKit
         product: LivepaperSystem
+      # Workshop items through Valve's steamcmd with the user's own login (record 0009).
+      - package: LivepaperKit
+        product: LivepaperWorkshop
       # The fakes run (-fakes YES) builds the screens on its fakes.
       - package: LivepaperKit
         product: LivepaperTestSupport
@@ -92,6 +95,32 @@ targets:
             rm -f "$SCRIPT_OUTPUT_FILE_0"
             echo "note: no ffmpeg helper at $SCRIPT_INPUT_FILE_0; the app is built without it (make ffmpeg)"
           fi
+      # The shader tools (record 0008), glslang and spirv-cross, go in the same place
+      # the same way, each signed with an identifier of its own. They are there when
+      # `make shader-tools` built them or CI fetched them; without them the build goes
+      # on, and a scene imports without its programs and holds its poster until the
+      # app has the tools. A tool that goes is taken out of the bundle at the next build.
+      - name: Bundle the shader tools
+        basedOnDependencyAnalysis: true
+        inputFiles:
+          - $(SRCROOT)/Helpers/shader-tools/out/glslang
+          - $(SRCROOT)/Helpers/shader-tools/out/spirv-cross
+        outputFiles:
+          - $(TARGET_BUILD_DIR)/$(EXECUTABLE_FOLDER_PATH)/glslang
+          - $(TARGET_BUILD_DIR)/$(EXECUTABLE_FOLDER_PATH)/spirv-cross
+        script: |
+          set -eu
+          bundle() {
+            if [ -f "$1" ]; then
+              ditto "$1" "$2"
+              codesign --force --sign - --identifier "$PRODUCT_BUNDLE_IDENTIFIER.$3" --timestamp=none "$2"
+            else
+              rm -f "$2"
+              echo "note: no $3 at $1; the app is built without it (make shader-tools)"
+            fi
+          }
+          bundle "$SCRIPT_INPUT_FILE_0" "$SCRIPT_OUTPUT_FILE_0" glslang
+          bundle "$SCRIPT_INPUT_FILE_1" "$SCRIPT_OUTPUT_FILE_1" spirv-cross
 
   Gallery:
     type: application

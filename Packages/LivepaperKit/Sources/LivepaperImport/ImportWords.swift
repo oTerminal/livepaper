@@ -12,6 +12,7 @@ public func stageWords(_ stage: ImportStage) -> String {
     case .convert: "Converting"
     case .normalise: "Optimising"
     case .validate: "Checking the loop"
+    case .prepare: "Preparing the scene"
     case .artefacts: "Making the poster"
     case .commit: "Finishing"
     }
@@ -25,6 +26,8 @@ public func importFailureWords(_ error: any Error) -> (reason: String, canRetry:
     case let error as ImportError: words(for: error)
     case let error as MediaError: words(for: error)
     case let error as FFmpegError: words(for: error)
+    // A Wallpaper Engine item that changed after discovery read it, to lead out of its folder.
+    case let error as WallpaperEngineProjectError: (skipWords(.wallpaperEngine(error)), false)
     case ArtefactError.noPicture: ("It has no picture to make a poster from", false)
     case ArtefactError.posterNotWritten: ("Its poster could not be written", true)
     case DiscoverError.notFound: ("It could not be found", true)
@@ -39,14 +42,15 @@ public func importFailureWords(_ error: any Error) -> (reason: String, canRetry:
 /// a path out of the folder is untrusted text, and says nothing useful.
 public func skipWords(_ reason: SkipReason) -> String {
     switch reason {
-    case .wallpaperEngine(.unsupportedType(let type)):
-        let kind = ["scene": "scene", "web": "web page", "application": "application"][type]
-        return kind.map { "It is a Wallpaper Engine \($0); only video items can be imported" }
-            ?? "Only Wallpaper Engine video items can be imported"
+    case .wallpaperEngine(.runsCode(let type)):
+        let kind = type == "application" ? "an application" : "a web page"
+        return "It is \(kind) for Wallpaper Engine, which runs code of its own; only video and scene items can be imported"
+    case .wallpaperEngine(.unsupportedType): return "Only Wallpaper Engine video and scene items can be imported"
     case .wallpaperEngine(.malformed): return "Its Wallpaper Engine project cannot be read"
     case .wallpaperEngine(.noFile): return "Its Wallpaper Engine project names no file"
     case .wallpaperEngine(.escapesFolder): return "Its Wallpaper Engine project names a file outside its folder"
     case .missingFile(let file): return "Its Wallpaper Engine project names “\(file)”, which is not in its folder"
+    case .noScenePackage(let file): return "Its Wallpaper Engine scene has no “\(file)” in its folder"
     }
 }
 
@@ -98,6 +102,9 @@ private func words(for error: ImportError) -> (reason: String, canRetry: Bool) {
     case .helperMissing: ("Its format needs the ffmpeg helper, which is missing", false)
     case .helperOutputUnreadable: ("The ffmpeg helper converted it, but Livepaper cannot read the result", false)
     case .loopSeam: ("It would not loop without a gap", false)
+    case .scene(.notAPackage): ("Its Wallpaper Engine scene package cannot be read", false)
+    case .scene: ("Its Wallpaper Engine scene cannot be read", false)
+    case .sceneWithoutSize: ("Its Wallpaper Engine scene has no fixed size, which Livepaper needs to show it", false)
     }
 }
 

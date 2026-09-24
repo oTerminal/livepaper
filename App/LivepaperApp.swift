@@ -14,6 +14,7 @@ struct LivepaperApp: App {
         Window("Library", id: AppWindows.libraryID) {
             LibraryWindow()
                 .environment(delegate.model)
+                .environment(delegate.workshop)
                 .libraryWindow(delegate.windows)
                 .launchOptions(delegate.options)
         }
@@ -26,14 +27,29 @@ struct LivepaperApp: App {
             CommandGroup(replacing: .newItem) {
                 Button("Import…") { delegate.model.chooseFilesToImport() }
                     .keyboardShortcut("o")
+                Button("Wallpaper Engine Workshop") { delegate.windows.openWorkshop() }
+                    .keyboardShortcut("o", modifiers: [.command, .shift])
                 Divider()
                 DeleteWallpaperCommand(model: delegate.model)
             }
         }
 
+        // Record 0009: Steam's Workshop pages, and Get.
+        Window("Wallpaper Engine Workshop", id: AppWindows.workshopID) {
+            WorkshopWindow()
+                .environment(delegate.model)
+                .environment(delegate.workshop)
+                .workshopWindow(delegate.windows)
+                .launchOptions(delegate.options)
+        }
+        .defaultSize(width: 1180, height: 820)
+        .defaultLaunchBehavior(.suppressed)
+        .restorationBehavior(.disabled)
+
         Settings {
             SettingsView()
                 .environment(delegate.model)
+                .environment(delegate.workshop)
                 .background(SceneActionsReader(windows: delegate.windows))
                 .launchOptions(delegate.options)
         }
@@ -47,6 +63,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let options = LaunchOptions.current
     let windows = AppWindows()
     let model: AppModel
+    /// The Workshop (record 0009): Valve's steamcmd, or the fakes' stand-in.
+    let workshop: WorkshopModel
     /// The fakes run's world, which its Fakes menu drives. Nil when wired: then
     /// nothing fake is made, and the model drives the real wallpaper.
     private let fakes: Fakes?
@@ -64,6 +82,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             fakes = nil
             model = AppModel(services: .wired())
         }
+        workshop = WorkshopModel(services: options.isFakes ? .fakes() : .wired(), library: model)
         super.init()
     }
 
@@ -77,6 +96,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let item = MenuBarItem(options: options, menu: menu, contentPadding: Spacing.tight, content: popover)
         windows.willOpenWindow = { [weak item] in item?.closePopover() }
         windows.didCloseLibrary = { [model] in model.libraryWindowDidClose() }
+        workshop.showWorkshop = { [windows] in windows.openWorkshop() }
         menuBarItem = item
         if let fakes {
             remote = FakesRemote { [weak self] verb, rest in self?.perform(verb, rest, fakes: fakes) }
@@ -92,6 +112,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         case ("close", "popover"): menuBarItem?.closePopover(animated: true)
         case ("open", "library"): windows.openLibrary()
         case ("open", "settings"): windows.openSettings()
+        case ("open", "workshop"): windows.openWorkshop()
         case ("menu", let title):
             let menu = fakes.menu(model: model) { [weak self] in self?.menuBarItem?.openPopover(animated: true) }
             if !menu.performItem(titled: title) { AppLog.logger.notice("fakes: no menu item \(title, privacy: .public)") }
@@ -122,6 +143,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        // steamcmd runs in a session of its own, and would outlive the app.
+        workshop.stopAll()
         Task {
             await model.quit()
             sender.reply(toApplicationShouldTerminate: true)

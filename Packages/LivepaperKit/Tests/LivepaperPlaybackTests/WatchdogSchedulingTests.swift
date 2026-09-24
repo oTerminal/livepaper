@@ -116,6 +116,21 @@ struct WatchdogSchedulingTests {
             PictureCount(displayed: 29, expected: 60, fed: 29),
             .recover(.flush)
         ),
+        Row(
+            "a scene drawn as usual is healthy, however few of its pictures the window server presented (M11's covered desktop)",
+            PictureCount(displayed: 60, expected: 60, fed: 60, asked: 60, presented: 3),
+            .healthy
+        ),
+        Row(
+            "a scene whose display link is not called while the engine stands ready is withheld, not stalled",
+            PictureCount(displayed: 0, expected: 60, fed: 0, asked: 0, withheld: true),
+            .notComposited
+        ),
+        Row(
+            "a scene whose engine does not answer is a stall",
+            PictureCount(displayed: 0, expected: 60, fed: 0, asked: 0, withheld: false),
+            .recover(.flush)
+        ),
     ]
 
     @Test(arguments: judgements)
@@ -130,6 +145,8 @@ struct WatchdogSchedulingTests {
     static let healthy = PictureCount(displayed: 60, expected: 60, fed: 60)
     static let stalled = PictureCount(displayed: 0, expected: 60, fed: 0)
     static let notComposited = PictureCount(displayed: 0, expected: 60, fed: 60)
+    /// A scene on a desktop the window server does not show: its display link is not called.
+    static let withheld = PictureCount(displayed: 0, expected: 60, fed: 0, asked: 0, withheld: true)
     static let toTheTop: [WatchdogStep] = [.recover(.flush), .recover(.rebuildSurface), .recover(.rebuildPipeline), .requestRestart]
 
     enum Step: Sendable {
@@ -234,6 +251,11 @@ struct WatchdogSchedulingTests {
             "a surface not composited keeps its restart request",
             [.count(1, stalled), .count(1, stalled), .count(1, stalled), .count(1, stalled), .count(1, notComposited)],
             Climb(steps: toTheTop + [.notComposited], restartAgentRequested: true)
+        ),
+        Row(
+            "a covered scene checked again and again never climbs, and never asks for an agent restart",
+            [.count(1, withheld), .count(1, withheld), .count(1, withheld), .count(1, withheld), .count(1, withheld), .count(1, withheld)],
+            Climb(steps: Array(repeating: .notComposited, count: 6), restartAgentRequested: false)
         ),
     ]
 

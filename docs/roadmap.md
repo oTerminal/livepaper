@@ -2,13 +2,13 @@
 
 ## Context
 
-Livepaper is a free, open-source, native Swift live-wallpaper app for macOS 26+, in the spirit of wallper.app without the marketplace, licence server or accounts: you give it a video and it becomes your wallpaper, on the desktop and the lock screen. This document records the product decisions, then the architecture and the milestone order. Milestone specs live in `docs/specs/`, hard-to-reverse decisions in `docs/adr/`, and the project's vocabulary in `CONTEXT.md`.
+Livepaper is a free, open-source, native Swift live-wallpaper app for macOS 26+, in the spirit of wallper.app without the marketplace, licence server or an account of its own (Workshop items come with the user's own Steam login, record 0009): you give it a video and it becomes your wallpaper, on the desktop and the lock screen. This document records the product decisions, then the architecture and the milestone order. Milestone specs live in `docs/specs/`, hard-to-reverse decisions in `docs/adr/`, and the project's vocabulary in `CONTEXT.md`.
 
 Research that shaped it:
 - Wallper's recurring bugs: playback not resuming after sleep (regressed three times), a 1-2 frame black flash at the loop seam (audio/video track length mismatch), menu-bar tint mismatch, library emptying on restart. Each is designed against below.
 - macOS 14-27 has no public API for lock-screen video. The workable route is a private `com.apple.wallpaper` ExtensionKit extension, as Phosphene does (MIT, Swift 6, macOS 26+). The extension needs only the app-sandbox entitlement; App Groups break without a Team ID.
 - Another project (MacWall) got an ad-hoc-signed wallpaper extension discovered and handshaking with WallpaperAgent. Nobody has shown a downloaded, quarantined, non-notarized copy working on a second Mac. That is our first test.
-- AVFoundation cannot open WebM/MKV. Wallpaper Engine Workshop is ~41% plain video items, ~54% scenes (full renderer needed; out of scope permanently).
+- AVFoundation cannot open WebM/MKV. Wallpaper Engine Workshop is ~41% plain video items, ~54% scenes (a full renderer needed; drawn live by the extension since record 0007).
 
 ## Product decisions
 
@@ -19,13 +19,13 @@ Research that shaped it:
 | Distribution | GitHub Releases DMG, **not notarized** (no paid Apple account). Signed with our own self-signed certificate for a stable identity across updates; revisit only if the second-Mac test fails. First-launch "Open Anyway" instructions. Sparkle 2 with EdDSA. Repo goes public at the first milestone |
 | Telemetry | None. "Copy diagnostics" export only |
 | App shape | Menu-bar resident agent + library window (Dock icon only while open) |
-| Menu bar | Custom glass popover: per-display current wallpaper, pause/next/mute, playlist picker, recents, Open Library, Settings |
+| Menu bar | Custom glass popover: per-display current wallpaper, pause/next/mute, playlist picker, recents, the Workshop (record 0009), Open Library, Settings |
 | Library window | Glass sidebar (All, Favourites, Playlists, per-display Now Playing) + thumbnail grid with hover previews + trailing inspector. Whole window is a drop target |
-| Wallpaper types | Video (mp4/mov/m4v; H.264/HEVC/ProRes) + GIF + Wallpaper Engine **video items only, permanently** |
+| Wallpaper types | Video (mp4/mov/m4v; H.264/HEVC/ProRes) + GIF + Wallpaper Engine video items and scenes (record 0007): a scene is drawn live in the extension, a GIF scene is imported as video. Never web or application items, which run code of their own |
 | HDR | SDR only, permanently; HDR sources are tone-mapped |
 | WebM/MKV/AVI/WMV/GIF | Converted once at import by a bundled LGPL ffmpeg helper built from source (no GPL parts), run as a separate process |
-| Import | Drag & drop (window, Dock icon, menu bar item), Open panel, batch. Finder: "Open With", right-click Services/Quick Actions "Set as Live Wallpaper", URL scheme, CLI. WE folders recognised on drop. No URL or Steam downloading, no Share extension |
-| Storage | Copy into an app-managed library; keep only the optimised copy (lossless remux when already H.264/HEVC, transcode only when required) |
+| Import | Drag & drop (window, Dock icon, menu bar item), Open panel, batch. Finder: "Open With", right-click Services/Quick Actions "Set as Live Wallpaper", URL scheme, CLI. WE folders recognised on drop. Wallpaper Engine Workshop items got from Steam (record 0009): Steam's own Workshop pages in a Workshop window with Get, or a Workshop link pasted or dropped, downloaded with the user's own Steam login through Valve's steamcmd, then imported as a dropped folder is. No other URL downloading, no Share extension |
+| Storage | Copy into an app-managed library. A video keeps only the optimised copy (lossless remux when already H.264/HEVC, transcode only when required). A scene, which is drawn live, keeps its package, project and preview, never the `shaders/` cache |
 | Library features | Favourites, rename, delete (Trash + undo), sort, search, file details, duplicate detection. No tags |
 | Per-wallpaper settings | Fill (default) / Fit / Stretch, focal point, pan & zoom, volume. No dim/blur, loop crossfade, trim or speed |
 | Audio | Muted by default, per-wallpaper volume, global mute |
@@ -46,6 +46,7 @@ Research that shaped it:
 ## Engineering decisions
 
 - Playback engine is `AVSampleBufferDisplayLayer` fed by two `AVAssetReader`s with an ever-increasing timestamp offset, not `AVPlayerLooper`. `AVPlayerLayer` fails silently inside the extension, and this removes the loop-seam flash by construction.
+- A scene is drawn by the extension with Metal, at 30 fps, in a `CAMetalLayer` made with the rest of the surface's tree before the context is hosted and shown by an opacity change (record 0007, `Spikes/results/S10.md`). Its shaders are translated to Metal by the app at import (record 0008); the extension only compiles what import wrote.
 - Pause rules are one pure function from conditions to a playback decision. After wake, a watchdog checks frames are actually advancing and rebuilds step by step if not.
 - Library metadata is a versioned JSON manifest written atomically by the app only. The extension reads a small `render-state.json` projection and is told to re-read it by Darwin notification. No SwiftData, no App Groups.
 - Library lives in `~/Library/Application Support/Livepaper/`; the extension gets a read-only sandbox exception for that folder. The spike confirms this works, with Phosphene's approach (write into the extension's container) as the alternative.
@@ -62,6 +63,7 @@ Packages/LivepaperKit/          # one package, several library targets
 Packages/DesignSystem/          # no domain dependencies; Gallery depends only on this
 App/  WallpaperExtension/  Gallery/  CLI/
 Helpers/ffmpeg/                 # build.sh, pinned version + sha256, configure flags, licences
+Helpers/shader-tools/           # glslang and SPIRV-Cross the same way (record 0008)
 Spikes/                         # own project.yml, throwaway, never imported by the product
 Resources/Samples/ + PROVENANCE.md   docs/adr/   docs/specs/   docs/design/skill-mapping.md   CONTEXT.md
 ```
@@ -69,9 +71,11 @@ Resources/Samples/ + PROVENANCE.md   docs/adr/   docs/specs/   docs/design/skill
 | Target | Isolation | Holds |
 |---|---|---|
 | `LivepaperCore` | nonisolated, Foundation only | Models, `Library` value type, `decidePlayback`, watchdog verdict, rotation reducer, display mapping, presentation geometry, `RenderState` codec, `LibraryStore` |
-| `LivepaperImport` | nonisolated | Discover, WE `project.json` parser, fingerprint, probe, plan, `FFmpegTool`, normalise, artefacts, loop-seam validator |
-| `LivepaperPlayback` | nonisolated | `LoopEngine` (actor on its own serial queue, since decode blocks), `PlaybackSupervisor`, layer tree, rate ramp |
+| `LivepaperImport` | nonisolated | Discover, WE `project.json` parser, fingerprint, probe, plan, `FFmpegTool`, normalise, artefacts, loop-seam validator; a GIF scene's frames made into video, and a scene's shaders translated by the shader tools (`ScenePreparation`, records 0007 and 0008). Linked by the app, never by the extension |
+| `LivepaperScene` | nonisolated | Wallpaper Engine's scene formats, the `SceneDrawing` seam and `WallpaperEngineScene` behind it, the programs import writes and the extension compiles (record 0007). Depends on `LivepaperCore` only |
+| `LivepaperPlayback` | nonisolated | `LoopEngine` (actor on its own serial queue, since decode blocks), `PlaybackSupervisor`, layer tree with its Metal slot, rate ramp, `SceneEngine` and `SurfacePlayer` for scenes |
 | `LivepaperSystem` | MainActor | Sensors as `AsyncStream`s (displays, power, thermal, lock, sleep, occlusion), Carbon hotkeys, login item, tint service |
+| `LivepaperWorkshop` | nonisolated | Workshop links, steamcmd's output and the conversation with its console, the download list, its words, steamcmd fetched and checked for Valve's signature, and driven over a pty (record 0009) |
 | `WallpaperAgentBridge` | nonisolated, ObjC shim | **All** private API: dlopen, type introspection, remote context, snapshot fix, caller validation, reconnect-spiral detector. Linked only by the extension |
 | `RenderWindowHost` | MainActor | Desktop-level window per screen. **Built only if gate G1 fails** |
 | `DesignSystem` | MainActor | Tokens, modifiers, components |
@@ -95,7 +99,7 @@ protocol LibraryStore: Sendable { func load() throws -> Library; func save(_: Li
 ```
 
 - `PlaybackSupervisor` is the same code in either host: one `LoopEngine` per display, decoded once and fanned out to that display's surfaces (one per Space, plus lock screen, plus the Settings preview). Two video layers are created up front per surface, because a layer added later to a hosted context does not composite; crossfades and switches happen in place.
-- Import stages: discover → fingerprint (SHA-256 dedupe before any conversion) → probe → plan (pure, table-tested: remux / AVFoundation transcode / ffmpeg then normalise) → convert → normalise (bound loop to the video track, reset edit lists, tone-map HDR) → loop-seam validator → artefacts (poster, hover proxy; a tint still only with the window host) → atomic commit from `.staging/`.
+- Import stages: discover → fingerprint (SHA-256 dedupe before any conversion) → probe → plan (pure, table-tested: remux / AVFoundation transcode / ffmpeg then normalise) → convert → normalise (bound loop to the video track, reset edit lists, tone-map HDR) → loop-seam validator → artefacts (poster, hover proxy; a tint still only with the window host) → atomic commit from `.staging/`. A scene has no plan, convert, normalise or validator stage: after the probe its package, project and preview are copied into `.staging/` and its shaders translated (prepare), then artefacts and commit; a GIF scene's frames become an intermediate file that takes the video stages (record 0007).
 - App → extension: `render-state.json` (schema version, generation, per-display item + presentation + volume + user-paused, pause rules, app-sensed conditions with a 30 s expiry) plus a Darwin notification. Extension → app: a heartbeat packed into notification state, and a "spiral" signal asking the app to restart WallpaperAgent (at most once per 10 minutes). Occlusion is sensed in the app because the sandbox blocks window listing in the extension.
 
 ### Design system
@@ -125,6 +129,8 @@ After M1, three lanes can run in parallel: A engine (M5), B design system and sc
 | M8 | Hardening | 24 h soak with lid cycles, zero unrecovered stalls; hot-plug loop; idle app ~0% CPU; 4K60 energy within the M1 budget (`Spikes/results/S2.md`, "Energy budget"); VoiceOver and keyboard pass |
 | M9 | Release engineering: inside-out signing script, DMG, Sparkle + appcast, release workflow, samples + provenance, README install steps, move-to-Applications prompt | Second Mac installs from a real download; an N → N+1 Sparkle update keeps login item, extension and assignments |
 | M10 | 1.0 | Checklist for testing each macOS beta seed exists |
+| M11 | Wallpaper Engine scenes: imported and drawn live in the extension at 30 fps, behind a `SceneDrawing` seam that S9's renderer plugs into; a GIF scene imported as video (record 0007). Built before M7 | The product owner's nine samples import; a scene is live on the desktop, pauses, resumes and switches with video both ways; a GIF scene plays as video with no seam |
+| M12 | Wallpaper Engine Workshop (record 0009): sign in to Steam once in Livepaper, browse Steam's Workshop pages in a Workshop window, Get an item or paste its link, and it is downloaded with the user's own login through Valve's steamcmd and imported. Built beside M11's renderer port | A real item downloads through `LivepaperWorkshop` byte for byte as Wallpaper Engine's copy and discovery reads it; the sign-in sheet works against real Steam with a password and Steam Guard |
 
 Spike matrix (M1):
 
@@ -158,6 +164,8 @@ Spike matrix (M1):
 | The wallpaper store (`com.apple.wallpaper/Store/Index.plist`) is undocumented and can change with any macOS update | It is edited at two moments only, selecting in onboarding and leaving (record 0003); the code checks what it reads and falls back to the user's click in System Settings; the select/deselect check is on the beta-seed checklist |
 | Restoring the previous wallpaper on Quit may be impossible for Aerial/dynamic wallpapers | S8 found that it is, and that selecting Livepaper again is impossible too. Quit holds a still instead (record 0003); the previous wallpaper, an Aerial included, comes back from a kept copy of the wallpaper store when the user leaves Livepaper |
 | ffmpeg parsing untrusted files | Separate process, minimal build, no network; replaceable binary to satisfy the LGPL |
+| glslang and SPIRV-Cross parsing a Workshop item's shaders | Separate processes with fixed arguments, an empty environment, a time limit and an output limit; a crash ends one run, never the app; the extension never runs them (record 0008) |
+| Valve changes steamcmd, its signature or Steam's Workshop pages | steamcmd is fetched from Valve, never bundled, and runs only while it carries Valve's Developer ID signature; a result Livepaper cannot read is shown in Steam's own words; Get is one feature, and a dropped folder still imports (record 0009) |
 
 Unverified claims carried from research, to confirm at M0/M1: hosted CI image Xcode versions; the self-signed identity behaviour on macOS 27; Homebrew's 2026-09-01 cask policy (not relied on).
 
@@ -169,3 +177,4 @@ Unverified claims carried from research, to confirm at M0/M1: hosted CI image Xc
 - M3: Gallery app reviewed per component with the two review skills.
 - M5-M8: run the app; walk the manual scripts (drop → set → lock → sleep/wake → hot-plug → quit holds a still, relaunch resumes); 24 h soak log shows zero unrecovered stalls.
 - M9: fresh download on the second Mac, then an update from the previous build through Sparkle.
+- M11, M12: `swift test` on `LivepaperKit` over synthetic fixtures, never Workshop files; the checks on screen each spec lists, a Steam sign-in by the user alone.

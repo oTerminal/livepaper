@@ -7,6 +7,7 @@ import CoreGraphics
 import Foundation
 import LivepaperCore
 import LivepaperPlayback
+import LivepaperScene
 import QuartzCore
 import WallpaperAgentBridge
 
@@ -17,17 +18,19 @@ import WallpaperAgentBridge
 final class HostedSurface {
     let id: SurfaceID
     let context: RemoteContext
-    let layers: SurfaceLayers
+    /// What the supervisor drives: the layer tree's video, or a scene in its Metal slot (record 0007).
+    let player: SurfacePlayer
+    var layers: SurfaceLayers { player.layers }
     /// What the layer tree is laid out for.
     var geometry: SurfaceGeometry
     /// The display's geometry as CoreGraphics last gave it, for the
     /// reconfiguration observer to compare with.
     var displayGeometry: SurfaceGeometry?
 
-    init(id: SurfaceID, context: RemoteContext, layers: SurfaceLayers, placement: SurfacePlacement) {
+    init(id: SurfaceID, context: RemoteContext, player: SurfacePlayer, placement: SurfacePlacement) {
         self.id = id
         self.context = context
-        self.layers = layers
+        self.player = player
         geometry = placement.geometry
         displayGeometry = placement.displayGeometry
     }
@@ -56,22 +59,28 @@ final class HostedSurfaces {
     }
 
     /// The supervisor's `makeSurface`: the layer tree for a new surface, whole
-    /// before it goes into `context`, and in the render server before the
-    /// agent is answered.
-    func host(_ surface: SurfaceID, in context: RemoteContext, at placement: SurfacePlacement) -> SurfaceLayers {
+    /// before it goes into `context`, Metal slot included, and in the render
+    /// server before the agent is answered.
+    func host(_ surface: SurfaceID, in context: RemoteContext, at placement: SurfacePlacement) -> SurfacePlayer {
         let layers = SurfaceLayers(
             id: surface,
             geometry: placement.geometry,
             logger: .surface,
             prepareVideoLayer: WallpaperAgentBridge.disallowDisplayCompositing
         )
+        // What draws a scene, and where the pointer is over its display for the scenes that follow it.
+        // A scene it cannot draw holds its poster, still.
+        let pointer = DisplayPointer(display: placement.display)
+        let player = SurfacePlayer(
+            layers: layers, drawingType: WallpaperEngineScene.self, logger: .surface, pointer: { pointer.position() }
+        )
         context.layer = layers.root
         CATransaction.flush()
-        surfaces[surface] = HostedSurface(id: surface, context: context, layers: layers, placement: placement)
+        surfaces[surface] = HostedSurface(id: surface, context: context, player: player, placement: placement)
         if metricsProbe {
             Task { await layers.setMetricsProbe(true) }
         }
-        return layers
+        return player
     }
 
     /// The supervisor's `tearDown`: the agent let the surface go and did not

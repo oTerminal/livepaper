@@ -107,6 +107,23 @@ struct RenderStateMakeTests {
         #expect(state.displays == [Self.display(Self.first, try #require(try Self.library()[.numbered(1)]))])
     }
 
+    @Test func `a scene's display carries the scene, and a video's carries none`() throws {
+        var scene = Wallpaper.numbered(5)
+        scene.optimisedCopy = .known("wallpapers/\(scene.id)/scene.pkg")
+        scene.scene = WallpaperScene(project: .known("wallpapers/\(scene.id)/project.json"), width: 1920, height: 1080)
+        let library = try Self.library().inserting(scene)
+        let state = Self.state {
+            $0.assignments = [Self.first: .wallpaper(.numbered(1)), Self.second: .wallpaper(.numbered(5))]
+        }
+
+        let made = try #require(
+            RenderState.make(library: library, state: state, connected: [Self.first, Self.second], conditions: nil, previous: nil)
+        )
+
+        #expect(made.displays.map(\.scene) == [nil, scene.scene])
+        #expect(made.displays.map(\.optimisedCopy) == [Wallpaper.numbered(1).optimisedCopy, scene.optimisedCopy])
+    }
+
     @Test func `a paused display is paused by the user, and the others are not`() throws {
         let state = try #require(try Self.make(
             Self.state {

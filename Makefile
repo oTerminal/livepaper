@@ -3,7 +3,7 @@ DESTINATION := platform=macOS,arch=arm64
 DERIVED_DATA := build/DerivedData
 XCODEBUILD := xcodebuild -project $(PROJECT) -destination '$(DESTINATION)' -derivedDataPath $(DERIVED_DATA) -quiet
 
-.PHONY: all gen build test lint strings ffmpeg clean
+.PHONY: all gen build test lint strings ffmpeg shader-tools clean
 
 all: gen lint test build
 
@@ -30,6 +30,9 @@ strings: build
 
 ffmpeg:
 	Helpers/ffmpeg/build.sh
+
+shader-tools:
+	Helpers/shader-tools/build.sh
 
 clean:
 	rm -rf build $(PROJECT) Packages/*/.build

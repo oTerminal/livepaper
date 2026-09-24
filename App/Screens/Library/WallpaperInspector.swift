@@ -159,16 +159,20 @@ struct WallpaperInspector: View {
         FitModeOption(value: FitMode.stretch, title: "Stretch", systemImage: "arrow.left.and.right"),
     ]
 
+    /// Core says which rows: a scene's say what it is and have no length or codec (record 0007).
     private var detailsRows: [DetailsRow] {
         let details = wallpaper.details
-        return [
-            DetailsRow(label: "Resolution", value: details.resolutionWords),
-            DetailsRow(label: "Length", value: details.lengthWords),
-            DetailsRow(label: "Frame rate", value: details.frameRateWords),
-            DetailsRow(label: "Codec", value: details.codecWords),
-            DetailsRow(label: "Size", value: Int64(details.byteCount).formatted(.byteCount(style: .file))),
-            DetailsRow(label: "Imported", value: wallpaper.importedAt.formatted(date: .abbreviated, time: .shortened)),
-        ]
+        return wallpaper.detailsShown.map { detail in
+            switch detail {
+            case .kind: DetailsRow(label: "Kind", value: wallpaper.kind.words)
+            case .resolution: DetailsRow(label: "Resolution", value: details.resolutionWords)
+            case .length: DetailsRow(label: "Length", value: details.lengthWords)
+            case .frameRate: DetailsRow(label: "Frame rate", value: details.frameRateWords)
+            case .codec: DetailsRow(label: "Codec", value: details.codecWords)
+            case .size: DetailsRow(label: "Size", value: Int64(details.byteCount).formatted(.byteCount(style: .file)))
+            case .imported: DetailsRow(label: "Imported", value: wallpaper.importedAt.formatted(date: .abbreviated, time: .shortened))
+            }
+        }
     }
 }
 

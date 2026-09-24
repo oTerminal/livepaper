@@ -154,6 +154,9 @@ extension AppModel {
             switch outcome {
             case .imported(let wallpaper, _):
                 AppLog.logger.notice("\(AppLog.importFinished(wallpaper), privacy: .public)")
+            case .importedScene(let wallpaper, let preparation):
+                AppLog.logger.notice("\(AppLog.importFinished(wallpaper), privacy: .public)")
+                AppLog.log(preparation, of: wallpaper.id)
             case .duplicate(let wallpaper):
                 AppLog.logger.notice("\(AppLog.importDuplicate(of: wallpaper), privacy: .public)")
             }
@@ -178,6 +181,26 @@ extension AppModel {
             guard !Task.isCancelled, let self else { return }
             perform(importList.tick(at: Date()))
         }
+    }
+}
+
+extension AppModel {
+    // MARK: Preparing scenes again
+
+    /// At launch, after the sweep: scenes whose programs are missing (imported
+    /// without the shader tools) or were translated by an older build get them
+    /// now, one at a time, while the launch goes on. Until then the extension
+    /// holds each one's poster. Not when the library could not be read, since
+    /// nothing is written then.
+    func prepareScenes() {
+        let scenes = library.wallpapers.filter { $0.scene != nil }
+        guard libraryProblem == nil, !scenes.isEmpty else { return }
+        let services = services
+        watches.append(Task {
+            await services.prepareScenes(scenes) { @MainActor wallpaper, outcome in
+                AppLog.log(outcome, of: wallpaper.id)
+            }
+        })
     }
 }
 

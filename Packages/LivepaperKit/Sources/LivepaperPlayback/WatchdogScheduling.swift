@@ -120,11 +120,14 @@ public struct WatchdogSchedule: Equatable, Sendable {
     /// Judges a surface's pictures over `window` and takes the next step of its
     /// ladder. Too few pictures is a stall only when the engine fed too few
     /// frames as well: fed at least half the expected ones, as `judgeProgress`
-    /// asks of the pictures, the surface is not composited.
+    /// asks of the pictures, the surface is not composited. So is a scene whose
+    /// display link was not asked for frames while its engine stood ready
+    /// (`PictureCount.withheld`): covered, the system stops asking, and an agent
+    /// restart would not bring its frames back.
     public mutating func judge(_ surface: SurfaceID, _ count: PictureCount) -> WatchdogStep {
         let attempt = attempts[surface, default: 0]
         let verdict = judgeProgress(before: 0, after: count.displayed, expected: count.expected, attempt: attempt)
-        if verdict != .healthy, count.fed * 2 >= count.expected { return .notComposited }
+        if verdict != .healthy, count.fed * 2 >= count.expected || count.withheld { return .notComposited }
         switch verdict {
         case .healthy:
             attempts[surface] = nil

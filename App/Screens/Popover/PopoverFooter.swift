@@ -3,7 +3,7 @@ import LivepaperCore
 import SwiftUI
 
 /// The popover's last rows: Mute and Pause All, which act on every display, the
-/// ways into the library and Settings, and the status line under them.
+/// ways into the Workshop, the library and Settings, and the status line under them.
 struct PopoverFooter: View {
     @Environment(AppModel.self) private var model
     @Environment(AppWindows.self) private var windows
@@ -20,6 +20,7 @@ struct PopoverFooter: View {
                     .disabled(!canChange)
                 // Pause All and Resume All differ in width; the buttons after the gap stay put.
                 Spacer(minLength: Spacing.small)
+                SymbolButton("Wallpaper Engine Workshop", systemImage: "globe") { windows.openWorkshop() }
                 SymbolButton("Open Library", systemImage: "square.grid.2x2") { windows.openLibrary() }
                 SymbolButton("Settings", systemImage: "gearshape") { windows.openSettings() }
             }

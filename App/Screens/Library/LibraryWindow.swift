@@ -7,6 +7,8 @@ import SwiftUI
 /// window takes a drop of files and folders; toasts rise over the grid.
 struct LibraryWindow: View {
     @Environment(AppModel.self) private var model
+    @Environment(WorkshopModel.self) private var workshop
+    @Environment(\.openWindow) private var openWindow
     @State private var isInspectorShown = true
     @State private var isDropTargeted: Bool
     @State private var prompt: NamePrompt?
@@ -35,15 +37,18 @@ struct LibraryWindow: View {
         .frame(minWidth: Layout.windowMinimum.width, minHeight: Layout.windowMinimum.height)
         .dropDestination(for: URL.self) { urls, _ in
             let files = urls.filter(\.isFileURL)
-            guard model.canImport, !files.isEmpty else { return false }
-            model.importItems(at: files)
-            return true
+            guard model.canImport else { return false }
+            // A link dragged from a browser to a Workshop item is got from Steam (record 0009).
+            let gotFromWorkshop = workshop.get(dropped: urls)
+            if !files.isEmpty { model.importItems(at: files) }
+            return gotFromWorkshop || !files.isEmpty
         } isTargeted: { isDropTargeted = $0 }
         .dropZoneOverlay(
             isTargeted: isDropTargeted && model.canImport,
             title: "Drop to Import",
-            message: "Each file, or Wallpaper Engine video item, becomes a wallpaper."
+            message: "Each file, Wallpaper Engine item or Workshop link becomes a wallpaper."
         )
+        .pastesIntoLibrary()
         .namePrompt($prompt, commit: name)
         .confirmationDialog(
             "Delete “\(playlistToDelete?.name ?? "")”?",
@@ -76,8 +81,9 @@ struct LibraryWindow: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .toastHost($model.toasts) { model.undo($0) }
 
-            if !model.importList.rows.isEmpty {
+            if !model.importList.rows.isEmpty || !workshop.downloads.rows.isEmpty {
                 Divider()
+                WorkshopDownloadList()
                 ImportListView()
             }
         }
@@ -103,6 +109,11 @@ struct LibraryWindow: View {
             Button("Import", systemImage: "square.and.arrow.down") { model.chooseFilesToImport() }
                 .disabled(!model.canImport)
                 .help("Import")
+        }
+        ToolbarItem(placement: .primaryAction) {
+            Button("Wallpaper Engine Workshop", systemImage: "globe") { openWindow(id: AppWindows.workshopID) }
+                .disabled(!model.canImport)
+                .help("Wallpaper Engine Workshop")
         }
         ToolbarItem(placement: .primaryAction) {
             Button(isInspectorShown ? "Hide Inspector" : "Show Inspector", systemImage: "sidebar.trailing") {
@@ -140,36 +151,42 @@ private nonisolated enum Layout {
     LibraryWindow()
         .frame(width: 1200, height: 760)
         .environment(AppModel.preview())
+        .environment(WorkshopModel.preview())
 }
 
 #Preview("Library, empty") {
     LibraryWindow()
         .frame(width: 1200, height: 760)
         .environment(AppModel.preview(.empty))
+        .environment(WorkshopModel.preview())
 }
 
 #Preview("A delete's undo toast") {
     LibraryWindow()
         .frame(width: 1200, height: 760)
         .environment(AppModel.preview().previewing { $0.delete($0.library.wallpapers[2].id) })
+        .environment(WorkshopModel.preview())
 }
 
 #Preview("A plain toast: a duplicate") {
     LibraryWindow()
         .frame(width: 1200, height: 760)
         .environment(AppModel.preview().previewing { $0.showToast(.duplicate(of: $0.library.wallpapers[0])) })
+        .environment(WorkshopModel.preview())
 }
 
 #Preview("A drop over the window") {
     LibraryWindow(isDropTargeted: true)
         .frame(width: 1200, height: 760)
         .environment(AppModel.preview())
+        .environment(WorkshopModel.preview())
 }
 
 #Preview("Naming a new playlist") {
     LibraryWindow(prompt: .newPlaylist(with: nil))
         .frame(width: 1200, height: 760)
         .environment(AppModel.preview())
+        .environment(WorkshopModel.preview())
 }
 
 #Preview("Renaming a wallpaper") {
@@ -177,4 +194,5 @@ private nonisolated enum Layout {
     LibraryWindow(prompt: .renameWallpaper(model.library.wallpapers[0].id, name: model.library.wallpapers[0].name))
         .frame(width: 1200, height: 760)
         .environment(model)
+        .environment(WorkshopModel.preview())
 }

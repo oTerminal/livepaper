@@ -146,6 +146,21 @@ struct ImporterTests {
         #expect(try picture(at: bench.location.url(for: wallpaper.poster)).brightness > 60)
     }
 
+    @Test func `an H.264 file that has to be transcoded comes out no larger than it went in`() async throws {
+        let source = try Fixture.url("bframes-low-rate.mp4")
+
+        let outcome = try await bench.importer().run(ImportCandidate(source: source, name: "Low rate"))
+
+        guard case .imported(let wallpaper, let report) = outcome else {
+            Issue.record("not imported: \(outcome)")
+            return
+        }
+        #expect(report.writtenBy == .transcode)
+        let copy = try await videoBitRate(of: bench.location.url(for: wallpaper.optimisedCopy))
+        let original = try await videoBitRate(of: source)
+        #expect(copy <= original, "the copy's video runs at \(Int(copy)) bit/s, the source's at \(Int(original))")
+    }
+
     // MARK: Ends before anything is written
 
     @Test func `the same bytes under another name are a duplicate, and nothing is converted`() async throws {
@@ -259,7 +274,7 @@ struct ImporterTests {
 
     /// A validator that finds a seam in the first so many copies it is shown, then reads the rest for real.
     func importer(failingTheFirst failures: Int, validations: Recorder<String>) -> Importer {
-        Importer(location: bench.location, library: bench.library, ffmpeg: nil, validate: { copy in
+        Importer(location: bench.location, library: bench.library, ffmpeg: nil, shaderTools: nil, validate: { copy in
             validations.append(copy.lastPathComponent)
             let isOptimisedCopy = copy.lastPathComponent == "wallpaper.mov"
             let seen = validations.values.count { $0 == "wallpaper.mov" }

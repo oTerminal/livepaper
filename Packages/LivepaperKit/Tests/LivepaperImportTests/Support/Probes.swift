@@ -22,8 +22,10 @@ extension ProbeResult {
 
 extension WallpaperEngineProject {
     /// A project the tests know to be a good one.
-    static func known(title: String? = nil, file: String, preview: String? = nil) -> WallpaperEngineProject {
-        guard let project = try? WallpaperEngineProject(title: title, file: file, preview: preview) else {
+    static func known(
+        kind: WallpaperEngineItemKind = .video, title: String? = nil, file: String, preview: String? = nil
+    ) -> WallpaperEngineProject {
+        guard let project = try? WallpaperEngineProject(kind: kind, title: title, file: file, preview: preview) else {
             preconditionFailure("not a contained path: \(file)")
         }
         return project

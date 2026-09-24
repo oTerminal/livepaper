@@ -65,6 +65,7 @@ final class Fakes {
             makeImporter: { library in
                 FakeImporter(library: library, clock: ContinuousClock(), step: .milliseconds(300), makeWallpaper: Self.importedWallpaper)
             },
+            prepareScenes: { _, _ in },
             makeSensing: { [host, displays, power, lock, displaySleep, covered] rules, onChange in
                 ConditionsSensing(
                     rules: rules,

@@ -76,10 +76,15 @@ final class WallpaperArt {
         return location.url(for: preview)
     }
 
-    /// What the inspector's preview plays: the optimised copy. Nil in the fakes run.
-    func optimisedCopyURL(for wallpaper: Wallpaper) -> URL? {
+    /// What the inspector's preview plays: the optimised copy. A scene is drawn
+    /// only on a display (record 0007), so its preview plays its hover preview,
+    /// or nothing, and the poster stays. Nil in the fakes run.
+    func inspectorPreviewURL(for wallpaper: Wallpaper) -> URL? {
         guard case .library(let location) = source else { return nil }
-        return location.url(for: wallpaper.optimisedCopy)
+        switch wallpaper.kind {
+        case .video: return location.url(for: wallpaper.optimisedCopy)
+        case .scene: return hoverPreviewURL(for: wallpaper)
+        }
     }
 
     private func drawnPoster(for id: WallpaperID) -> Image {

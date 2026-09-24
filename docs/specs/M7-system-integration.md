@@ -78,7 +78,7 @@ Samples: three CC0 loops, 5 to 15 s, SDR, H.264 or HEVC in mp4 so they import by
 M6-screens.md leaves the diagnostics export here, so M7 adds its rows to Settings on M3-design-system.md's components: "Copy diagnostics" copies the report, "Save…" uses a Save panel, `livepaper diagnostics` prints it.
 
 - **Holds**: the app's and extension's versions and builds; macOS and hardware; whether the bundle is translocated; the self-check line and `RenderHostStatus`; per display the UUID and assignment by ID; pause rules, pauses and mute; the login item's status and intent; the store's shape check (Desktop entries, how many name Livepaper, whether the kept copy exists); the extension's log lines.
-- **Never**: a wallpaper's name, any path, the user's name, the store's file lists, another process's log. Lines are redacted of home paths and importable file names, and telemetry stays none.
+- **Never**: a wallpaper's name, any path, the user's name, the Steam account's name (M12-workshop.md), the store's file lists, another process's log. Lines are redacted of home paths and importable file names, and telemetry stays none.
 - **Log lines** come from `/usr/bin/log show` on the extension's subsystem, 10 minutes, 200 at most; `OSLogStore.local()` is understood to need an entitlement this app cannot have; M7 confirms that, and that a plain user gets lines at all. Wallper logs nothing, so its reports carry no evidence (`docs/research/wallper.md`).
 - **"Restart wallpaper service"** (`StatusLine`, wired by M6-screens.md) calls `RenderHost.recover(.restartAgent)` through `allowAgentRestart`; the line shows `.working`, the result, or when it can next be tried.
 

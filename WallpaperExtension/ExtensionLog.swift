@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import LivepaperCore
 import LivepaperPlayback
@@ -47,6 +48,13 @@ nonisolated extension ExtensionLog.Line {
 
     static func cannotObserve(_ what: String) -> Self {
         Self(text: "extension: cannot observe \(what)")
+    }
+
+    /// The first time a scene asks where the pointer is: where it was, and the display's frame, in AppKit's coordinates.
+    static func pointerRead(_ location: NSPoint, display: CGRect) -> Self {
+        let place = "x=\(Int(location.x)) y=\(Int(location.y))"
+        let frame = "\(Int(display.minX)),\(Int(display.minY)) \(Int(display.width))x\(Int(display.height))"
+        return Self(text: "extension: pointer read \(place) on display \(frame)")
     }
 
     // MARK: Surfaces
