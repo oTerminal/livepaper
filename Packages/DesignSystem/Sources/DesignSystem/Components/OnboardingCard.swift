@@ -6,11 +6,15 @@ import SwiftUI
 /// Its three groups (illustration, text, buttons) enter once, 0.10 s apart, when
 /// the card first appears, and never again. To move between steps, change the
 /// card's values and keep its identity: the picture crossfades, and so does the
-/// rest of the step (words, accessory, dots and buttons) as one page, while the
-/// card's height snaps; nothing re-enters. The card tells a click from a key
-/// press itself: Return presses the primary button too, and then the step
-/// changes with no animation. Give the card a new `.id` only to replay the
-/// entrance.
+/// rest of the step (words, accessory, dots and buttons) as one page; nothing
+/// re-enters. The card tells a click from a key press itself: Return presses the
+/// primary button too, and then the step changes with no animation. Give the card
+/// a new `.id` only to replay the entrance.
+///
+/// Given every step (`init(steps:…)`), the card is as tall as its tallest step in
+/// all of them, so a step change happens in a still frame: a shorter step's words
+/// stay at the top and its dots and buttons at the bottom, where every step has
+/// them. Given one step, it is as tall as that step.
 ///
 /// An accessory, when a step needs controls of its own (onboarding's samples to
 /// choose from), sits under the words and enters with them. Unlike the
@@ -19,28 +23,58 @@ import SwiftUI
 ///
 /// Each step opens with keyboard focus on the primary button, the one Return
 /// presses, so that Space and Return do the same thing until the user tabs away.
+/// A disabled card shows no focus, and gives it back to the primary when enabled.
 public struct OnboardingCard<Illustration: View, Accessory: View>: View {
     @Accessibility private var accessibility
     @Environment(\.colorScheme) private var scheme
     @Environment(\.controlActiveState) private var activeState
+    @Environment(\.isEnabled) private var isEnabled
     @State private var hasEntered = false
     /// The last primary button the card gave the focus to.
     @State private var focusedOpening: Opening?
     /// The step whose primary button has the focus. By step, because the step
     /// being left is still on screen, fading out, when the next one opens.
     @FocusState private var focusedPrimary: Int?
+    @State private var stepChange = OnboardingCardStepChange()
 
-    private let title: String
-    private let message: String
+    private let step: OnboardingCardStep
+    /// The steps the card is as tall as, the one showing among them.
+    private let sizingSteps: [OnboardingCardStep]
     private let stepIndex: Int
     private let stepCount: Int
-    private let primaryTitle: String
     private let onPrimary: () -> Void
-    private let secondaryTitle: String?
     private let onSecondary: (() -> Void)?
     private let illustration: Illustration
     private let accessory: Accessory
 
+    /// A card that knows every step, and is as tall as the tallest of them at
+    /// each one. The accessory shows on the steps that say so.
+    ///
+    /// - Parameters:
+    ///   - stepIndex: Zero-based, into `steps`; VoiceOver reads it one-based ("Step 2 of 4").
+    ///   - onPrimary: The primary button of the step showing.
+    ///   - onSecondary: Its secondary button, when the step has one.
+    public init(
+        steps: [OnboardingCardStep],
+        stepIndex: Int,
+        onPrimary: @escaping () -> Void,
+        onSecondary: (() -> Void)? = nil,
+        @ViewBuilder illustration: () -> Illustration,
+        @ViewBuilder accessory: () -> Accessory
+    ) {
+        let index = steps.indices.contains(stepIndex) ? stepIndex : 0
+        self.step = steps.indices.contains(index) ? steps[index] : OnboardingCardStep(title: "", message: "", primaryTitle: "")
+        self.sizingSteps = steps
+        self.stepIndex = index
+        self.stepCount = steps.count
+        self.onPrimary = onPrimary
+        self.onSecondary = onSecondary
+        self.illustration = illustration()
+        self.accessory = accessory()
+    }
+
+    /// A card that knows only the step it shows, and is as tall as that step.
+    ///
     /// - Parameter stepIndex: Zero-based; VoiceOver reads it one-based ("Step 2 of 4").
     public init(
         title: String,
@@ -54,13 +88,13 @@ public struct OnboardingCard<Illustration: View, Accessory: View>: View {
         @ViewBuilder illustration: () -> Illustration,
         @ViewBuilder accessory: () -> Accessory
     ) {
-        self.title = title
-        self.message = message
+        self.step = OnboardingCardStep(
+            title: title, message: message, primaryTitle: primaryTitle, secondaryTitle: secondaryTitle, showsAccessory: true
+        )
+        self.sizingSteps = []
         self.stepIndex = stepIndex
         self.stepCount = stepCount
-        self.primaryTitle = primaryTitle
         self.onPrimary = onPrimary
-        self.secondaryTitle = secondaryTitle
         self.onSecondary = onSecondary
         self.illustration = illustration()
         self.accessory = accessory()
@@ -71,13 +105,11 @@ public struct OnboardingCard<Illustration: View, Accessory: View>: View {
         VStack(alignment: .leading, spacing: Spacing.large) {
             picture
                 .entering(group: 0, hasEntered: hasEntered)
-            page
+            pages
         }
         .padding(Spacing.small)
         .frame(width: Metrics.width)
-        // The step being left fades out at its own height, which is more than the
-        // card's when it had an accessory: it is cut at the card's edge, never drawn
-        // outside it.
+        // Nothing is ever drawn outside the card, whatever a caller's step holds.
         .clipShape(shape)
         .background(fill, in: shape)
         .overlay {
@@ -97,8 +129,30 @@ public struct OnboardingCard<Illustration: View, Accessory: View>: View {
         // first sample, or a secondary button laid out before the primary), so the
         // card places it: on each new primary button, once its window is key.
         .onChange(of: activeState, initial: true) { focusNewPrimary() }
-        .onChange(of: stepIndex) { focusNewPrimary() }
-        .onChange(of: primaryTitle) { focusNewPrimary() }
+        // A new title within a step takes the focus at once. A new step's primary
+        // takes it when the crossfade is over: placed at once, its ring was drawn
+        // whole round the step still fading out. By Return nothing animates, and the
+        // focus moves at once. (A transaction's animation completion was tried first,
+        // and never came.)
+        .onChange(of: Opening(step: stepIndex, primaryTitle: step.primaryTitle)) { old, new in
+            let waits = old.step != new.step && stepChange.crossfades
+            let delay = waits ? Motion.Duration.menu / accessibility.motionSpeed : 0
+            Task {
+                if delay > 0 { try? await Task.sleep(for: .seconds(delay)) }
+                focusNewPrimary()
+            }
+        }
+        // A disabled control shows no focus: a busy card's primary kept its ring.
+        // Enabled again, it goes back to the button that had it; a new step's, enabled
+        // in the same change, is placed when its crossfade is over.
+        .onChange(of: isEnabled) {
+            if !isEnabled {
+                focusedPrimary = nil
+            } else if focusedOpening == Opening(step: stepIndex, primaryTitle: step.primaryTitle) {
+                focusedOpening = nil
+                focusNewPrimary()
+            }
+        }
     }
 
     /// A step's primary button, as the focus sees it: a new step, or a new title
@@ -112,63 +166,95 @@ public struct OnboardingCard<Illustration: View, Accessory: View>: View {
     /// focused yet. A button the user has tabbed away from keeps its place when
     /// the window comes back to the front.
     private func focusNewPrimary() {
-        let opening = Opening(step: stepIndex, primaryTitle: primaryTitle)
-        guard activeState == .key, focusedOpening != opening else { return }
+        let opening = Opening(step: stepIndex, primaryTitle: step.primaryTitle)
+        guard activeState == .key, isEnabled, focusedOpening != opening else { return }
         focusedOpening = opening
         // On the next turn, when a new step's page, or a new button, is in the window.
         Task { focusedPrimary = opening.step }
     }
 
-    /// Everything under the picture, as one page per step: the words, the
-    /// accessory, the dots and the buttons. A step change crossfades the page
-    /// whole, so the buttons go with the words and the dots are never left where
-    /// the last step had them.
-    private var page: some View {
-        ZStack(alignment: .topLeading) {
-            VStack(alignment: .leading, spacing: Spacing.large) {
-                VStack(alignment: .leading, spacing: Spacing.large) {
-                    VStack(alignment: .leading, spacing: Spacing.tight) {
-                        Text(title)
-                            .font(.title2.weight(.semibold))
-                            .accessibilityAddTraits(.isHeader)
-                        Text(message)
-                            .foregroundStyle(.secondary)
-                    }
-                    .fixedSize(horizontal: false, vertical: true)
-
-                    // None, or a step with none, takes no room.
-                    accessory
+    /// Everything under the picture: the step showing, as one page, and every
+    /// other step laid out unseen so that the page area is the tallest step's.
+    /// A step change crossfades the page whole, so the buttons go with the words,
+    /// and in a still frame: the area's height is the same before and after.
+    private var pages: some View {
+        OnboardingCardPageLayout {
+            page(step, index: stepIndex) {
+                if let secondaryTitle = step.secondaryTitle, let onSecondary {
+                    Button(secondaryTitle) { withoutAnimationIfKeyPress(onSecondary) }
+                        .buttonStyle(.bordered)
+                        // A new title is a new button: the glass stays whole (see DECISIONS.md).
+                        .id(secondaryTitle)
                 }
-                .padding(.horizontal, Spacing.small)
-                .entering(group: 1, hasEntered: hasEntered)
-
-                HStack(spacing: Spacing.small) {
-                    pageIndicator
-                    Spacer(minLength: Spacing.large)
-                    if let secondaryTitle, let onSecondary {
-                        Button(secondaryTitle) { withoutAnimationIfKeyPress(onSecondary) }
-                            .buttonStyle(.bordered)
-                            // A new title is a new button: the glass stays whole (see DECISIONS.md).
-                            .id(secondaryTitle)
-                    }
-                    Button(primaryTitle) { withoutAnimationIfKeyPress(onPrimary) }
-                        .buttonStyle(.borderedProminent)
-                        .keyboardShortcut(.defaultAction)
-                        .focused($focusedPrimary, equals: stepIndex)
-                        .id(primaryTitle)
-                }
-                .controlSize(.large)
-                .padding([.horizontal, .bottom], Spacing.small)
-                .entering(group: 2, hasEntered: hasEntered)
+                Button(step.primaryTitle) { withoutAnimationIfKeyPress(onPrimary) }
+                    .buttonStyle(.borderedProminent)
+                    .keyboardShortcut(.defaultAction)
+                    .focused($focusedPrimary, equals: stepIndex)
+                    .id(step.primaryTitle)
             }
             .id(stepIndex)
             .transition(.opacity)
+
+            // The other steps, for their height only: never drawn, pressed, read or focused.
+            ForEach(sizingSteps.indices.filter { $0 != stepIndex }, id: \.self) { index in
+                let other = sizingSteps[index]
+                page(other, index: index) {
+                    if let secondaryTitle = other.secondaryTitle {
+                        Button(secondaryTitle) {}
+                            .buttonStyle(.bordered)
+                    }
+                    Button(other.primaryTitle) {}
+                        .buttonStyle(.borderedProminent)
+                }
+                .hidden()
+                .disabled(true)
+                .accessibilityHidden(true)
+            }
+        }
+        // Whether this step change crossfades, for the focus (`body`).
+        .transaction(value: stepIndex) { transaction in
+            stepChange.crossfades = transaction.animation != nil && !transaction.disablesAnimations
         }
         .animation(stepAnimation, value: stepIndex)
-        // The page's place is the card's, and snaps with the card's height; only the
-        // crossfade inside it animates. Without the group each view animated its own
-        // move, and the dots slid up from below the card's new edge.
+        // The pages' place is the card's; only the crossfade inside it animates.
+        // Without the group each view animated its own move when the card's height
+        // changed, and the dots slid up from below the card's new edge.
         .geometryGroup()
+    }
+
+    /// One step's page: its words and accessory at the top, its dots and buttons
+    /// at the bottom of whatever height the page is given.
+    private func page(_ step: OnboardingCardStep, index: Int, @ViewBuilder buttons: () -> some View) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: Spacing.large) {
+                VStack(alignment: .leading, spacing: Spacing.tight) {
+                    Text(step.title)
+                        .font(.title2.weight(.semibold))
+                        .accessibilityAddTraits(.isHeader)
+                    Text(step.message)
+                        .foregroundStyle(.secondary)
+                }
+                .fixedSize(horizontal: false, vertical: true)
+
+                // None, or a step with none, takes no room.
+                if step.showsAccessory {
+                    accessory
+                }
+            }
+            .padding(.horizontal, Spacing.small)
+            .entering(group: 1, hasEntered: hasEntered)
+
+            Spacer(minLength: Spacing.large)
+
+            HStack(spacing: Spacing.small) {
+                pageIndicator(index: index)
+                Spacer(minLength: Spacing.large)
+                buttons()
+            }
+            .controlSize(.large)
+            .padding([.horizontal, .bottom], Spacing.small)
+            .entering(group: 2, hasEntered: hasEntered)
+        }
     }
 
     /// Opaque, and lighter than the window in both appearances, so the card
@@ -178,8 +264,8 @@ public struct OnboardingCard<Illustration: View, Accessory: View>: View {
     }
 
     /// A step change by click crossfades the picture and the page, each with its
-    /// own scoped animation and nothing on the card itself, so the card's height,
-    /// if it changes, snaps. By key press nothing animates.
+    /// own scoped animation and nothing on the card itself. By key press nothing
+    /// animates.
     private var stepAnimation: Animation {
         accessibility.fade(Motion.enter(Motion.Duration.menu))
     }
@@ -200,28 +286,38 @@ public struct OnboardingCard<Illustration: View, Accessory: View>: View {
     }
 
     /// Nothing for a card alone: one dot would only say "Step 1 of 1".
-    @ViewBuilder private var pageIndicator: some View {
+    @ViewBuilder private func pageIndicator(index: Int) -> some View {
         if stepCount > 1 {
-            dots
-        }
-    }
-
-    private var dots: some View {
-        HStack(spacing: Spacing.small) {
-            ForEach(0..<max(stepCount, 0), id: \.self) { index in
-                Circle()
-                    .fill(.primary)
-                    .opacity(index == stepIndex ? 1 : Metrics.restingDotOpacity)
-                    .frame(width: Metrics.dot, height: Metrics.dot)
+            HStack(spacing: Spacing.small) {
+                ForEach(0..<max(stepCount, 0), id: \.self) { dot in
+                    Circle()
+                        .fill(.primary)
+                        .opacity(dot == index ? 1 : Metrics.restingDotOpacity)
+                        .frame(width: Metrics.dot, height: Metrics.dot)
+                }
             }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("Step \(index + 1) of \(stepCount)", bundle: .module))
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("Step \(stepIndex + 1) of \(stepCount)", bundle: .module))
     }
 }
 
 extension OnboardingCard where Accessory == EmptyView {
-    /// A card whose only controls are its buttons.
+    /// A card that knows every step, whose only controls are its buttons.
+    public init(
+        steps: [OnboardingCardStep],
+        stepIndex: Int,
+        onPrimary: @escaping () -> Void,
+        onSecondary: (() -> Void)? = nil,
+        @ViewBuilder illustration: () -> Illustration
+    ) {
+        self.init(
+            steps: steps, stepIndex: stepIndex, onPrimary: onPrimary, onSecondary: onSecondary,
+            illustration: illustration, accessory: { EmptyView() }
+        )
+    }
+
+    /// A card that knows only the step it shows, whose only controls are its buttons.
     public init(
         title: String,
         message: String,

@@ -5,9 +5,11 @@ import LivepaperSystem
 import SwiftUI
 
 /// Onboarding's window (M7): one `OnboardingCard` whose values follow the step,
-/// so moving on crossfades the picture and the words and nothing re-enters. The
-/// whole window takes a drop on the first card. It closes when the cards end,
-/// and closing it ends them.
+/// so moving on crossfades the picture and the step's words and buttons and
+/// nothing re-enters. The card is given every step, so it is the tallest step's
+/// height throughout, and the window never changes size between steps. The whole
+/// window takes a drop on the first card. It closes when the cards end, and
+/// closing it ends them.
 struct OnboardingWindow: View {
     @Environment(Onboarding.self) private var onboarding
     @Environment(\.dismissWindow) private var dismissWindow
@@ -20,21 +22,17 @@ struct OnboardingWindow: View {
 
     var body: some View {
         let page = OnboardingPage(onboarding)
+        // Every card this launch shows, each as it would read now, the one showing among them.
+        let pages = onboarding.steps.isEmpty ? [page] : onboarding.steps.map { OnboardingPage(onboarding, step: $0) }
         OnboardingCard(
-            title: page.title,
-            message: page.message,
-            stepIndex: onboarding.stepIndex,
-            stepCount: max(onboarding.steps.count, 1),
-            primaryTitle: page.primary.title,
+            steps: pages.map(\.cardStep),
+            stepIndex: onboarding.steps.isEmpty ? 0 : onboarding.stepIndex,
             onPrimary: page.primary.run,
-            secondaryTitle: page.secondary?.title,
             onSecondary: page.secondary?.run
         ) {
             OnboardingIllustration(picture: page.picture)
         } accessory: {
-            if page.offersSamples {
-                SampleTiles()
-            }
+            SampleTiles()
         }
         // While an import runs, or Livepaper is being made the wallpaper, nothing on the card can start another.
         .disabled(page.isBusy)
@@ -74,17 +72,30 @@ struct OnboardingPage {
     var offersSamples = false
     var isBusy = false
 
+    /// The card showing.
     init(_ onboarding: Onboarding) {
+        self.init(onboarding, step: onboarding.step)
+    }
+
+    /// A step's card as it reads now, showing or not: the card is sized by every one.
+    init(_ onboarding: Onboarding, step: OnboardingStep?) {
         switch onboarding.plan {
         case .moveToApplications:
             self.init(moving: onboarding)
         case .steps, .nothing:
-            switch onboarding.step {
+            switch step {
             case .importWallpaper: self.init(importing: onboarding)
             case .openAtLogin: self.init(login: onboarding)
             case .selectLivepaper, nil: self.init(selecting: onboarding)
             }
         }
+    }
+
+    /// What the card is told of this step.
+    var cardStep: OnboardingCardStep {
+        OnboardingCardStep(
+            title: title, message: message, primaryTitle: primary.title, secondaryTitle: secondary?.title, showsAccessory: offersSamples
+        )
     }
 
     private init(title: String, message: String, primary: Action, secondary: Action? = nil, picture: OnboardingPicture) {
