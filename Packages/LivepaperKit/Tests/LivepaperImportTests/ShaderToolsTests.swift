@@ -86,7 +86,8 @@ struct ShaderToolsTests {
 
         await #expect(throws: ShaderToolError.timeLimitExceeded(tool: "glslang")) { try await translate(with: tools) }
 
-        #expect(clock.now - start < .seconds(4))
+        // Well short of the stand-in's 30 s; loose enough for a busy CI machine (4.5 s seen).
+        #expect(clock.now - start < .seconds(20))
         // A machine busy enough may stop the stand-in before it has said who it is; then there is nothing to look for.
         if let pid = try? recordedPID() {
             #expect(!isRunning(pid), "the process is gone")

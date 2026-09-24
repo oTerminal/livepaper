@@ -105,5 +105,24 @@ jobs:
           LIVEPAPER_REQUIRE_FFMPEG: "1"
           LIVEPAPER_REQUIRE_SHADER_TOOLS: "1"
         run: make test
+      # A test process that crashes leaves only its signal in the log. Its crash
+      # report says why (the abort message) and where (the crashed thread).
+      - name: Crash reports
+        if: failure()
+        run: |
+          python3 - <<'EOF'
+          import glob, json, os
+          reports = sorted(glob.glob(os.path.expanduser("~/Library/Logs/DiagnosticReports/*.ips")), key=os.path.getmtime)[-3:]
+          for path in reports:
+              header, body = open(path).read().split("\n", 1)
+              report = json.loads(body)
+              print("==", os.path.basename(path), report.get("exception"), report.get("asi"))
+              images = report.get("usedImages", [])
+              for thread in report.get("threads", []):
+                  if thread.get("triggered"):
+                      for frame in thread.get("frames", [])[:30]:
+                          image = images[frame["imageIndex"]].get("name", "?") if frame.get("imageIndex", -1) < len(images) else "?"
+                          print("  ", image, frame.get("symbol", hex(frame.get("imageOffset", 0))))
+          EOF
       - name: Build
         run: make build

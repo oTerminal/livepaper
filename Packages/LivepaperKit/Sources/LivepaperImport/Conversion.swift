@@ -341,12 +341,17 @@ private final class AudioCopy: @unchecked Sendable {
         output.alwaysCopiesSampleData = false
         reader.add(output)
 
-        input = AVAssetWriterInput(mediaType: .audio, outputSettings: [
+        // An encoder that will not take the rate raises instead of failing, so
+        // the rate is asked for only when the writer says it can apply it.
+        let settings: [String: Any] = [
             AVFormatIDKey: kAudioFormatMPEG4AAC,
             AVSampleRateKey: plan.sampleRate,
             AVNumberOfChannelsKey: plan.channels,
-            AVEncoderBitRateKey: plan.bitRate,
-        ])
+        ]
+        var withRate = settings
+        withRate[AVEncoderBitRateKey] = plan.bitRate
+        let applicable = job.writer.canApply(outputSettings: withRate, forMediaType: .audio)
+        input = AVAssetWriterInput(mediaType: .audio, outputSettings: applicable ? withRate : settings)
         start = plan.timeRange.start
         try job.add(input)
     }
