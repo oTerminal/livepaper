@@ -96,8 +96,12 @@ struct ParticleTexturesTests {
     @Test(arguments: named.filter { !$0.hasPrefix("util/") && $0 != "particle/normal_splash" })
     func `a picture a particle's colour tints is white or grey`(name: String) throws {
         let pixels = try Self.picture(name).pixels
+        let grey = stride(from: 0, to: pixels.count, by: 4).allSatisfy { (start: Int) -> Bool in
+            let red: UInt8 = pixels[start]
+            return red == pixels[start + 1] && red == pixels[start + 2]
+        }
 
-        #expect(stride(from: 0, to: pixels.count, by: 4).allSatisfy { pixels[$0] == pixels[$0 + 1] && pixels[$0] == pixels[$0 + 2] })
+        #expect(grey)
     }
 
     static let sheets: [Row<String, [Int]>] = [
@@ -228,14 +232,18 @@ private extension ParticleTextures.Picture {
     func frame(_ index: Int) -> [UInt8] {
         let (side, tall) = (width / columns, height / rows)
         let (left, top) = (index % columns * side, index / columns * tall)
-        return (top..<top + tall).flatMap { row in pixels[((row * width) + left) * 4..<((row * width) + left + side) * 4] }
+        return (top..<top + tall).flatMap { (row: Int) -> ArraySlice<UInt8> in
+            let start: Int = (row * width + left) * 4
+            return pixels[start..<start + side * 4]
+        }
     }
 
     /// The alphas all round the edge of frame `index`.
     func rim(_ index: Int) -> [UInt8] {
         let (side, tall) = (width / columns, height / rows)
         let pixels = frame(index)
-        let edge = (0..<side).flatMap { [$0, (tall - 1) * side + $0] } + (0..<tall).flatMap { [$0 * side, $0 * side + side - 1] }
-        return edge.map { pixels[$0 * 4 + 3] }
+        let topAndBottom: [Int] = (0..<side).flatMap { (column: Int) -> [Int] in [column, (tall - 1) * side + column] }
+        let leftAndRight: [Int] = (0..<tall).flatMap { (row: Int) -> [Int] in [row * side, row * side + side - 1] }
+        return (topAndBottom + leftAndRight).map { (at: Int) -> UInt8 in pixels[at * 4 + 3] }
     }
 }
