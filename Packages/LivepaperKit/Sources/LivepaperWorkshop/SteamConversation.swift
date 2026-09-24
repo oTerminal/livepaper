@@ -47,6 +47,13 @@ public func isSteamAccountName(_ name: String) -> Bool {
 /// says when to type them (`typePassword`, `askForCode`), and the driver, which
 /// holds them for the one sign-in, types them. A download or a sign-out never
 /// answers a password or code prompt: that means the saved login has gone.
+///
+/// steamcmd forgets a login at `logout` but writes that down only when it quits
+/// (seen on 2026-09-24: stopped at a prompt after `logout`, it kept the revoked
+/// login, and the next sign-in was refused with it, "Access Denied", before any
+/// password was asked for). So a `logout` is always followed by `quit`, and the
+/// job goes on in a new run: a sign-out proves the login gone, and a sign-in
+/// that met a saved login Steam refuses asks for the password.
 public struct SteamConversation: Equatable, Sendable {
     public enum Effect: Equatable, Sendable {
         /// A console command, typed with a line ending.
@@ -66,12 +73,16 @@ public struct SteamConversation: Equatable, Sendable {
 
     private enum Phase: Equatable, Sendable {
         case starting
-        case signingIn(passwordTyped: Bool, codesAsked: Int, approvalSaid: Bool)
+        case signingIn(passwordTyped: Bool, codesAsked: Int, approvalSaid: Bool, savedLoginTried: Bool)
         case signedIn
         case downloading
-        /// `logout` typed.
-        case signingOut
-        /// `login` typed again after `logout`: only the saved login seen to be gone is a sign-out.
+        /// Steam refused the saved login: `logout` goes at the next prompt.
+        case forgettingSavedLogin
+        /// `logout` typed: `quit` goes at the next prompt, so that steamcmd writes it down.
+        case loggedOut
+        /// `quit` typed after `logout`: once steamcmd has gone, it is started again.
+        case leavingLoggedOut
+        /// `login` typed in the run after `logout`: only the saved login seen to be gone is a sign-out.
         case confirmingSignOut
         /// Finished: `quit` goes at the next prompt.
         case closing
@@ -81,6 +92,8 @@ public struct SteamConversation: Equatable, Sendable {
     public let job: SteamJob
     private var phase = Phase.starting
     private var signedIn = false
+    /// steamcmd has quit after a `logout`, so it has no saved login for the account any more.
+    private var loggedOut = false
 
     public init(job: SteamJob) {
         self.job = job
@@ -100,7 +113,8 @@ public struct SteamConversation: Equatable, Sendable {
         case .signingIn: return signingIn(line)
         case .signedIn: return signedIn(line)
         case .downloading: return downloading(line)
-        case .signingOut: return signingOut(line)
+        case .forgettingSavedLogin, .loggedOut: return loggingOut(line)
+        case .leavingLoggedOut: return []
         case .confirmingSignOut: return confirmingSignOut(line)
         case .closing:
             guard line == .console else { return [] }
@@ -113,6 +127,12 @@ public struct SteamConversation: Equatable, Sendable {
     /// steamcmd ended. Before the job had an answer that is a failure, unless it restarted itself after an update.
     public mutating func exited(status: Int32) -> [Effect] {
         guard !isFinished else { return [] }
+        if phase == .leavingLoggedOut, status == 0 {
+            // It has written the login down as gone: the job goes on in a new run.
+            phase = .starting
+            loggedOut = true
+            return [.restart]
+        }
         if status == 42 {
             // steamcmd.sh's MAGIC_RESTART_EXITCODE: it updated itself and wants to run again.
             phase = .starting
@@ -143,21 +163,30 @@ public struct SteamConversation: Equatable, Sendable {
             progress = .signingOut
         }
         guard isSteamAccountName(account) else { return finish(.failure(.notAnAccountName), then: .type("quit")) }
-        phase = .signingIn(passwordTyped: false, codesAsked: 0, approvalSaid: false)
+        if loggedOut, case .signOut = job {
+            phase = .confirmingSignOut
+            return [.type("login \(account)")]
+        }
+        phase = .signingIn(passwordTyped: false, codesAsked: 0, approvalSaid: false, savedLoginTried: false)
         return [.type("login \(account)"), .report(progress)]
     }
 
     private mutating func signingIn(_ line: SteamLine) -> [Effect] {
-        guard case .signingIn(let passwordTyped, let codesAsked, let approvalSaid) = phase else { return [] }
+        guard case .signingIn(let passwordTyped, let codesAsked, let approvalSaid, let savedLoginTried) = phase else { return [] }
         switch line {
         case .passwordPrompt, .codePrompt:
             return prompted(line, passwordTyped: passwordTyped, codesAsked: codesAsked, approvalSaid: approvalSaid)
         case .awaitingApproval:
             guard !approvalSaid else { return [] }
-            phase = .signingIn(passwordTyped: passwordTyped, codesAsked: codesAsked, approvalSaid: true)
+            phase = .signingIn(passwordTyped: passwordTyped, codesAsked: codesAsked, approvalSaid: true, savedLoginTried: savedLoginTried)
             return [.report(.waitingForApproval)]
+        case .savedLogin:
+            phase = .signingIn(passwordTyped: passwordTyped, codesAsked: codesAsked, approvalSaid: approvalSaid, savedLoginTried: true)
+            return []
         case .signInFailed(let result):
-            return finish(.failure(WorkshopError(signInResult: result)), then: nil)
+            let error = WorkshopError(signInResult: result)
+            guard savedLoginTried, !passwordTyped, !error.isAboutReachingSteam else { return finish(.failure(error), then: nil) }
+            return savedLoginRefused(error)
         case .signedIn:
             signedIn = true
             phase = .signedIn
@@ -179,12 +208,25 @@ public struct SteamConversation: Equatable, Sendable {
         case .download, .update: return finish(.failure(.signInNeeded), then: .stop)
         }
         if case .codePrompt(let kind) = line {
-            phase = .signingIn(passwordTyped: passwordTyped, codesAsked: codesAsked + 1, approvalSaid: approvalSaid)
+            phase = .signingIn(passwordTyped: passwordTyped, codesAsked: codesAsked + 1, approvalSaid: approvalSaid, savedLoginTried: false)
             return [.askForCode(kind, again: codesAsked > 0)]
         }
         guard !passwordTyped else { return finish(.failure(.wrongPassword), then: .stop) }
-        phase = .signingIn(passwordTyped: true, codesAsked: codesAsked, approvalSaid: approvalSaid)
+        phase = .signingIn(passwordTyped: true, codesAsked: codesAsked, approvalSaid: approvalSaid, savedLoginTried: false)
         return [.typePassword]
+    }
+
+    /// Steam refused the saved login steamcmd tried, which it keeps until it is logged out of
+    /// (seen: the one a sign-out left behind). A download cannot sign in, so it asks for a
+    /// sign-in; a sign-in or a sign-out logs out of it, once.
+    private mutating func savedLoginRefused(_ error: WorkshopError) -> [Effect] {
+        switch job {
+        case .download: return finish(.failure(.signInNeeded), then: nil)
+        case .signIn where loggedOut, .update: return finish(.failure(error), then: nil)
+        case .signIn, .signOut:
+            phase = .forgettingSavedLogin
+            return []
+        }
     }
 
     private mutating func signedIn(_ line: SteamLine) -> [Effect] {
@@ -196,17 +238,22 @@ public struct SteamConversation: Equatable, Sendable {
             phase = .downloading
             return [.type("workshop_download_item \(wallpaperEngineApp) \(item)"), .report(.downloading)]
         case .signOut:
-            phase = .signingOut
+            phase = .loggedOut
             return [.type("logout")]
         }
     }
 
-    /// Back at the prompt after `logout` says nothing of whether it worked, so
-    /// the login is tried again: steamcmd asking for the password is the proof.
-    private mutating func signingOut(_ line: SteamLine) -> [Effect] {
-        guard line == .console, case .signOut(let account) = job else { return [] }
-        phase = .confirmingSignOut
-        return [.type("login \(account)")]
+    /// `logout` at the next prompt, then `quit` at the one after, so that steamcmd writes
+    /// the login down as gone. Back at the prompt says nothing of whether it worked: the
+    /// next run tries the login again, and steamcmd asking for the password is the proof.
+    private mutating func loggingOut(_ line: SteamLine) -> [Effect] {
+        guard line == .console else { return [] }
+        if phase == .forgettingSavedLogin {
+            phase = .loggedOut
+            return [.type("logout")]
+        }
+        phase = .leavingLoggedOut
+        return [.type("quit")]
     }
 
     private mutating func confirmingSignOut(_ line: SteamLine) -> [Effect] {
