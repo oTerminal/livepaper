@@ -97,6 +97,18 @@ struct StatusLineTests {
         #expect(line == row.expected)
     }
 
+    /// Every line is a sentence without its full stop, as the design system's
+    /// "Wallpaper service not responding" is.
+    @Test func `no line ends in a full stop`() {
+        let lines = Self.rows.map(\.expected) + Self.restartRows.map(\.expected)
+        for line in lines {
+            switch line {
+            case .idle(let words), .working(let words): #expect(!words.hasSuffix("."), "\(words)")
+            case .serviceNotResponding: break
+            }
+        }
+    }
+
     // MARK: The pane beside "not your wallpaper" (M7)
 
     static let paneRows: [Row<Restarting, Bool>] = [

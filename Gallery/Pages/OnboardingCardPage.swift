@@ -40,8 +40,10 @@ struct OnboardingCardPage: View {
         StateSection(
             title: "Stepping through",
             note: """
-            The card keeps its identity, so moving between steps re-enters nothing. A click crossfades the picture, \
-            words and dots and the height snaps; Return presses Continue with no animation.
+            The card keeps its identity, so moving between steps re-enters nothing. A click crossfades the picture, and \
+            the rest of the step as one page: words, accessory, dots and buttons. The height snaps, and the step being \
+            left is cut at the card's edge: go from “Choose a video”, which has an accessory, at 0.1x. Return presses \
+            Continue with no animation. Each step opens with the focus on its primary button (keyboard navigation on).
             """
         ) {
             OnboardingCard(
@@ -53,7 +55,20 @@ struct OnboardingCardPage: View {
                 onPrimary: { step = (step + 1) % steps.count },
                 secondaryTitle: step == 0 ? nil : "Back",
                 onSecondary: { step = max(step - 1, 0) },
-                illustration: { SamplePicture(seed: 10 + step) }
+                illustration: { SamplePicture(seed: 10 + step) },
+                accessory: {
+                    if step == 1 {
+                        HStack(spacing: Spacing.small) {
+                            ForEach(1..<4) { seed in
+                                WallpaperTile(
+                                    id: seed, poster: SamplePicture.image(seed: 40 + seed), title: "Sample \(seed)"
+                                ) {} livePreview: {
+                                    EmptyView()
+                                }
+                            }
+                        }
+                    }
+                }
             )
         }
 
@@ -73,7 +88,7 @@ struct OnboardingCardPage: View {
             title: "With an accessory",
             note: """
             Controls of the step's own under the words, entering with them: here, wallpapers to start with. Unlike the \
-            illustration they are read by VoiceOver and can be pressed. They come and go with their step, unanimated.
+            illustration they are read by VoiceOver and can be pressed. They come and go with their step's page.
             """
         ) {
             OnboardingCard(
