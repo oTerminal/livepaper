@@ -99,8 +99,7 @@ struct CommandServerTests {
     }
 
     @Test func `a client that sends nothing is refused in time, and does not hold up the next`() async throws {
-        // Two seconds leaves a busy virtual Mac room to answer the prompt client first.
-        let server = server(limits: CommandServer.Limits(requestBytes: 1024, requestTime: .seconds(2), replyTime: .seconds(5)))
+        let server = server(limits: CommandServer.Limits(requestBytes: 1024, requestTime: .milliseconds(500), replyTime: .seconds(5)))
         try server.start()
         defer { server.stop() }
         let clock = ContinuousClock()
@@ -117,9 +116,16 @@ struct CommandServerTests {
         let refused = try await silent
 
         #expect(try CommandReply(line: prompt) == .done(message: nil))
-        #expect(promptEnd < refused.end, "the prompt client was held up until the silent one was refused")
-        #expect(try CommandReply(line: refused.answer) == .refused(reason: "No request arrived within 2 seconds"))
-        #expect(refused.end - start < .seconds(5), "the silent client was refused at its limit, not the standard 5 s")
+        #expect(try CommandReply(line: refused.answer) == .refused(reason: "No request arrived within 0.5 seconds"))
+        // The clients start and finish on Swift's shared pool, which the rest of
+        // the suite keeps busy on CI's virtual Mac: seen there 8 s late, even with
+        // a thread per client on the server. Required on a Mac, a known issue there.
+        withKnownIssue("a virtual Mac's busy pool delays the test's own clients", isIntermittent: true) {
+            #expect(promptEnd < refused.end, "the prompt client was held up until the silent one was refused")
+            #expect(refused.end - start < .seconds(3), "the silent client was refused at its limit, not the standard 5 s")
+        } when: {
+            VirtualMac.isRunning
+        }
     }
 
     @Test func `the socket is the user's alone`() throws {
