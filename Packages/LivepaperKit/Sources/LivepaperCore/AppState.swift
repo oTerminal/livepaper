@@ -2,12 +2,13 @@ import Foundation
 
 /// What the user has chosen that is not the library itself: the assignments,
 /// playlists and rotations, the pause rules and pauses, mute, the grid's sort
-/// order and the recents. The app writes it as `app-state.json`, beside the manifest.
+/// order, the recents, the hotkeys and the login item's intent. The app writes
+/// it as `app-state.json`, beside the manifest.
 ///
 /// A value, like `Library`: every change returns a new state, so that undo can
 /// keep the one from before.
 public struct AppState: Equatable, Sendable {
-    public static let schemaVersion = SchemaVersion(major: 1, minor: 0)
+    public static let schemaVersion = SchemaVersion(major: 1, minor: 1)
     /// How many wallpapers the recents keep.
     public static let recentsLimit = 8
 
@@ -27,6 +28,12 @@ public struct AppState: Equatable, Sendable {
     public var sortOrder: Library.SortOrder
     /// The last wallpapers set on a display, newest first.
     public var recents: [WallpaperID]
+    /// The global hotkeys the user assigned. They ship unassigned.
+    public var hotkeys: [HotkeyAction: KeyCombination]
+    /// What the user last asked of Open at Login, and the copy of Livepaper
+    /// that asked; nil until they have been asked. The login item's status is
+    /// macOS's, and `reconcileLoginItem` squares the two at every launch.
+    public var loginItemIntent: LoginItemIntent?
 
     public init() {
         assignments = [:]
@@ -38,6 +45,8 @@ public struct AppState: Equatable, Sendable {
         isMuted = false
         sortOrder = .newestFirst
         recents = []
+        hotkeys = [:]
+        loginItemIntent = nil
     }
 
     public subscript(playlist id: PlaylistID) -> Playlist? {
@@ -264,6 +273,7 @@ public struct AppState: Equatable, Sendable {
 extension AppState: Codable {
     private enum CodingKeys: String, CodingKey {
         case version, assignments, applyToAll, playlists, rotation, pauseRules, pausedDisplays, isMuted, sortOrder, recents
+        case hotkeys, loginItemIntent
     }
 
     // Dictionaries are written as pairs sorted by display, so that the same state gives the same bytes.
@@ -275,6 +285,26 @@ extension AppState: Codable {
     private struct DisplayRotation: Codable {
         let display: DisplayIdentity
         let state: RotationState
+    }
+
+    // Hotkeys are written flat, the action beside its combination's fields, in the actions' order.
+    private struct ActionHotkey: Codable {
+        /// Raw, so that an action a newer minor version added is passed over, as its other new fields are.
+        let action: String
+        let keyCode: UInt16
+        let modifiers: KeyCombination.Modifiers
+        let keyLabel: String
+
+        init(_ action: HotkeyAction, _ combination: KeyCombination) {
+            self.action = action.rawValue
+            keyCode = combination.keyCode
+            modifiers = combination.modifiers
+            keyLabel = combination.keyLabel
+        }
+
+        var combination: KeyCombination {
+            KeyCombination(keyCode: keyCode, modifiers: modifiers, keyLabel: keyLabel)
+        }
     }
 
     public func encode() throws -> Data {
@@ -291,7 +321,8 @@ extension AppState: Codable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let version = try container.decode(SchemaVersion.self, forKey: .version)
         // When major version 2 arrives, version 1 is decoded here by a frozen
-        // copy of this shape and migrated, and `app-state-v1.0.json` proves it.
+        // copy of this shape and migrated, and `app-state-v1.0.json` and
+        // `app-state-v1.1.json` prove it.
         try version.requireReadable(by: Self.schemaVersion)
 
         let assignments = try container.decode([DisplayAssignment].self, forKey: .assignments)
@@ -312,6 +343,15 @@ extension AppState: Codable {
         isMuted = try container.decode(Bool.self, forKey: .isMuted)
         sortOrder = try container.decode(Library.SortOrder.self, forKey: .sortOrder)
         recents = try container.decode([WallpaperID].self, forKey: .recents)
+        // Version 1.1's: a 1.0 file has neither.
+        let hotkeys = try container.decodeIfPresent([ActionHotkey].self, forKey: .hotkeys) ?? []
+        guard Set(hotkeys.map(\.action)).count == hotkeys.count else {
+            throw DecodingError.dataCorruptedError(forKey: .hotkeys, in: container, debugDescription: "an action is listed twice")
+        }
+        self.hotkeys = Dictionary(uniqueKeysWithValues: hotkeys.compactMap { hotkey in
+            HotkeyAction(rawValue: hotkey.action).map { ($0, hotkey.combination) }
+        })
+        loginItemIntent = try container.decodeIfPresent(LoginItemIntent.self, forKey: .loginItemIntent)
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -328,6 +368,9 @@ extension AppState: Codable {
         try container.encode(isMuted, forKey: .isMuted)
         try container.encode(sortOrder, forKey: .sortOrder)
         try container.encode(recents, forKey: .recents)
+        let hotkeys = HotkeyAction.allCases.compactMap { action in self.hotkeys[action].map { ActionHotkey(action, $0) } }
+        try container.encode(hotkeys, forKey: .hotkeys)
+        try container.encodeIfPresent(loginItemIntent, forKey: .loginItemIntent)
     }
 }
 

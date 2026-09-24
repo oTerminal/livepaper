@@ -84,7 +84,7 @@ struct AppStateTests {
     }
 
     @Test func `writes its schema version`() throws {
-        #expect(try Self.json(Self.fixtureState)["version"] as? [String: Int] == ["major": 1, "minor": 0])
+        #expect(try Self.json(Self.fixtureState)["version"] as? [String: Int] == ["major": 1, "minor": 1])
     }
 
     // MARK: Shapes
@@ -172,6 +172,8 @@ struct AppStateTests {
         let decoded = try AppState.decode(Fixture.data("app-state-v1.9-newer-minor"))
 
         var expected = AppState()
+        // Its hotkeys have been known since version 1.1; its `openAtLogin` is still new.
+        expected.hotkeys = [.nextWallpaper: KeyCombination(keyCode: 45, modifiers: [.control, .command], keyLabel: "N")]
         expected.assignments = [.numbered(1): .wallpaper(.numbered(1))]
         expected.playlists = [
             Playlist(id: .numbered(1), name: "Evening", wallpapers: [.numbered(1)], interval: .seconds(600), shuffle: false),
