@@ -152,3 +152,7 @@ targets:
         PRODUCT_MODULE_NAME: LivepaperCLI
         PRODUCT_BUNDLE_IDENTIFIER: app.livepaper.cli
         SWIFT_DEFAULT_ACTOR_ISOLATION: nonisolated
+    dependencies:
+      # The command grammar, the socket's path and the reply: the tool reads no library file.
+      - package: LivepaperKit
+        product: LivepaperCore
