@@ -2,27 +2,6 @@ import Darwin
 import Foundation
 import LivepaperCore
 
-/// A bundle's version and build, as its Info.plist gives them.
-nonisolated public struct BundleVersion: Equatable, Sendable {
-    public var version: String
-    public var build: String
-
-    public init(version: String, build: String) {
-        self.version = version
-        self.build = build
-    }
-
-    /// Nil when the bundle names neither.
-    public init?(bundle: Bundle) {
-        let version = bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
-        let build = bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String
-        guard version != nil || build != nil else { return nil }
-        self.init(version: version ?? "unknown", build: build ?? "unknown")
-    }
-
-    var words: String { "\(version) (\(build))" }
-}
-
 /// The Mac a report is made on: macOS's version and build, and the hardware model.
 nonisolated public struct MachineFacts: Equatable, Sendable {
     /// `27.0 (26A428)`.
@@ -48,35 +27,6 @@ nonisolated public struct MachineFacts: Equatable, Sendable {
         var bytes = [UInt8](repeating: 0, count: size)
         guard sysctlbyname(name, &bytes, &size, nil, 0) == 0 else { return nil }
         return String(bytes: bytes.prefix { $0 != 0 }, encoding: .utf8)
-    }
-}
-
-/// The wallpaper store's shape check, as `WallpaperStore` reads it: counts
-/// only, never the store's entries or the files they name.
-nonisolated public struct StoreShape: Equatable, Sendable {
-    /// The Desktop entries; nil when the store could not be read, or was not the shape expected.
-    public var desktopEntries: Int?
-    /// How many of them name Livepaper; nil with `desktopEntries`.
-    public var namingLivepaper: Int?
-    /// Whether the store as it was before Livepaper is kept, for leaving (record 0003).
-    public var keptCopyExists: Bool
-
-    public init(desktopEntries: Int?, namingLivepaper: Int?, keptCopyExists: Bool) {
-        self.desktopEntries = desktopEntries
-        self.namingLivepaper = namingLivepaper
-        self.keptCopyExists = keptCopyExists
-    }
-}
-
-extension StoreShape {
-    /// The shape `WallpaperStore.shape()` read: its counts when it could be read and was the shape expected.
-    nonisolated public init(_ shape: WallpaperStoreShape) {
-        switch shape.store {
-        case .read(let entries, let naming):
-            self.init(desktopEntries: entries, namingLivepaper: naming, keptCopyExists: shape.keptCopyExists)
-        case .unreadable, .unknownShape:
-            self.init(desktopEntries: nil, namingLivepaper: nil, keptCopyExists: shape.keptCopyExists)
-        }
     }
 }
 
@@ -117,7 +67,7 @@ nonisolated public struct DiagnosticsReport: Equatable, Sendable {
         isPausedAll: Bool,
         loginItem: LoginItemStatus,
         loginItemIntent: Bool?,
-        store: StoreShape,
+        store: WallpaperStoreShape,
         extensionLog: ExtensionLogLines,
         redaction: Redaction
     ) {
@@ -131,7 +81,7 @@ nonisolated public struct DiagnosticsReport: Equatable, Sendable {
                 "Translocated: \(Self.yesNo(isTranslocated))",
             ]),
             Section(title: "Mac", lines: ["macOS \(machine.macOS)", "Hardware \(machine.model)"]),
-            Section(title: "Wallpaper service", lines: ["Status: \(HostLog.name(of: host))", "Self-check: \(selfCheck)"]),
+            Section(title: "Wallpaper service", lines: ["Status: \(host.name)", "Self-check: \(selfCheck)"]),
             Section(title: "Displays", lines: Self.displays(state: state, connected: connected)),
             Section(title: "Pauses and mute", lines: Self.pauses(state: state, isPausedAll: isPausedAll)),
             Section(title: "Login item", lines: [
@@ -196,10 +146,13 @@ nonisolated public struct DiagnosticsReport: Equatable, Sendable {
         ]
     }
 
-    private static func store(_ store: StoreShape) -> [String] {
-        let kept = "Kept copy: \(yesNo(store.keptCopyExists))"
-        guard let entries = store.desktopEntries else { return ["Desktop entries: not read, or not the shape expected", kept] }
-        return ["Desktop entries: \(entries)", "Naming Livepaper: \(store.namingLivepaper ?? 0)", kept]
+    private static func store(_ shape: WallpaperStoreShape) -> [String] {
+        let kept = "Kept copy: \(yesNo(shape.keptCopyExists))"
+        switch shape.store {
+        case .read(let entries, let naming): return ["Desktop entries: \(entries)", "Naming Livepaper: \(naming)", kept]
+        case .unreadable: return ["Desktop entries: not read, the store is missing or unreadable", kept]
+        case .unknownShape: return ["Desktop entries: not read, the store is of a shape this build does not know", kept]
+        }
     }
 
     private static func log(_ log: ExtensionLogLines, redaction: Redaction) -> [String] {

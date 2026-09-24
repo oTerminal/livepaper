@@ -3,7 +3,8 @@
 /// `ExtensionHostClient` is the one `RenderHost`: it writes `render-state.json`,
 /// posts the Darwin notifications, reads the extension's heartbeat into a
 /// status, and restarts WallpaperAgent when the host asks for it or goes quiet,
-/// never more than once in ten minutes. The sensors (displays, power, lock,
+/// never more than once in ten minutes, and never when the store names
+/// Livepaper nowhere, since then quiet is all there is. The sensors (displays, power, lock,
 /// sleep and wake, display sleep, covered displays) are `AsyncStream`s behind
 /// small protocols; `ConditionsSensing` folds them into the `SensedConditions`
 /// that the next render state carries.

@@ -73,6 +73,10 @@ struct LivepaperApp: App {
 /// Makes the model, on the real host or, with `-fakes YES`, on the fakes; puts
 /// the menu-bar item up at launch; and holds Quit until the stopped render state
 /// is written, so that each display is left holding its poster (record 0003).
+///
+/// A translocated launch (M7) shows the move card and nothing else: no
+/// menu-bar item, no model launch, so no library read, host, sensors, hotkeys
+/// or socket, no doors, and nothing written at quit. Closing the card quits.
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let options = LaunchOptions.current
     let windows = AppWindows()
@@ -108,6 +112,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.appearance = options.nsAppearance
+        if let fakes {
+            remote = FakesRemote { [weak self] verb, rest in self?.perform(verb, rest, fakes: fakes) }
+        }
+        guard startsLivepaper else {
+            AppLog.logger.notice("\(AppLog.translocatedLaunch, privacy: .public)")
+            // A turn later, once SwiftUI has its scenes up.
+            Task { [windows] in windows.openOnboarding() }
+            return
+        }
         let popover = PopoverView()
             .environment(model)
             .environment(windows)
@@ -120,9 +133,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         windows.didCloseLibrary = { [model] in model.libraryWindowDidClose() }
         workshop.showWorkshop = { [windows] in windows.openWorkshop() }
         menuBarItem = item
-        if let fakes {
-            remote = FakesRemote { [weak self] verb, rest in self?.perform(verb, rest, fakes: fakes) }
-        }
         watchHotkeys()
         model.launch()
         if onboarding.shows {
@@ -140,8 +150,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// opened with the app arrive before `applicationDidFinishLaunching`; the
     /// model runs them once the launch has read the library.
     func application(_ application: NSApplication, open urls: [URL]) {
+        guard startsLivepaper else {
+            AppLog.logger.notice("\(AppLog.translocatedDoor(urls.count), privacy: .public)")
+            return
+        }
         doors.open(urls)
     }
+
+    /// False on a translocated launch, which shows the move card alone and starts nothing.
+    private var startsLivepaper: Bool { onboarding.plan.startsLivepaper }
 
     /// A command from `Tools/pr-media/fakes.sh`. The popover opens and closes with
     /// motion, as a click would, so that a recording shows it.
@@ -178,12 +195,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
     }
 
-    /// Closing the library window leaves the app in the menu bar.
+    /// Closing the library window leaves the app in the menu bar. Closing the
+    /// move card quits, since a translocated launch has nothing else.
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-        false
+        !startsLivepaper
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        // Nothing was started, so there is no stopped state to write.
+        guard startsLivepaper else { return .terminateNow }
         // steamcmd runs in a session of its own, and would outlive the app.
         workshop.stopAll()
         doors.closeSocket()

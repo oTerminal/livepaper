@@ -48,6 +48,7 @@ extension AppModel {
     /// stopped state as a quit does. The library is kept, and the next launch
     /// offers onboarding's last card alone.
     func leaveLivepaper() {
+        guard hasStarted else { return }
         let services = systemServices
         Task {
             await services.leaveLivepaper()

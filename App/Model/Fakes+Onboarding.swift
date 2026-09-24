@@ -44,7 +44,7 @@ extension Fakes {
             record: onboardingRecord,
             isTranslocated: onboarding == .translocated,
             ranBefore: onboarding.map { $0 == .afterLeaving || $0 == .updated } ?? true,
-            version: Bundle.main.versionWords,
+            version: BundleVersion.main.words,
             samples: SampleWallpaper.bundled(),
             showApplicationsFolder: { Fakes.logger.notice("fakes: the Applications folder would open in the Finder") }
         )

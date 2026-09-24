@@ -16,14 +16,15 @@ struct ExtensionHostClientTests {
     let agent = FakeAgentRestarter()
     let sleep = FakeSleepSensor()
     let restarts = MemoryAgentRestartStore()
+    let wallpaperStore = FakeStoreReader()
     let client: ExtensionHostClient
 
     init() throws {
         home = try TemporaryFolder()
         location = LibraryLocation(home: home.url)
         client = ExtensionHostClient(
-            location: location, notifier: notifier, agent: agent, restartStore: restarts, clock: clock, sleep: sleep,
-            logger: Logger(subsystem: "app.livepaper.tests", category: HostLog.category)
+            location: location, notifier: notifier, agent: agent, restartStore: restarts, wallpaperStore: wallpaperStore,
+            clock: clock, sleep: sleep, logger: Logger(subsystem: "app.livepaper.tests", category: HostLog.category)
         )
     }
 

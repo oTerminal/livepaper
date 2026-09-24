@@ -237,8 +237,8 @@ private struct Query {
 
 // MARK: - Rejections
 
-/// Why a URL is not a command. The app logs `reason`, and the socket replies with it.
-public enum CommandRejection: Error, Hashable, Sendable, CustomStringConvertible {
+/// Why a URL is not a command. The socket and the tool reply with `reason`; the app logs `kind`.
+public enum CommandRejection: KindNamingError, Hashable, Sendable, CustomStringConvertible {
     /// Not a URL, or not a `livepaper:` one.
     case notLivepaper
     case noVerb
@@ -286,6 +286,29 @@ public enum CommandRejection: Error, Hashable, Sendable, CustomStringConvertible
     }
 
     public var description: String { reason }
+
+    /// The rejection without anything the sender wrote, for a log line: a link
+    /// can come from any web page, and name a path or a file.
+    public var kind: String {
+        switch self {
+        case .notLivepaper: "not a livepaper:// command"
+        case .noVerb: "no verb"
+        case .unknownVerb: "an unknown verb"
+        case .path: "a path"
+        case .fragment: "a fragment"
+        case .port: "a port"
+        case .credentials: "a user name or password"
+        case .unknownKey(let verb, _): "a key “\(verb.rawValue)” does not take"
+        case .repeatedKey(let key): "“\(key)” given more than once"
+        case .missingKey(let verb, let key): "“\(verb.rawValue)” without a “\(key)”"
+        case .needsWallpaperOrPlaylist: "“set” without one wallpaper or one playlist"
+        case .emptyFile: "an empty “file”"
+        case .relativeFile: "a “file” that is not an absolute path"
+        case .notAUUID(let key, _): "a “\(key)” that is not a UUID"
+        case .invalidValue(let key, _): "a value “\(key)” cannot take"
+        case .notThroughThisDoor(let verb): "“\(verb.rawValue)”, which is answered over the command socket only"
+        }
+    }
 
     /// At most 40 characters of it, with no line breaks or NULs, so that one log line stays one line.
     private static func quoted(_ value: String) -> String {

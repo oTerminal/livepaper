@@ -99,7 +99,7 @@ extension StatusReport: Codable {
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let host = try container.decode(String.self, forKey: .host)
-        guard let status = Self.hostStatuses.first(where: { Self.name(of: $0) == host }) else {
+        guard let status = Self.hostStatuses.first(where: { $0.name == host }) else {
             throw DecodingError.dataCorruptedError(forKey: .host, in: container, debugDescription: "not a host status: \(host)")
         }
         self.host = status
@@ -112,7 +112,7 @@ extension StatusReport: Codable {
 
     public func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(Self.name(of: host), forKey: .host)
+        try container.encode(host.name, forKey: .host)
         try container.encode(displays, forKey: .displays)
         try container.encode(wallpapers, forKey: .wallpapers)
         try container.encode(playlists, forKey: .playlists)
@@ -122,18 +122,6 @@ extension StatusReport: Codable {
 
     private static let hostStatuses: [RenderHostStatus] =
         [.stopped, .connecting, .notSelected, .live, .unavailable] + RecoveryLevel.allCases.map { .recovering($0) }
-
-    /// The host log's names for the status: `live`, `recovering(flush)`.
-    static func name(of status: RenderHostStatus) -> String {
-        switch status {
-        case .stopped: "stopped"
-        case .connecting: "connecting"
-        case .notSelected: "notSelected"
-        case .live: "live"
-        case .recovering(let level): "recovering(\(String(describing: level)))"
-        case .unavailable: "unavailable"
-        }
-    }
 }
 
 // MARK: - The reply

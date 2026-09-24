@@ -7,7 +7,15 @@ extension LibraryLocation {
     /// with a long name is what moves it.
     public func commandSocket(fallback temporaryFolder: URL) -> URL {
         guard !SocketAddress.fits(commandSocket) else { return commandSocket }
-        return temporaryFolder.appending(path: "livepaper-command.sock", directoryHint: .notDirectory)
+        return temporaryFolder.appending(path: Self.temporarySocketName, directoryHint: .notDirectory)
+    }
+
+    static let temporarySocketName = "livepaper-command.sock"
+
+    /// Which folder a socket `commandSocket(fallback:)` gave is in, in words a
+    /// log line may hold: never its path, which names the user.
+    public static func commandSocketFolder(of socket: URL) -> String {
+        socket.lastPathComponent == temporarySocketName ? "the temporary folder" : "the library folder"
     }
 }
 

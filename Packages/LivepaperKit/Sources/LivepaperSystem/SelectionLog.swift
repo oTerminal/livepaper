@@ -8,7 +8,7 @@ nonisolated public enum SelectionLog {
     public static let category = "selection"
 
     public static func selecting(host: RenderHostStatus) -> String {
-        "selection: selecting Livepaper, host \(HostLog.name(of: host))"
+        "selection: selecting Livepaper, host \(host.name)"
     }
 
     public static let leaving = "selection: leaving Livepaper"

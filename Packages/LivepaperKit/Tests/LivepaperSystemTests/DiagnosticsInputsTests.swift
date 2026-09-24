@@ -3,29 +3,20 @@ import LivepaperCore
 import LivepaperSystem
 import Testing
 
-/// What the app hands the diagnostics report, and the name "Save…" gives it.
+/// What the store's shape check tells the host and the diagnostics report, and the name "Save…" gives a report.
 struct DiagnosticsInputsTests {
-    static let shapes: [Row<WallpaperStoreShape, StoreShape>] = [
-        Row(
-            "a store read gives its counts",
-            WallpaperStoreShape(store: .read(desktopEntries: 24, namingLivepaper: 24), keptCopyExists: true),
-            StoreShape(desktopEntries: 24, namingLivepaper: 24, keptCopyExists: true)
-        ),
-        Row(
-            "an unreadable store gives none",
-            WallpaperStoreShape(store: .unreadable, keptCopyExists: false),
-            StoreShape(desktopEntries: nil, namingLivepaper: nil, keptCopyExists: false)
-        ),
-        Row(
-            "a store of an unknown shape gives none, and the kept copy still counts",
-            WallpaperStoreShape(store: .unknownShape, keptCopyExists: true),
-            StoreShape(desktopEntries: nil, namingLivepaper: nil, keptCopyExists: true)
-        ),
+    static let selections: [Row<WallpaperStoreShape.Store, StoreSelection>] = [
+        Row("every Desktop entry naming Livepaper is selected", .read(desktopEntries: 24, namingLivepaper: 24), .selected),
+        Row("one Desktop entry naming it is selected", .read(desktopEntries: 24, namingLivepaper: 1), .selected),
+        Row("none naming it is not selected", .read(desktopEntries: 2, namingLivepaper: 0), .notSelected),
+        Row("a store with no Desktop entry is not selected", .read(desktopEntries: 0, namingLivepaper: 0), .notSelected),
+        Row("an unreadable store cannot say", .unreadable, .unreadable),
+        Row("a store of a shape this build does not know cannot say", .unknownShape, .unreadable),
     ]
 
-    @Test(arguments: shapes)
-    func `the report's store shape is the store's counts`(row: Row<WallpaperStoreShape, StoreShape>) {
-        #expect(StoreShape(row.input) == row.expected)
+    @Test(arguments: selections)
+    func `whether the store names Livepaper at all`(row: Row<WallpaperStoreShape.Store, StoreSelection>) {
+        #expect(WallpaperStoreShape(store: row.input, keptCopyExists: false).selection == row.expected)
     }
 
     @Test func `a saved report is plain text named by when it was made, in the user's time zone`() throws {

@@ -1,8 +1,8 @@
 /// One card of first-run onboarding (M7).
 public enum OnboardingStep: Hashable, Sendable, CaseIterable {
-    /// "Add a wallpaper": a file dropped on the card or chosen, or a sample,
-    /// imported and set on every display.
-    case addWallpaper
+    /// A file dropped on the card or chosen, or a sample, imported and set on
+    /// every display. The card's title says "Add a wallpaper", as the spec names it.
+    case importWallpaper
     /// "Open at login": the login item, registered and shown as macOS has it.
     case openAtLogin
     /// "Make Livepaper your wallpaper": Livepaper selected as the system wallpaper.
@@ -40,6 +40,12 @@ public enum OnboardingPlan: Hashable, Sendable {
     /// for Livepaper to be moved to Applications, and nothing is registered or
     /// written, since the next launch would be from another path.
     case moveToApplications
+
+    /// Whether this launch starts Livepaper: reads the library, activates the
+    /// render host, opens the command socket and starts the sensors. A
+    /// translocated launch shows the move card and nothing else, and writes
+    /// nothing, at quit included.
+    public var startsLivepaper: Bool { self != .moveToApplications }
 
     /// What to keep once this plan's cards end, by their last button or their
     /// window closed: the version that ran onboarding, the first one to run it

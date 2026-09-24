@@ -51,7 +51,19 @@ nonisolated public struct WallpaperStoreEdit: Equatable, Sendable {
     public var wrote: Bool { changed > 0 }
 }
 
-/// The store as the diagnostics report it: numbers, never a file list or a path.
+/// What the wallpaper store says of Livepaper being the system wallpaper, as the host reads it
+/// before restarting WallpaperAgent for silence.
+nonisolated public enum StoreSelection: Equatable, Sendable {
+    /// A Desktop entry names Livepaper: WallpaperAgent should be running the extension.
+    case selected
+    /// No Desktop entry names Livepaper: WallpaperAgent has no reason to launch the extension.
+    case notSelected
+    /// The store could not be read, or was not the shape expected: nothing can be told from it.
+    case unreadable
+}
+
+/// The store's shape check, which the diagnostics report and the host read: numbers, never a
+/// file list or a path.
 nonisolated public struct WallpaperStoreShape: Equatable, Sendable, CustomStringConvertible {
     public enum Store: Equatable, Sendable {
         case read(desktopEntries: Int, namingLivepaper: Int)
@@ -60,11 +72,20 @@ nonisolated public struct WallpaperStoreShape: Equatable, Sendable, CustomString
     }
 
     public var store: Store
+    /// Whether the store as it was before Livepaper is kept, for leaving (record 0003).
     public var keptCopyExists: Bool
 
     public init(store: Store, keptCopyExists: Bool) {
         self.store = store
         self.keptCopyExists = keptCopyExists
+    }
+
+    /// Whether any Desktop entry names Livepaper at all.
+    public var selection: StoreSelection {
+        switch store {
+        case .read(_, let naming): naming > 0 ? .selected : .notSelected
+        case .unreadable, .unknownShape: .unreadable
+        }
     }
 
     /// "wallpaper store: 2 Desktop entries, 2 name Livepaper; kept copy: none".
@@ -86,8 +107,15 @@ public protocol WallpaperStoreEditing {
     func removeKeptCopy()
 }
 
-// In an extension, so that the store's own methods stay callable from any thread.
+/// The store's shape check, which the host reads before restarting WallpaperAgent for silence and
+/// never writes. `WallpaperStore` is the real one; tests put a fake in its place.
+public protocol WallpaperStoreReading {
+    func shape() -> WallpaperStoreShape
+}
+
+// In extensions, so that the store's own methods stay callable from any thread.
 extension WallpaperStore: WallpaperStoreEditing {}
+extension WallpaperStore: WallpaperStoreReading {}
 
 /// WallpaperAgent's wallpaper store, and the edit that makes Livepaper the system wallpaper
 /// and puts the previous one back (record 0003; `Spikes/results/S8.md`, S8b).
@@ -204,8 +232,9 @@ nonisolated public struct WallpaperStore: Sendable {
         try? FileManager.default.removeItem(at: keptCopy)
     }
 
-    /// For the diagnostics: how many Desktop entries there are, how many name Livepaper, and
-    /// whether a copy is kept.
+    /// For the diagnostics, and for the host before it restarts WallpaperAgent for silence: how
+    /// many Desktop entries there are, how many name Livepaper, and whether a copy is kept. Reads,
+    /// and never writes.
     public func shape() -> WallpaperStoreShape {
         let kept = FileManager.default.fileExists(atPath: keptCopy.path)
         do throws(WallpaperStoreError) {

@@ -23,10 +23,10 @@ extension ExtensionHostClient: HostStatusSource {}
 /// The agent restart here is not held to `agentRestartGap`: it is what makes the edit take
 /// effect, and it comes once per select or leave, which the user asks for, never in a loop. It
 /// is one signal and a wait, never a burst (`docs/research/wallper.md`). It is recorded in the
-/// `AgentRestartStore`, as the host's own restarts are, so that the host counts its ten minutes
-/// from it when it next activates (Resume All, a relaunch after leaving). A host already
-/// running is not told: when the select works, its heartbeats keep the ladder from climbing;
-/// when it does not, the ladder restarts the agent at most once more before a heartbeat (M5).
+/// `AgentRestartStore` before the signal, as the host's own restarts are. The host reads that
+/// record when it activates and again before each automatic restart, so it counts its ten
+/// minutes from this one whether it is running or activates later (Resume All, a relaunch after
+/// leaving): a select that has not yet brought a heartbeat is not followed by a second restart.
 public final class Selection {
     private var reducer = SelectionReducer()
     private let host: any HostStatusSource

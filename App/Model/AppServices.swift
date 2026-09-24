@@ -52,7 +52,7 @@ struct AppServices {
     /// The Mac's sleep and wake: a wake moves each playlist on (`RotationDriver`).
     var sleep: any SleepSensor
     /// The wallpaper store's shape, for the diagnostics report: counts only, read and never written.
-    var storeShape: () -> StoreShape
+    var storeShape: () -> WallpaperStoreShape
     /// The wallpaper extension's recent log lines, for the diagnostics report.
     var extensionLog: () async -> ExtensionLogLines
 }
@@ -111,7 +111,7 @@ extension AppServices {
             setPlaybackMetrics: { host.setPlaybackMetrics($0) },
             commandSocket: location.commandSocket(fallback: .temporaryDirectory),
             sleep: SystemSleepSensor(),
-            storeShape: { StoreShape(WallpaperStore(home: .homeDirectory).shape()) },
+            storeShape: { WallpaperStore(home: .homeDirectory).shape() },
             extensionLog: { await ExtensionLogLines.fetch() }
         )
     }

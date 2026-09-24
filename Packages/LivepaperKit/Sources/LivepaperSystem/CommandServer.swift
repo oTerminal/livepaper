@@ -1,8 +1,8 @@
 import Foundation
 import LivepaperCore
 
-/// Why the command socket could not be opened.
-nonisolated public enum CommandServerError: Error, Equatable, Sendable {
+/// Why the command socket could not be opened. The app logs `kind`, which leaves the path out.
+nonisolated public enum CommandServerError: KindNamingError, Equatable, Sendable {
     /// The path does not fit a socket address: `LibraryLocation.commandSocket(fallback:)` avoids it.
     case pathTooLong(URL)
     /// Something that is not a socket is at the path, and is left alone.
@@ -11,6 +11,15 @@ nonisolated public enum CommandServerError: Error, Equatable, Sendable {
     case inUse(URL)
     /// A system call failed, with its `errno`.
     case system(String, errno: Int32)
+
+    public var kind: String {
+        switch self {
+        case .pathTooLong: "the path does not fit a socket address"
+        case .notASocket: "something that is not a socket is there"
+        case .inUse: "another copy of Livepaper answers there"
+        case .system(let call, let errno): "\(call) failed, errno \(errno)"
+        }
+    }
 }
 
 /// The app's end of the command socket (M7), which the `livepaper` tool talks to.

@@ -53,7 +53,7 @@ final class Fakes {
     init(library: FakeLibrary, onboarding: FakeOnboarding? = nil) {
         self.library = library
         self.onboarding = onboarding
-        onboardingRecord = InMemoryOnboardingRecord(onboarding?.record ?? OnboardingRecord(onboardedVersion: Bundle.main.versionWords))
+        onboardingRecord = InMemoryOnboardingRecord(onboarding?.record ?? OnboardingRecord(onboardedVersion: BundleVersion.main.words))
         host = FakeRenderHost()
         // Connecting, then live after about a second; a set takes long enough to see it working.
         host.liveAfter = .seconds(1)
@@ -110,7 +110,7 @@ final class Fakes {
             commandSocket: nil,
             sleep: sleep,
             // Livepaper selected on a Mac with one Space, the store kept from before it.
-            storeShape: { StoreShape(desktopEntries: 2, namingLivepaper: 2, keptCopyExists: true) },
+            storeShape: { WallpaperStoreShape(store: .read(desktopEntries: 2, namingLivepaper: 2), keptCopyExists: true) },
             // A subsystem nothing logs to: the report's section reads "No lines", and nothing real is read.
             extensionLog: { await ExtensionLogLines.fetch(subsystem: "app.livepaper.fakes") }
         )

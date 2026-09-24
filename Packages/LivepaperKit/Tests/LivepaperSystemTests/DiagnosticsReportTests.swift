@@ -62,7 +62,7 @@ struct DiagnosticsReportTests {
         host: RenderHostStatus = .live,
         loginItem: LoginItemStatus = .on,
         loginItemIntent: Bool? = true,
-        store: StoreShape = StoreShape(desktopEntries: 24, namingLivepaper: 24, keptCopyExists: true),
+        store: WallpaperStoreShape = WallpaperStoreShape(store: .read(desktopEntries: 24, namingLivepaper: 24), keptCopyExists: true),
         log: ExtensionLogLines = log
     ) -> DiagnosticsReport {
         DiagnosticsReport(
@@ -143,26 +143,31 @@ struct DiagnosticsReportTests {
         #expect(Self.section("Login item", of: Self.report(loginItem: row.input.0, loginItemIntent: row.input.1)) == row.expected)
     }
 
-    static let stores: [Row<StoreShape, [String]>] = [
+    static let stores: [Row<WallpaperStoreShape, [String]>] = [
         Row(
             "read, every Desktop entry naming Livepaper, the copy kept",
-            StoreShape(desktopEntries: 24, namingLivepaper: 24, keptCopyExists: true),
+            WallpaperStoreShape(store: .read(desktopEntries: 24, namingLivepaper: 24), keptCopyExists: true),
             ["Desktop entries: 24", "Naming Livepaper: 24", "Kept copy: yes"]
         ),
         Row(
             "read, none naming Livepaper, no copy",
-            StoreShape(desktopEntries: 2, namingLivepaper: 0, keptCopyExists: false),
+            WallpaperStoreShape(store: .read(desktopEntries: 2, namingLivepaper: 0), keptCopyExists: false),
             ["Desktop entries: 2", "Naming Livepaper: 0", "Kept copy: no"]
         ),
         Row(
-            "not read",
-            StoreShape(desktopEntries: nil, namingLivepaper: nil, keptCopyExists: true),
-            ["Desktop entries: not read, or not the shape expected", "Kept copy: yes"]
+            "unreadable",
+            WallpaperStoreShape(store: .unreadable, keptCopyExists: true),
+            ["Desktop entries: not read, the store is missing or unreadable", "Kept copy: yes"]
+        ),
+        Row(
+            "of a shape this build does not know",
+            WallpaperStoreShape(store: .unknownShape, keptCopyExists: false),
+            ["Desktop entries: not read, the store is of a shape this build does not know", "Kept copy: no"]
         ),
     ]
 
     @Test(arguments: stores)
-    func `the wallpaper store's shape, and nothing of its files`(row: Row<StoreShape, [String]>) {
+    func `the wallpaper store's shape, and nothing of its files`(row: Row<WallpaperStoreShape, [String]>) {
         #expect(Self.section("Wallpaper store", of: Self.report(store: row.input)) == row.expected)
     }
 

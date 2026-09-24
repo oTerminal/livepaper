@@ -177,6 +177,27 @@ struct CommandTests {
         #expect(!reason.contains("\n"))
     }
 
+    /// What the sender wrote that a rejection carries: anything, since any web page can open a link.
+    static func written(_ rejection: CommandRejection) -> String? {
+        switch rejection {
+        case .unknownVerb(let text), .path(let text), .relativeFile(let text), .unknownKey(_, let text): text
+        case .notAUUID(_, let text), .invalidValue(_, let text): text
+        default: nil
+        }
+    }
+
+    @Test(arguments: rejected)
+    func `a rejection is logged by its kind, repeating nothing the sender wrote`(row: Row<String, CommandRejection>) {
+        let kind = row.expected.kind
+
+        #expect(!kind.isEmpty)
+        #expect(!kind.contains("\n"))
+        // A value as short as “all” is the grammar's own word, and in “wallpaper” besides.
+        if let written = Self.written(row.expected), written.count > 3 {
+            #expect(!kind.contains(written))
+        }
+    }
+
     @Test func `a rejection repeats a long value only in part`() {
         let junk = String(repeating: "x", count: 10_000)
         let rejection = CommandRejection.unknownVerb(junk)

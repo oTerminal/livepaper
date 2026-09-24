@@ -36,10 +36,12 @@ extension AppModel {
                 setOnAllDisplays(.wallpaper(wallpaper.id))
                 return .set(wallpaper)
             case .failed(let reason):
-                return .failed(Self.notImported(first.name, reason))
+                // No reason: its rows were taken off the list.
+                let source = reason.map { ImportedSource.notImported(name: first.name, reason: $0) } ?? .cancelled(name: first.name)
+                return .failed(source.line)
             }
         }
-        return .failed(Self.notImported(first.name, nil))
+        return .failed(ImportedSource.cancelled(name: first.name).line)
     }
 
     /// Leaving Livepaper as the wallpaper, recorded before the app quits: the
@@ -51,13 +53,8 @@ extension AppModel {
 
     private static let unwritable = "The library could not be read, so nothing can be imported."
 
-    /// Nothing to import where the user pointed: why, as the library's toast says it.
+    /// Nothing to import where the user pointed: why, as the command's reply says it.
     private static func nothingToImport(_ notListed: [ImportedSource]) -> String {
-        guard case .notImported(let name, let reason) = notListed.first else { return "There is nothing there that Livepaper can import." }
-        return notImported(name, reason)
-    }
-
-    private static func notImported(_ name: String, _ reason: String?) -> String {
-        "“\(name)” was not imported." + (reason.map { " \($0)." } ?? "")
+        notListed.first?.line ?? "There is nothing there that Livepaper can import."
     }
 }

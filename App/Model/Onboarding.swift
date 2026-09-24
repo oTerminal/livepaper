@@ -33,8 +33,8 @@ final class Onboarding {
     private(set) var firstWallpaper = FirstWallpaper.choosing
     /// Whether the "Open at login" card asked for the login item.
     private(set) var hasAskedLogin = false
-    /// Selecting Livepaper, as `Selection` reports it.
-    private(set) var selection = SelectionOutcome.idle
+    /// What came of making Livepaper the system wallpaper, as `Selection` reports it.
+    private(set) var selectionOutcome = SelectionOutcome.idle
     /// By the last card's button or the window closed: the record is kept, and the window goes.
     private(set) var hasEnded = false
     /// Each sample's poster, read from its file.
@@ -82,7 +82,7 @@ final class Onboarding {
 
     /// A drop is taken on the first card while nothing is importing.
     var takesDrops: Bool {
-        guard step == .addWallpaper else { return false }
+        guard step == .importWallpaper else { return false }
         if case .importing = firstWallpaper { return false }
         return true
     }
@@ -92,7 +92,7 @@ final class Onboarding {
     /// Files dropped on the card or chosen in the Open panel: imported through
     /// the import list as any import is, and the first wallpaper that comes of
     /// them set on every display. Then the next card.
-    func addWallpaper(from urls: [URL]) {
+    func importWallpaper(from urls: [URL]) {
         guard takesDrops, let first = urls.first else { return }
         firstWallpaper = .importing(name: first.deletingPathExtension().lastPathComponent, words: nil)
         Task {
@@ -111,12 +111,12 @@ final class Onboarding {
     }
 
     func pickSample(_ sample: SampleWallpaper) {
-        addWallpaper(from: [sample.url])
+        importWallpaper(from: [sample.url])
     }
 
     /// The Open panel, as a sheet on the onboarding window.
     func chooseFile() {
-        model.chooseFiles { [weak self] urls in self?.addWallpaper(from: urls) }
+        model.chooseFiles { [weak self] urls in self?.importWallpaper(from: urls) }
     }
 
     /// Reads each sample's poster from its file, once.
@@ -179,7 +179,7 @@ final class Onboarding {
         guard selectionWatch == nil else { return }
         selectionWatch = Task { [weak self] in
             for await outcome in selecting.outcomes {
-                self?.selection = outcome
+                self?.selectionOutcome = outcome
             }
         }
     }
@@ -242,7 +242,7 @@ struct OnboardingServices {
             record: DefaultsOnboardingRecord(),
             isTranslocated: BundleIdentity(path: Bundle.main.bundlePath, designatedRequirement: nil).isTranslocated,
             ranBefore: files.fileExists(atPath: location.manifest.path) || files.fileExists(atPath: location.appState.path),
-            version: Bundle.main.versionWords,
+            version: BundleVersion.main.words,
             samples: SampleWallpaper.bundled(),
             showApplicationsFolder: {
                 guard let applications = files.urls(for: .applicationDirectory, in: .localDomainMask).first else { return }
@@ -292,15 +292,6 @@ final class InMemoryOnboardingRecord: OnboardingRecordKeeping {
     }
 }
 
-extension Bundle {
-    /// "0.1.0 (1)": the marketing version and the build.
-    var versionWords: String {
-        let version = infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
-        let build = infoDictionary?["CFBundleVersion"] as? String ?? "?"
-        return "\(version) (\(build))"
-    }
-}
-
 /// Onboarding's log lines, in the app's category.
 enum OnboardingLog {
     static let logger = AppLog.logger
@@ -325,7 +316,7 @@ enum OnboardingLog {
 
     private static func name(_ step: OnboardingStep) -> String {
         switch step {
-        case .addWallpaper: "add a wallpaper"
+        case .importWallpaper: "import a wallpaper"
         case .openAtLogin: "open at login"
         case .selectLivepaper: "make Livepaper the wallpaper"
         }

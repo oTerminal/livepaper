@@ -288,7 +288,7 @@ extension StatusReport {
     /// commands take.
     var readable: String {
         var lines = [
-            "Livepaper: \(Self.words(for: host))",
+            "Status: \(host.words)",
             "Pause All: \(isPausedAll ? "on" : "off")",
             "Mute: \(isMuted ? "on" : "off")",
             "",
@@ -312,16 +312,5 @@ extension StatusReport {
 
     private static func list<ID>(_ named: [Named<ID>]) -> [String] {
         named.isEmpty ? ["  none"] : named.map { "  \($0.id)  \($0.name)" }
-    }
-
-    private static func words(for host: RenderHostStatus) -> String {
-        switch host {
-        case .stopped: "stopped"
-        case .connecting: "connecting to the wallpaper service"
-        case .notSelected: "not the wallpaper in System Settings"
-        case .live: "live"
-        case .recovering: "recovering the wallpaper"
-        case .unavailable: "not available on this version of macOS"
-        }
     }
 }

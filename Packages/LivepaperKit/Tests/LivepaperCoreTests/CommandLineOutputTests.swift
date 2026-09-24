@@ -50,7 +50,7 @@ struct CommandLineOutputTests {
 
         #expect(output.exit == .done)
         #expect(output.standardOutput == """
-            Livepaper: live
+            Status: Live
             Pause All: off
             Mute: on
 
@@ -87,7 +87,7 @@ struct CommandLineOutputTests {
         )
 
         #expect(CommandLineOutput(.status(report), json: false).standardOutput == """
-            Livepaper: not the wallpaper in System Settings
+            Status: Livepaper is not your wallpaper
             Pause All: on
             Mute: off
 

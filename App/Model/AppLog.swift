@@ -6,6 +6,10 @@ import os
 
 /// The app model's log lines, under `LivepaperSystem.logSubsystem`, category
 /// `app`. The checks on screen and the manual script are read against them.
+///
+/// M7's lines never hold a path, a user name or a source file's name: a
+/// command is logged by IDs and counts, an error by its kind (`LogWords`), the
+/// socket by its folder. M6's lines that name a wallpaper are M6's convention.
 enum AppLog {
     static let category = "app"
 
@@ -14,6 +18,15 @@ enum AppLog {
     static func launched(fakes: Bool) -> String {
         "app: launched \(fakes ? "on fakes" : "wired")"
     }
+
+    static let translocatedLaunch =
+        "app: translocated, showing the move card alone; no library, host, sensors, hotkeys or socket, and nothing written"
+
+    static func translocatedDoor(_ count: Int) -> String {
+        "door: \(count) \(count == 1 ? "item" : "items") handed over while translocated, and left: Livepaper has not started"
+    }
+
+    static let notStarted = "app: a change refused: Livepaper was not started, so it writes nothing"
 
     static func swept(_ count: Int) -> String {
         "app: swept \(count) interrupted imports"
@@ -148,8 +161,9 @@ enum AppLog {
         "door: \(words(for: door)) handed over \(count) \(count == 1 ? "file" : "files")"
     }
 
+    /// By its kind: anything can open a link, and what it carried can name a path.
     static func linkRefused(_ rejection: CommandRejection) -> String {
-        "door: livepaper:// link refused: \(rejection.reason)"
+        "door: livepaper:// link refused: \(rejection.kind)"
     }
 
     static func confirming(_ command: Command) -> String {
@@ -170,8 +184,14 @@ enum AppLog {
         "command: \(command.verb.rawValue) done"
     }
 
-    static func commandRefused(_ command: Command, reason: String) -> String {
-        "command: \(command.verb.rawValue) refused: \(reason.replacingOccurrences(of: "\n", with: " "))"
+    /// A refusal's words name IDs and displays by UUID, never a file.
+    static func commandRefused(_ command: Command, _ refusal: CommandRefusal) -> String {
+        "command: \(command.verb.rawValue) refused: \(refusal.reason)"
+    }
+
+    /// What an import came to, by counts: its reply names the source files, so it is not logged.
+    static func imported(_ sources: [ImportedSource], refused: Bool) -> String {
+        "command: import \(refused ? "refused" : "done"): \(ImportedSource.summary(of: sources))"
     }
 
     /// The command without the paths an import names: IDs and counts only.
@@ -193,11 +213,11 @@ enum AppLog {
     }
 
     static func socketOpened(at socket: URL) -> String {
-        "socket: listening at \(socket.path)"
+        "socket: listening, in \(LibraryLocation.commandSocketFolder(of: socket))"
     }
 
     static func socketNotOpened(_ error: any Error) -> String {
-        "socket: not opened, so the livepaper tool cannot reach this run: \(error)"
+        "socket: not opened, so the livepaper tool cannot reach this run: \(LogWords.kind(of: error))"
     }
 
     static let socketClosed = "socket: closed"
@@ -206,7 +226,7 @@ enum AppLog {
     static let diagnosticsSaved = "diagnostics: report saved"
 
     static func diagnosticsNotSaved(_ error: any Error) -> String {
-        "diagnostics: report not saved: \(error)"
+        "diagnostics: report not saved: \(LogWords.kind(of: error))"
     }
 
     // MARK: Restart (M7)

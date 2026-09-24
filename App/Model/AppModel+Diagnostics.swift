@@ -21,7 +21,7 @@ extension AppModel {
         let appex = Bundle.main.bundleURL.appending(path: "Contents/Extensions/WallpaperExtension.appex", directoryHint: .isDirectory)
         return DiagnosticsReport(
             madeAt: Date(),
-            app: BundleVersion(bundle: .main) ?? BundleVersion(version: "unknown", build: "unknown"),
+            app: .main,
             wallpaperExtension: Bundle(url: appex).flatMap(BundleVersion.init(bundle:)),
             machine: .current(),
             isTranslocated: BundleIdentity.current().isTranslocated,

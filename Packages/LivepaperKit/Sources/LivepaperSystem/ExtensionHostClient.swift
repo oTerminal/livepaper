@@ -13,7 +13,10 @@ nonisolated public enum ExtensionHostError: Error, Equatable {
 /// posting a Darwin notification, and learns how it is from the heartbeat the
 /// extension posts every `HeartbeatTiming.interval` (record 0002). The status
 /// comes from `HostStatusReducer`; one timer, armed only while activated, wakes
-/// it when the heartbeat would expire or the ladder climb.
+/// it when the heartbeat would expire or the ladder climb. Before an automatic
+/// restart of WallpaperAgent it reads, in the same turn, what the wallpaper
+/// store says of Livepaper (through `WallpaperStore`, never written here) and
+/// the shared record of the last restart, which Selection writes too.
 public final class ExtensionHostClient: RenderHost {
     public let capabilities = HostCapabilities(showsLockScreen: true)
     public let location: LibraryLocation
@@ -34,6 +37,7 @@ public final class ExtensionHostClient: RenderHost {
     private let notifier: any DarwinNotifying
     private let agent: any AgentRestarting
     private let restartStore: any AgentRestartStore
+    private let wallpaperStore: any WallpaperStoreReading
     private let clock: any WallClock
     private let sleep: any SleepSensor
     private let logger: Logger
@@ -46,13 +50,15 @@ public final class ExtensionHostClient: RenderHost {
 
     /// - Parameters:
     ///   - location: the library, in the real home; the app is not sandboxed.
-    ///   - restartStore: where the last restart of the agent is kept across launches.
+    ///   - restartStore: where the last restart of the agent is kept across launches, and by Selection.
+    ///   - wallpaperStore: read before a restart for silence, to tell a Livepaper that is not selected.
     public init(
         location: LibraryLocation = LibraryLocation(home: .homeDirectory),
         timing: HeartbeatTiming = .standard,
         notifier: any DarwinNotifying = DarwinNotifier(),
         agent: any AgentRestarting = WallpaperAgentRestarter(),
         restartStore: any AgentRestartStore = DefaultsAgentRestartStore(),
+        wallpaperStore: any WallpaperStoreReading = WallpaperStore(home: .homeDirectory),
         clock: any WallClock = SystemWallClock(),
         sleep: any SleepSensor = SystemSleepSensor(),
         logger: Logger = Logger(subsystem: LivepaperSystem.logSubsystem, category: HostLog.category)
@@ -61,6 +67,7 @@ public final class ExtensionHostClient: RenderHost {
         self.notifier = notifier
         self.agent = agent
         self.restartStore = restartStore
+        self.wallpaperStore = wallpaperStore
         self.clock = clock
         self.sleep = sleep
         self.logger = logger
@@ -167,10 +174,19 @@ public final class ExtensionHostClient: RenderHost {
         }
     }
 
+    /// Reduces an event, and answers what the reducer asks to read before an
+    /// automatic restart in the same turn, so that the status said is the one it ends at.
     @discardableResult
     private func handle(_ event: HostEvent) -> [HostAction] {
         let before = reducer.status
-        let actions = reducer.reduce(event)
+        var actions = reducer.reduce(event)
+        while let index = actions.firstIndex(where: \.isReadBeforeRestart) {
+            guard case .readBeforeRestart(let reason) = actions.remove(at: index) else { break }
+            let read = HostEvent.readForRestart(
+                reason, store: wallpaperStore.shape().selection, lastAgentRestart: restartStore.lastRestart, at: clock.now
+            )
+            actions += reducer.reduce(read)
+        }
         if reducer.status != before {
             logger.notice("\(HostLog.status(self.reducer.status), privacy: .public)")
             statuses.send(reducer.status)
@@ -208,6 +224,9 @@ public final class ExtensionHostClient: RenderHost {
                 }
             case .restartRefused(let reason, let refusal):
                 logger.notice("\(HostLog.refused(reason, refusal), privacy: .public)")
+            case .readBeforeRestart:
+                // Answered in `handle`, before the status is said.
+                break
             }
         }
         return restart

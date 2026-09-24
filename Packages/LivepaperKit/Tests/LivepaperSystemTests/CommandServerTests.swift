@@ -170,6 +170,23 @@ struct CommandServerTests {
 
         #expect(throws: CommandServerError.pathTooLong(long)) { try server.start() }
     }
+
+    nonisolated static let kinds: [Row<CommandServerError, String>] = [
+        Row(
+            "a path too long",
+            .pathTooLong(URL(filePath: "/Users/sam/Library/Application Support/Livepaper/command.sock")),
+            "the path does not fit a socket address"
+        ),
+        Row("not a socket", .notASocket(URL(filePath: "/Users/sam/command.sock")), "something that is not a socket is there"),
+        Row("in use", .inUse(URL(filePath: "/Users/sam/command.sock")), "another copy of Livepaper answers there"),
+        Row("a system call", .system("bind", errno: EADDRINUSE), "bind failed, errno 48"),
+    ]
+
+    @Test(arguments: kinds)
+    func `a server that does not start is logged by its kind, never the socket's path`(row: Row<CommandServerError, String>) {
+        #expect(row.input.kind == row.expected)
+        #expect(LogWords.kind(of: row.input) == row.expected)
+    }
 }
 
 /// The commands the handler was given.

@@ -36,14 +36,14 @@ struct OnboardingWindow: View {
                 SampleTiles()
             }
         }
-        // While an import or the selection runs, nothing on the card can start another.
+        // While an import runs, or Livepaper is being made the wallpaper, nothing on the card can start another.
         .disabled(page.isBusy)
         .padding(Spacing.section)
         .fixedSize()
         .dropDestination(for: URL.self) { urls, _ in
             let files = urls.filter(\.isFileURL)
             guard onboarding.takesDrops, !files.isEmpty else { return false }
-            onboarding.addWallpaper(from: files)
+            onboarding.importWallpaper(from: files)
             return true
         } isTargeted: { isDropTargeted = $0 }
         .dropZoneOverlay(
@@ -80,7 +80,7 @@ struct OnboardingPage {
             self.init(moving: onboarding)
         case .steps, .nothing:
             switch onboarding.step {
-            case .addWallpaper: self.init(adding: onboarding)
+            case .importWallpaper: self.init(importing: onboarding)
             case .openAtLogin: self.init(login: onboarding)
             case .selectLivepaper, nil: self.init(selecting: onboarding)
             }
@@ -113,7 +113,7 @@ struct OnboardingPage {
 
     // MARK: 1, a wallpaper
 
-    private init(adding onboarding: Onboarding) {
+    private init(importing onboarding: Onboarding) {
         let hasSamples = !onboarding.samples.isEmpty
         let choosing = hasSamples
             ? "Drop a file on this card, or start with one of these. It plays on every display."
@@ -182,7 +182,7 @@ struct OnboardingPage {
         let picture = OnboardingPicture.desktop(onboarding.wallpaper)
         let done = Action(title: "Done") { onboarding.end() }
         let notNow = Action(title: "Not Now") { onboarding.end() }
-        let outcome = onboarding.selection
+        let outcome = onboarding.selectionOutcome
         switch outcome {
         case .idle, .left, .chooseAnotherInPane, .failed(_, leaving: true):
             self.init(

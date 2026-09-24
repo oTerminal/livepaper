@@ -53,7 +53,7 @@ struct FakesSystemCommands {
             onboarding.pickSample(onboarding.samples[index - 1])
         case "drop":
             // As a drop on the card does it: a synthetic drag starts no drag session.
-            onboarding.addWallpaper(from: [URL(filePath: detail)])
+            onboarding.importWallpaper(from: [URL(filePath: detail)])
         default:
             return nil
         }

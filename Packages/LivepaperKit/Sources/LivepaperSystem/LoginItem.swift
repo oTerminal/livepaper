@@ -70,7 +70,7 @@ public final class LoginItem {
             do {
                 try service.unregister()
             } catch {
-                logger.error("login: unregister failed: \(error, privacy: .public)")
+                logger.error("login: unregister failed: \(LogWords.kind(of: error), privacy: .public)")
             }
         }
         refresh()
@@ -107,7 +107,7 @@ public final class LoginItem {
         do {
             try service.register()
         } catch {
-            logger.error("login: register failed: \(error, privacy: .public)")
+            logger.error("login: register failed: \(LogWords.kind(of: error), privacy: .public)")
         }
         registrationNotFound = service.status == .notFound
     }

@@ -16,7 +16,7 @@ struct OnboardingTests {
         }
     }
 
-    static let everyStep: [OnboardingStep] = [.addWallpaper, .openAtLogin, .selectLivepaper]
+    static let everyStep: [OnboardingStep] = [.importWallpaper, .openAtLogin, .selectLivepaper]
     static let thisVersion = "1.2.0 (40)"
     static let earlierVersion = "1.1.0 (31)"
 
@@ -96,6 +96,20 @@ struct OnboardingTests {
 
         #expect(left == Self.onboarded(by: Self.earlierVersion, left: true))
         #expect(onboardingPlan(record: left, ranBefore: true, isTranslocated: false) == .steps([.selectLivepaper]))
+    }
+
+    static let launches: [Row<OnboardingPlan, Bool>] = [
+        Row("fresh: Livepaper starts, the cards over it", .steps(everyStep), true),
+        Row("after leaving: Livepaper starts, the card over it", .steps([.selectLivepaper]), true),
+        Row("an update or an ordinary launch: Livepaper starts", .nothing, true),
+        Row("translocated: nothing starts, and the move card is all there is", .moveToApplications, false),
+    ]
+
+    @Test(arguments: launches)
+    func `a translocated launch starts nothing: no library, host, socket or sensors, and nothing written at quit`(
+        row: Row<OnboardingPlan, Bool>
+    ) {
+        #expect(row.input.startsLivepaper == row.expected)
     }
 
     @Test func `fresh onboarding, ended, is not shown again`() {

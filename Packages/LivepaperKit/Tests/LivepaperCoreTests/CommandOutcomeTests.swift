@@ -117,6 +117,7 @@ struct CommandOutcomeTests {
         ),
         Row("an unreadable library", .libraryUnreadable, "The library could not be read, so Livepaper changes nothing"),
         Row("quitting", .quitting, "Livepaper is quitting"),
+        Row("still starting, after the wait", .stillStarting, "Livepaper is still starting; try again in a moment"),
     ]
 
     @Test(arguments: reasons)
@@ -191,6 +192,26 @@ struct CommandOutcomeTests {
         #expect(Self.ocean.wallpaper == .numbered(1))
         #expect(Self.oceanAgain.wallpaper == .numbered(1))
         #expect(Self.broken.wallpaper == nil)
+    }
+
+    @Test func `a source not imported is said in the one sentence the reply and onboarding's card share`() {
+        #expect(Self.broken.line == "“Broken” was not imported. It has no picture to play.")
+    }
+
+    static let summaries: [Row<[ImportedSource], String>] = [
+        Row("nothing found", [], "nothing found"),
+        Row("each outcome counted", [ocean, broken, oceanAgain, forest], "2 imported, 1 already in the library, 1 not imported"),
+        Row("an outcome that did not happen is left out", [broken, broken], "2 not imported"),
+    ]
+
+    @Test(arguments: summaries)
+    func `an import is logged by counts, never by its files' names`(row: Row<[ImportedSource], String>) {
+        let summary = ImportedSource.summary(of: row.input)
+
+        #expect(summary == row.expected)
+        for name in ["Ocean", "Forest", "Broken"] {
+            #expect(!summary.contains(name))
+        }
     }
 
     // MARK: Next's reply

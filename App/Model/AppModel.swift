@@ -76,7 +76,7 @@ final class AppModel: ImportLibrary {
     private(set) var importer: (any ImportRunning)?
     /// Work that goes on beside the app, the scenes' preparation among it, cancelled at quit.
     @ObservationIgnored var watches: [Task<Void, Never>] = []
-    @ObservationIgnored private var launching: Task<Void, Never>?
+    @ObservationIgnored private(set) var launching: Task<Void, Never>?
     @ObservationIgnored private var quitting: Task<Void, Never>?
     /// Render states are applied in the order they were made, each after the one before.
     @ObservationIgnored private var applying: Task<Void, Never>?
@@ -327,6 +327,7 @@ extension AppModel {
     @discardableResult
     func change(library newLibrary: Library? = nil, state newState: AppState? = nil) throws -> Task<Void, Never>? {
         if let libraryProblem { throw libraryProblem }
+        guard hasStarted else { throw refusedBeforeStart() }
         if let newLibrary, newLibrary != library {
             do {
                 try services.libraryStore.save(newLibrary)

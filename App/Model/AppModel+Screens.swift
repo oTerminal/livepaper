@@ -155,9 +155,23 @@ extension AppModel {
     var isPlaybackMetricsOn: Bool { services.isPlaybackMetricsOn() }
 }
 
+extension AppModel {
+    /// Whether `launch()` has run, or a preview stands in for it. A translocated
+    /// launch never runs it (M7), and the model changes and writes nothing then.
+    var hasStarted: Bool { launching != nil || isLaunched }
+
+    /// A change before the launch, which only a translocated launch can make: refused, and said so.
+    func refusedBeforeStart() -> LibraryProblem {
+        AppLog.logger.error("\(AppLog.notStarted, privacy: .public)")
+        return .notStarted
+    }
+}
+
 /// Why nothing is being written, for the screens to say; a change refused for it throws it.
 enum LibraryProblem: Error, Equatable {
     /// `library.json` could not be read: written by a newer Livepaper, or damaged
     /// along with the copy kept before it.
     case unreadable
+    /// Thrown only: the launch did not start Livepaper, being translocated (M7).
+    case notStarted
 }

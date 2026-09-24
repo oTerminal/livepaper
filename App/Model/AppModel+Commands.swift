@@ -17,19 +17,32 @@ struct CommandShell {
 }
 
 extension AppModel {
+    /// How long a command waits for the launch to read the library and the
+    /// displays before it is refused: the tool waits for its reply with no
+    /// time limit of its own, since an import answers once it is done.
+    static let readyWait: Duration = .seconds(10)
+
     /// Runs a command from a door and answers it. A command that arrives
-    /// before the launch has read the library and the displays waits for it.
-    /// An import answers once its rows are done.
+    /// before the launch has read the library and the displays waits for it,
+    /// for `readyWait` at most. An import answers once its rows are done.
     func perform(_ command: Command, from door: EntryPoint, shell: CommandShell) async -> CommandReply {
         AppLog.logger.notice("\(AppLog.command(command, from: door), privacy: .public)")
-        await untilReady()
-        let reply = await run(command, shell: shell)
-        if case .refused(let reason) = reply {
-            AppLog.logger.notice("\(AppLog.commandRefused(command, reason: reason), privacy: .public)")
-        } else {
-            AppLog.logger.notice("\(AppLog.commandDone(command), privacy: .public)")
+        guard await untilReady(within: Self.readyWait) else { return refuse(command, isQuitting ? .quitting : .stillStarting) }
+        let reply: CommandReply
+        do throws(CommandRefusal) {
+            reply = try await run(command, shell: shell)
+        } catch {
+            return refuse(command, error)
         }
+        // An import logs what it came to itself, by counts.
+        if case .import = command { return reply }
+        AppLog.logger.notice("\(AppLog.commandDone(command), privacy: .public)")
         return reply
+    }
+
+    private func refuse(_ command: Command, _ refusal: CommandRefusal) -> CommandReply {
+        AppLog.logger.notice("\(AppLog.commandRefused(command, refusal), privacy: .public)")
+        return .refused(refusal)
     }
 
     /// `status`: the host, the displays by name and what each shows, the library, Pause All and mute.
@@ -44,16 +57,19 @@ extension AppModel {
     }
 
     /// Returns once the launch has read the library and the display sensor has
-    /// named the displays, and at once after that, or at quit. A door can hand
-    /// over a command before either: a file opened with Livepaper arrives
-    /// before the launch has finished.
-    func untilReady() async {
-        while !(isLaunched && areDisplaysKnown), !isQuitting, !Task.isCancelled {
-            try? await Task.sleep(for: .milliseconds(20))
-        }
+    /// named the displays, and at once after that, or at quit; answers whether
+    /// it is ready. A door can hand over a command before either: a file opened
+    /// with Livepaper arrives before the launch has finished. With a `limit`,
+    /// it gives up after that long.
+    @discardableResult
+    func untilReady(within limit: Duration? = nil) async -> Bool {
+        _ = await Polling.wait(until: { isReady || isQuitting }, every: .milliseconds(20), within: limit, clock: ContinuousClock())
+        return isReady
     }
 
-    private func run(_ command: Command, shell: CommandShell) async -> CommandReply {
+    private var isReady: Bool { isLaunched && areDisplaysKnown }
+
+    private func run(_ command: Command, shell: CommandShell) async throws(CommandRefusal) -> CommandReply {
         // What reads, or opens a window, runs whatever the library's state.
         switch command {
         case .status: return .status(statusReport)
@@ -61,13 +77,9 @@ extension AppModel {
         case .library: shell.openLibrary()
         case .settings: shell.openSettings()
         case .import, .set, .pause, .resume, .next, .mute, .unmute:
-            if isQuitting { return .refused(.quitting) }
-            if libraryProblem != nil { return .refused(.libraryUnreadable) }
-            do throws(CommandRefusal) {
-                return try await carryOut(command)
-            } catch {
-                return .refused(error)
-            }
+            if isQuitting { throw .quitting }
+            if libraryProblem != nil { throw .libraryUnreadable }
+            return try await carryOut(command)
         }
         return .done(message: nil)
     }
@@ -95,7 +107,10 @@ extension AppModel {
         if let wallpaper = command.wallpaperToSetEverywhere(resulting: sources.compactMap(\.wallpaper)), library[wallpaper] != nil {
             setOnAllDisplays(.wallpaper(wallpaper))
         }
-        return command.importReply(sources)
+        let reply = command.importReply(sources)
+        let refused = if case .refused = reply { true } else { false }
+        AppLog.logger.notice("\(AppLog.imported(sources, refused: refused), privacy: .public)")
+        return reply
     }
 
     private func set(_ assignment: Assignment, on target: DisplayTarget) throws(CommandRefusal) {

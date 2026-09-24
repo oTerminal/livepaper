@@ -78,9 +78,3 @@ public struct ServiceRestart: Equatable, Sendable {
         }
     }
 }
-
-extension Date {
-    fileprivate static func + (date: Date, duration: Duration) -> Date {
-        date.addingTimeInterval(duration / .seconds(1))
-    }
-}

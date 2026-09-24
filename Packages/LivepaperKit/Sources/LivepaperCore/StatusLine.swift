@@ -31,11 +31,9 @@ public func statusLine(
         return .working(importing.count > 1 ? "Importing \(importing.position) of \(importing.count)" : "Importing")
     }
     switch host {
-    case .connecting: return .working("Connecting to the wallpaper service")
-    case .recovering: return .working("Recovering the wallpaper")
-    case .notSelected: return .idle("Livepaper is not your wallpaper")
-    case .unavailable: return .idle("Not available on this version of macOS")
-    case .stopped: return .idle(isPausedAll ? "Paused" : "Stopped")
+    case .connecting, .recovering: return .working(host.words)
+    case .notSelected, .unavailable: return .idle(host.words)
+    case .stopped: return .idle(isPausedAll ? "Paused" : host.words)
     case .live: return .idle(isPausedAll ? "Paused" : liveWords(showing: showing))
     }
 }

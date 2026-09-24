@@ -46,6 +46,22 @@ struct CommandSocketTests {
         #expect(SocketAddress.fits(socket))
     }
 
+    static let folders: [Row<URL, String>] = [
+        Row(
+            "a usual home's socket is in the library folder",
+            URL(filePath: "/Users/sam", directoryHint: .isDirectory),
+            "the library folder"
+        ),
+        Row("a long home's is in the temporary folder", home(socketPathBytes: 104), "the temporary folder"),
+    ]
+
+    @Test(arguments: folders)
+    func `the log says which folder the socket is in, never its path`(row: Row<URL, String>) {
+        let socket = LibraryLocation(home: row.input).commandSocket(fallback: Self.temporary)
+
+        #expect(LibraryLocation.commandSocketFolder(of: socket) == row.expected)
+    }
+
     @Test func `an address carries the path and its NUL`() throws {
         let address = try #require(SocketAddress.make(URL(filePath: "/tmp/lp/command.sock")))
         let path = withUnsafeBytes(of: address.sun_path) { String(bytes: $0.prefix { $0 != 0 }, encoding: .utf8) }

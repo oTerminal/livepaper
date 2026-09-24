@@ -13,6 +13,9 @@ public enum CommandRefusal: Error, Hashable, Sendable, CustomStringConvertible {
     /// Nothing is written while the library could not be read.
     case libraryUnreadable
     case quitting
+    /// The launch has not read the library and the displays within the wait, so
+    /// the tool is answered rather than left waiting.
+    case stillStarting
 
     public var reason: String {
         switch self {
@@ -23,6 +26,7 @@ public enum CommandRefusal: Error, Hashable, Sendable, CustomStringConvertible {
         case .noPlaylistShown(.display(let display)): "Display \(display) does not show a playlist"
         case .libraryUnreadable: "The library could not be read, so Livepaper changes nothing"
         case .quitting: "Livepaper is quitting"
+        case .stillStarting: "Livepaper is still starting; try again in a moment"
         }
     }
 
@@ -91,12 +95,25 @@ public enum ImportedSource: Hashable, Sendable {
         }
     }
 
-    var line: String {
+    /// What it came to in a sentence: the command's reply, and onboarding's first card, say it so.
+    public var line: String {
         switch self {
         case .imported(_, let name): "Imported “\(name)”."
         case .alreadyThere(_, let name): "“\(name)” is already in the library."
         case .notImported(let name, let reason): "“\(name)” was not imported. \(reason)."
         }
+    }
+
+    /// What an import came to in counts, for a log line, which never holds a source file's name:
+    /// "2 imported, 1 already in the library, 1 not imported".
+    public static func summary(of sources: [ImportedSource]) -> String {
+        let imported = sources.count { if case .imported = $0 { true } else { false } }
+        let alreadyThere = sources.count { if case .alreadyThere = $0 { true } else { false } }
+        let notImported = sources.count { if case .notImported = $0 { true } else { false } }
+        let counts = [(imported, "imported"), (alreadyThere, "already in the library"), (notImported, "not imported")]
+            .filter { $0.0 > 0 }
+            .map { "\($0.0) \($0.1)" }
+        return counts.isEmpty ? "nothing found" : counts.joined(separator: ", ")
     }
 }
 

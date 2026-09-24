@@ -188,12 +188,16 @@ final class Doors: NSObject {
             open(link: link)
         case "socket":
             Task {
-                let reply: CommandReply
+                let command: Command
                 do throws(CommandRejection) {
-                    reply = await model.perform(try EntryPoint.commandSocket.command(from: argument), from: .commandSocket, shell: shell)
+                    command = try EntryPoint.commandSocket.command(from: argument)
                 } catch {
-                    reply = .refused(error)
+                    AppLog.logger.notice("fakes: socket refused \(error.kind, privacy: .public)")
+                    return
                 }
+                let reply = await model.perform(command, from: .commandSocket, shell: shell)
+                // An import's reply names its source files: the model has logged it by counts.
+                if case .import = command { return }
                 let line = (try? reply.line()).flatMap { String(bytes: $0, encoding: .utf8) } ?? "unreadable"
                 AppLog.logger.notice("fakes: socket reply \(line, privacy: .public)")
             }

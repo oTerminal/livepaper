@@ -25,6 +25,35 @@ public enum RenderHostStatus: Equatable, Sendable {
     case unavailable
 }
 
+extension RenderHostStatus {
+    /// Its name in the host's log lines, the socket's `status` and the
+    /// diagnostics report, which other milestones read: `live`, `recovering(flush)`.
+    public var name: String {
+        switch self {
+        case .stopped: "stopped"
+        case .connecting: "connecting"
+        case .notSelected: "notSelected"
+        case .live: "live"
+        case .recovering(let level): "recovering(\(String(describing: level)))"
+        case .unavailable: "unavailable"
+        }
+    }
+
+    /// What the popover's status line and `livepaper status` say of it. The
+    /// line says more where it knows more: how many displays are live, Paused,
+    /// and the wallpaper service not responding.
+    public var words: String {
+        switch self {
+        case .stopped: "Stopped"
+        case .connecting: "Connecting to the wallpaper service"
+        case .notSelected: "Livepaper is not your wallpaper"
+        case .live: "Live"
+        case .recovering: "Recovering the wallpaper"
+        case .unavailable: "Not available on this version of macOS"
+        }
+    }
+}
+
 /// The part of the system that puts a playing wallpaper on screen.
 ///
 /// The wallpaper extension's client is the one real host (record 0001). The
