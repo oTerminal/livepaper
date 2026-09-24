@@ -1,9 +1,10 @@
 import SwiftUI
 
 /// What one display is showing, in the menu-bar popover, with the caller's
-/// controls on the trailing side. The popover is already glass, so the card is
-/// a plain fill: glass here would be glass on glass.
-public struct DisplayNowPlayingCard<Accessory: View>: View {
+/// controls on the trailing side and, if the caller has one, a row as wide as
+/// the card under them (the popover's volume). The popover is already glass, so
+/// the card is a plain fill: glass here would be glass on glass.
+public struct DisplayNowPlayingCard<Accessory: View, Footer: View>: View {
     @Accessibility private var accessibility
 
     private let displayName: String
@@ -12,18 +13,22 @@ public struct DisplayNowPlayingCard<Accessory: View>: View {
     private let status: String?
     private let isActive: Bool
     private let accessory: Accessory
+    private let footer: Footer
 
     /// - Parameters:
     ///   - title: `nil` when nothing is assigned to the display.
     ///   - status: Why the display is not playing, such as "Paused: on battery".
     ///   - isActive: Whether the wallpaper is playing. An inactive poster is muted.
+    ///   - footer: A row as wide as the card, under the poster, the words and the
+    ///     accessory, such as a `VolumeSlider`. A footer that draws nothing takes no room.
     public init(
         displayName: String,
         title: String?,
         poster: Image? = nil,
         status: String? = nil,
         isActive: Bool = true,
-        @ViewBuilder accessory: () -> Accessory
+        @ViewBuilder accessory: () -> Accessory,
+        @ViewBuilder footer: () -> Footer
     ) {
         self.displayName = displayName
         self.title = title
@@ -31,23 +36,29 @@ public struct DisplayNowPlayingCard<Accessory: View>: View {
         self.status = status
         self.isActive = isActive
         self.accessory = accessory()
+        self.footer = footer()
     }
 
     public var body: some View {
         let shape = RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
-        HStack(spacing: Spacing.medium) {
+        VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: Spacing.medium) {
-                thumbnail
-                text
-            }
-            .accessibilityElement(children: .ignore)
-            // Display first, then the wallpaper and status, as one label: VoiceOver
-            // speaks a value before the label, which would put the display last.
-            .accessibilityLabel(Text(verbatim: "\(displayName), \(spokenValue)"))
+                HStack(spacing: Spacing.medium) {
+                    thumbnail
+                    text
+                }
+                .accessibilityElement(children: .ignore)
+                // Display first, then the wallpaper and status, as one label: VoiceOver
+                // speaks a value before the label, which would put the display last.
+                .accessibilityLabel(Text(verbatim: "\(displayName), \(spokenValue)"))
 
-            Spacer(minLength: 0)
-            accessory
-                .fixedSize()
+                Spacer(minLength: 0)
+                accessory
+                    .fixedSize()
+            }
+            // Straight under the row, with no gap: a footer 40 pt tall, as the
+            // volume is, brings its own room above and below what it draws.
+            footer
         }
         .padding(Spacing.small)
         .background(.quaternary.opacity(Metrics.fillOpacity), in: shape)
@@ -112,7 +123,23 @@ public struct DisplayNowPlayingCard<Accessory: View>: View {
     }
 }
 
-extension DisplayNowPlayingCard where Accessory == EmptyView {
+extension DisplayNowPlayingCard where Footer == EmptyView {
+    /// A card with controls beside the words and nothing under them.
+    public init(
+        displayName: String,
+        title: String?,
+        poster: Image? = nil,
+        status: String? = nil,
+        isActive: Bool = true,
+        @ViewBuilder accessory: () -> Accessory
+    ) {
+        self.init(displayName: displayName, title: title, poster: poster, status: status, isActive: isActive, accessory: accessory) {
+            EmptyView()
+        }
+    }
+}
+
+extension DisplayNowPlayingCard where Accessory == EmptyView, Footer == EmptyView {
     /// A card with no controls.
     public init(displayName: String, title: String?, poster: Image? = nil, status: String? = nil, isActive: Bool = true) {
         self.init(displayName: displayName, title: title, poster: poster, status: status, isActive: isActive) { EmptyView() }
