@@ -20,12 +20,23 @@ public nonisolated enum StatusLineStatus: Hashable, Sendable {
         case .serviceNotResponding: .serviceNotResponding
         }
     }
+
+    /// What the line says, and VoiceOver with it: a sentence without its full
+    /// stop, as the caller's words are ("Livepaper is not your wallpaper").
+    public var words: String {
+        switch self {
+        case .idle(let words), .working(let words): words
+        case .serviceNotResponding: String(localized: "Wallpaper service not responding", bundle: .module)
+        }
+    }
 }
 
 /// The single line at the bottom of the window, and the one place a wallpaper
 /// service that has stopped responding is reported. The line keeps one height in
 /// every status, and only a change of kind crossfades: a count ticking up inside
-/// `.working` swaps in place, because it changes many times a second.
+/// `.working` swaps in place, because it changes many times a second. The
+/// crossfade happens inside the line, so when the layout moves the line in the
+/// same change, the words it is leaving go with it.
 public struct StatusLine: View {
     @Accessibility private var accessibility
 
@@ -53,9 +64,14 @@ public struct StatusLine: View {
         // One scoped animation: a crossfade, so Reduce Motion leaves it alone and a
         // caller's `withoutAnimation` still silences it.
         .animation(accessibility.fade(Motion.enter(Motion.Duration.hover)), value: status.kind)
+        // The line's place is its container's, and moves at once: without the group
+        // the words it was leaving faded out where the line had been, over whatever
+        // the layout had moved there (the popover's recent wallpapers, when an
+        // import grew a display's card).
+        .geometryGroup()
         .onChange(of: status.kind) { _, kind in
             guard kind == .serviceNotResponding else { return }
-            AccessibilityNotification.Announcement(String(localized: "Wallpaper service not responding.", bundle: .module)).post()
+            AccessibilityNotification.Announcement(status.words).post()
         }
     }
 
@@ -75,7 +91,7 @@ public struct StatusLine: View {
             HStack(spacing: Spacing.small) {
                 // A static symbol and words: never colour or motion alone.
                 Label {
-                    Text("Wallpaper service not responding.", bundle: .module)
+                    Text(status.words)
                         .foregroundStyle(.primary)
                 } icon: {
                     Image(systemName: "exclamationmark.triangle.fill")

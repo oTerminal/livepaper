@@ -12,7 +12,7 @@ enum OnboardingPicture: Equatable {
     case login(Wallpaper?)
     /// The last card: a desktop showing the wallpaper.
     case desktop(Wallpaper?)
-    /// Translocated: Livepaper's icon going into the Applications folder.
+    /// Translocated: Livepaper going into the Applications folder.
     case move
 }
 
@@ -122,15 +122,16 @@ private struct Dock<Fill: ShapeStyle, Tiles: ShapeStyle>: View {
     }
 }
 
-/// Livepaper's own icon, an arrow, and the Applications folder's icon, as the
-/// Finder draws them.
+/// Livepaper, an arrow, and the Applications folder's icon as the Finder draws
+/// it. Livepaper is drawn, not its bundle's icon: until the app has an icon of
+/// its own (M9) that is macOS's blank one, which said nothing.
 private struct MoveToApplications: View {
     var body: some View {
         ZStack {
             Rectangle().fill(.quinary)
             HStack(spacing: Spacing.extraLarge) {
-                Image(nsImage: NSApp.applicationIconImage)
-                    .resizable()
+                LivepaperTile()
+                    // The folder's picture is inset in its 96 pt icon; the tile is that size.
                     .frame(width: 96, height: 96)
                 Image(systemName: "arrow.right")
                     .font(.title.weight(.semibold))
@@ -140,6 +141,25 @@ private struct MoveToApplications: View {
                     .frame(width: 96, height: 96)
             }
         }
+    }
+}
+
+/// Livepaper as a tile the size of an app's icon: the symbol its menu-bar item
+/// shows, on the drawn wallpaper the other cards show before one is set.
+private struct LivepaperTile: View {
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: Radius.panel, style: .continuous)
+        DrawnPoster(seed: 7)
+            .overlay {
+                Image(systemName: "play.rectangle.on.rectangle")
+                    .font(.system(size: 34, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .shadow(color: .black.opacity(0.35), radius: 3, y: 1)
+            }
+            .frame(width: 80, height: 80)
+            .clipShape(shape)
+            .imageOutline(shape)
+            .shadow(color: .black.opacity(0.25), radius: 3, y: 2)
     }
 }
 
