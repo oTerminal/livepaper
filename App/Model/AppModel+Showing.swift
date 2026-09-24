@@ -3,8 +3,9 @@ import Foundation
 import LivepaperCore
 
 // What the displays show: Set on Display, the playlist pickers, the transport,
-// mute, and the wallpaper service. Pause All is in AppModel.swift, with the
-// rest of the host's life.
+// mute, and the wallpaper service. Pause All and Resume All are in
+// AppModel.swift, with the rest of the host's life; the button that toggles
+// them is here.
 
 extension AppModel {
     // MARK: Set on display
@@ -84,6 +85,11 @@ extension AppModel {
     /// through the playlist's order.
     func previous(on display: DisplayIdentity) {
         commit(state: histories.previous(on: display, in: state, library: library))
+    }
+
+    /// The popover's Pause All or Resume All, and its hotkey.
+    func togglePauseAll() {
+        if isPausedAll { resumeAll() } else { pauseAll() }
     }
 
     // MARK: Mute

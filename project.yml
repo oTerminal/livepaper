@@ -39,7 +39,14 @@ targets:
   Livepaper:
     type: application
     platform: macOS
-    sources: [App]
+    sources:
+      - App
+      # The loops onboarding offers (M7), with PROVENANCE.md beside them: one
+      # folder in the app's resources, where `SampleWallpaper.bundled` looks.
+      - path: Resources/Samples
+        type: folder
+        buildPhase: resources
+        optional: true
     scheme: {}
     settings:
       base:

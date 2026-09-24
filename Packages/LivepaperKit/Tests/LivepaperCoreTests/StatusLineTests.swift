@@ -18,7 +18,7 @@ struct StatusLineTests {
         Row("stopped otherwise", Line(host: .stopped), .idle("Stopped")),
         Row("Pause All reads paused before the host has stopped", Line(host: .live, isPausedAll: true), .idle("Paused")),
         Row("connecting", Line(host: .connecting), .working("Connecting to the wallpaper service")),
-        Row("not selected", Line(host: .notSelected), .idle("Livepaper is not the wallpaper in System Settings")),
+        Row("not selected, short for the pane's button beside it", Line(host: .notSelected), .idle("Livepaper is not your wallpaper")),
         Row("unavailable", Line(host: .unavailable), .idle("Not available on this version of macOS")),
         Row("recovering by flushing", Line(host: .recovering(.flush)), .working("Recovering the wallpaper")),
         Row("recovering by rebuilding the surface", Line(host: .recovering(.rebuildSurface)), .working("Recovering the wallpaper")),

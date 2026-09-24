@@ -1,46 +1,68 @@
 import LivepaperCore
+import LivepaperSystem
 
 /// A render host that draws nothing and remembers what it was asked to do.
+///
+/// Its status reaches every reader, as the real host's does: each read of
+/// `status` starts with the current one, then gives every change, so the app
+/// model and `Selection` can both follow it (M7).
 @MainActor
-public final class FakeRenderHost: RenderHost {
+public final class FakeRenderHost: RenderHost, HostStatusSource {
     public var capabilities: HostCapabilities
     /// Set to make `activate()` throw.
     public var activationError: (any Error)?
     /// How long `apply` takes, on the host's clock: long enough, in a fakes run,
     /// to see Set on Display working. Nil applies at once.
     public var applyDelay: Duration?
-    /// How long after `activate()` or `recover(_:)` the host reports `.live`, on
-    /// its clock, as the real host does when a heartbeat arrives. Nil never does:
-    /// a test reports it. Any other report, or a deactivate, comes first.
+    /// How long after `activate()` or `recover(_:)` the host reports a heartbeat's
+    /// status, on its clock, as the real host does when one arrives. Nil never
+    /// does: a test reports it. Any other report, or a deactivate, comes first.
     public var liveAfter: Duration?
+    /// Whether Livepaper is the system wallpaper, as the heartbeat's
+    /// `desktopSurfaceAcquired` flag says: a heartbeat reports `.live` when it
+    /// is, `.notSelected` when it is not.
+    public var isSelected = true
 
     public private(set) var isActive = false
     public private(set) var appliedStates: [RenderState] = []
     public private(set) var recoveries: [RecoveryLevel] = []
+    public private(set) var currentStatus = RenderHostStatus.stopped
 
-    public let status: AsyncStream<RenderHostStatus>
-    private let statusContinuation: AsyncStream<RenderHostStatus>.Continuation
+    private let statuses = Broadcast<RenderHostStatus>(bufferingPolicy: .unbounded)
     private let clock: any Clock<Duration>
     private var goingLive: Task<Void, Never>?
 
     public init(capabilities: HostCapabilities = HostCapabilities(showsLockScreen: true), clock: any Clock<Duration> = ContinuousClock()) {
         self.capabilities = capabilities
         self.clock = clock
-        (status, statusContinuation) = AsyncStream.makeStream()
+        statuses.send(currentStatus)
+    }
+
+    /// Each read starts with the current status, then gives every change.
+    public var status: AsyncStream<RenderHostStatus> {
+        statuses.stream()
     }
 
     /// Reports a status, as the real host does when a heartbeat arrives or stops.
     public func report(_ status: RenderHostStatus) {
         goingLive?.cancel()
         goingLive = nil
-        statusContinuation.yield(status)
+        currentStatus = status
+        statuses.send(status)
+    }
+
+    /// A heartbeat after `liveAfter`, as when WallpaperAgent was restarted and
+    /// launched the extension again: `.connecting` now, then `.live` or
+    /// `.notSelected` by `isSelected`.
+    public func heartbeatLater() {
+        report(.connecting)
+        goLiveLater()
     }
 
     public func activate() async throws {
         if let activationError { throw activationError }
         isActive = true
-        report(.connecting)
-        goLiveLater()
+        heartbeatLater()
     }
 
     public func apply(_ state: RenderState) async {
@@ -70,7 +92,7 @@ public final class FakeRenderHost: RenderHost {
                 return
             }
             guard !Task.isCancelled else { return }
-            report(.live)
+            report(isSelected ? .live : .notSelected)
         }
     }
 }

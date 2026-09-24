@@ -13,8 +13,19 @@ struct AppServices {
     var libraryStore: any LibraryStore
     var appStateStore: any AppStateStore
     var art: WallpaperArt.Source
-    /// The login item, the hotkeys and leaving: `FakeSystemServices` until M7.
+    /// The login item, the hotkeys and leaving: `MacSystemServices` wired, `FakeSystemServices` on fakes.
     var systemServices: any SystemServices
+    /// Hands the system services what `app-state.json` kept, at launch: the real
+    /// ones register its hotkeys and square the login item with its intent.
+    var startSystemServices: (AppState, any SystemServicesOwner) -> Void
+    /// Each hotkey pressed, in whatever app is in front; one reader, the app delegate.
+    var hotkeyPresses: AsyncStream<HotkeyAction>
+    /// Making Livepaper the system wallpaper (M7): onboarding's last card.
+    var selection: Selection
+    /// System Settings at Wallpaper, where the user chooses Livepaper by hand.
+    var wallpaperPane: any WallpaperPaneOpening
+    /// Onboarding's record, where this copy runs, and the samples.
+    var onboarding: OnboardingServices
     /// Clears what an import that was killed left behind; runs at launch, before any import.
     var sweep: () throws -> [URL]
     /// The render state the last run wrote, so that the generation carries on.
@@ -58,13 +69,21 @@ extension AppServices {
         let shaderTools = ShaderTools.locate(
             bundled: Bundle.main.url(forAuxiliaryExecutable: "glslang"), Bundle.main.url(forAuxiliaryExecutable: "spirv-cross")
         )
+        // Selecting and leaving edit WallpaperAgent's store (record 0003); the heartbeat says it worked.
+        let system = MacSystemServices(selection: Selection(host: host))
         return AppServices(
             isFakes: false,
             host: host,
             libraryStore: FileLibraryStore(manifest: location.manifest),
             appStateStore: FileAppStateStore(file: location.appState),
             art: .library(location),
-            systemServices: FakeSystemServices(),
+            systemServices: system,
+            startSystemServices: { state, owner in system.start(kept: state, owner: owner) },
+            hotkeyPresses: system.presses,
+            selection: system.selection,
+            wallpaperPane: WallpaperPane(),
+            // Looked for now, before this launch writes anything.
+            onboarding: .wired(location: location),
             sweep: { try sweepInterruptedImports(in: location) },
             lastRenderState: { try lastRenderState(at: location.renderState) },
             makeImporter: { library in

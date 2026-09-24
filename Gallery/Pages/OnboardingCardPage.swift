@@ -69,6 +69,45 @@ struct OnboardingCardPage: View {
             )
         }
 
+        StateSection(
+            title: "With an accessory",
+            note: """
+            Controls of the step's own under the words, entering with them: here, wallpapers to start with. Unlike the \
+            illustration they are read by VoiceOver and can be pressed. They come and go with their step, unanimated.
+            """
+        ) {
+            OnboardingCard(
+                title: "Add a wallpaper",
+                message: "Drop a file on this card, or start with one of these.",
+                stepIndex: 0,
+                stepCount: 3,
+                primaryTitle: "Choose File…",
+                onPrimary: {},
+                illustration: { SamplePicture(seed: 21) },
+                accessory: {
+                    HStack(spacing: Spacing.small) {
+                        ForEach(1..<4) { seed in
+                            WallpaperTile(id: seed, poster: SamplePicture.image(seed: 30 + seed), title: "Sample \(seed)") {} livePreview: {
+                                EmptyView()
+                            }
+                        }
+                    }
+                }
+            )
+        }
+
+        StateSection(title: "A card alone", note: "One card shows no page dots: one dot would only say “Step 1 of 1”.") {
+            OnboardingCard(
+                title: "Move Livepaper to Applications",
+                message: "Quit Livepaper, drag it into the Applications folder, and open it from there.",
+                stepIndex: 0,
+                stepCount: 1,
+                primaryTitle: "Quit",
+                onPrimary: {},
+                illustration: { SamplePicture(seed: 6) }
+            )
+        }
+
         StateSection(title: "Long text") {
             OnboardingCard(
                 title: "Let Livepaper open when you log in, so your wallpaper is there before you are",

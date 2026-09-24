@@ -9,7 +9,12 @@ import SwiftUI
 /// nothing re-enters. The card tells a click from a key press itself: Return
 /// presses the primary button too, and then the step changes with no animation.
 /// Give the card a new `.id` only to replay the entrance.
-public struct OnboardingCard<Illustration: View>: View {
+///
+/// An accessory, when a step needs controls of its own (onboarding's samples to
+/// choose from), sits under the words and enters with them. Unlike the
+/// illustration, which is a picture and hidden from VoiceOver, it is read and
+/// can be pressed. A card alone (`stepCount` 1) shows no page dots.
+public struct OnboardingCard<Illustration: View, Accessory: View>: View {
     @Accessibility private var accessibility
     @Environment(\.colorScheme) private var scheme
     @State private var hasEntered = false
@@ -23,6 +28,7 @@ public struct OnboardingCard<Illustration: View>: View {
     private let secondaryTitle: String?
     private let onSecondary: (() -> Void)?
     private let illustration: Illustration
+    private let accessory: Accessory
 
     /// - Parameter stepIndex: Zero-based; VoiceOver reads it one-based ("Step 2 of 4").
     public init(
@@ -34,7 +40,8 @@ public struct OnboardingCard<Illustration: View>: View {
         onPrimary: @escaping () -> Void,
         secondaryTitle: String? = nil,
         onSecondary: (() -> Void)? = nil,
-        @ViewBuilder illustration: () -> Illustration
+        @ViewBuilder illustration: () -> Illustration,
+        @ViewBuilder accessory: () -> Accessory
     ) {
         self.title = title
         self.message = message
@@ -45,6 +52,7 @@ public struct OnboardingCard<Illustration: View>: View {
         self.secondaryTitle = secondaryTitle
         self.onSecondary = onSecondary
         self.illustration = illustration()
+        self.accessory = accessory()
     }
 
     public var body: some View {
@@ -53,16 +61,23 @@ public struct OnboardingCard<Illustration: View>: View {
             picture
                 .entering(group: 0, hasEntered: hasEntered)
 
-            VStack(alignment: .leading, spacing: Spacing.tight) {
-                Text(title)
-                    .font(.title2.weight(.semibold))
-                    .accessibilityAddTraits(.isHeader)
-                Text(message)
-                    .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: Spacing.large) {
+                VStack(alignment: .leading, spacing: Spacing.tight) {
+                    Text(title)
+                        .font(.title2.weight(.semibold))
+                        .accessibilityAddTraits(.isHeader)
+                    Text(message)
+                        .foregroundStyle(.secondary)
+                }
+                .contentTransition(.opacity)
+                .animation(stepAnimation, value: stepIndex)
+                .fixedSize(horizontal: false, vertical: true)
+
+                // Comes and goes with its step and never animates: the card's height
+                // snaps, and a fading accessory would be drawn over the buttons that
+                // moved into its place. None, or a step with none, takes no room.
+                accessory
             }
-            .contentTransition(.opacity)
-            .animation(stepAnimation, value: stepIndex)
-            .fixedSize(horizontal: false, vertical: true)
             .padding(.horizontal, Spacing.small)
             .entering(group: 1, hasEntered: hasEntered)
 
@@ -72,10 +87,13 @@ public struct OnboardingCard<Illustration: View>: View {
                 if let secondaryTitle, let onSecondary {
                     Button(secondaryTitle) { withoutAnimationIfKeyPress(onSecondary) }
                         .buttonStyle(.bordered)
+                        // A new title is a new button: the glass stays whole (see DECISIONS.md).
+                        .id(secondaryTitle)
                 }
                 Button(primaryTitle) { withoutAnimationIfKeyPress(onPrimary) }
                     .buttonStyle(.borderedProminent)
                     .keyboardShortcut(.defaultAction)
+                    .id(primaryTitle)
             }
             .controlSize(.large)
             .padding([.horizontal, .bottom], Spacing.small)
@@ -126,7 +144,14 @@ public struct OnboardingCard<Illustration: View>: View {
             .accessibilityHidden(true)
     }
 
-    private var pageIndicator: some View {
+    /// Nothing for a card alone: one dot would only say "Step 1 of 1".
+    @ViewBuilder private var pageIndicator: some View {
+        if stepCount > 1 {
+            dots
+        }
+    }
+
+    private var dots: some View {
         HStack(spacing: Spacing.small) {
             ForEach(0..<max(stepCount, 0), id: \.self) { index in
                 // Opacity rather than a style swap, so the change can crossfade.
@@ -139,6 +164,34 @@ public struct OnboardingCard<Illustration: View>: View {
         .animation(stepAnimation, value: stepIndex)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("Step \(stepIndex + 1) of \(stepCount)", bundle: .module))
+    }
+}
+
+extension OnboardingCard where Accessory == EmptyView {
+    /// A card whose only controls are its buttons.
+    public init(
+        title: String,
+        message: String,
+        stepIndex: Int,
+        stepCount: Int,
+        primaryTitle: String,
+        onPrimary: @escaping () -> Void,
+        secondaryTitle: String? = nil,
+        onSecondary: (() -> Void)? = nil,
+        @ViewBuilder illustration: () -> Illustration
+    ) {
+        self.init(
+            title: title,
+            message: message,
+            stepIndex: stepIndex,
+            stepCount: stepCount,
+            primaryTitle: primaryTitle,
+            onPrimary: onPrimary,
+            secondaryTitle: secondaryTitle,
+            onSecondary: onSecondary,
+            illustration: illustration,
+            accessory: { EmptyView() }
+        )
     }
 }
 

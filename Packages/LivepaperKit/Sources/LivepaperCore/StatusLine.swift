@@ -24,7 +24,7 @@ public func statusLine(
     switch host {
     case .connecting: return .working("Connecting to the wallpaper service")
     case .recovering: return .working("Recovering the wallpaper")
-    case .notSelected: return .idle("Livepaper is not the wallpaper in System Settings")
+    case .notSelected: return .idle("Livepaper is not your wallpaper")
     case .unavailable: return .idle("Not available on this version of macOS")
     case .stopped: return .idle(isPausedAll ? "Paused" : "Stopped")
     case .live: return .idle(isPausedAll ? "Paused" : liveWords(showing: showing))

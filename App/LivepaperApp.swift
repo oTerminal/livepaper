@@ -46,6 +46,20 @@ struct LivepaperApp: App {
         .defaultLaunchBehavior(.suppressed)
         .restorationBehavior(.disabled)
 
+        // M7: first-run onboarding, opened at launch when the preferences say it has not run.
+        Window("Welcome to Livepaper", id: AppWindows.onboardingID) {
+            OnboardingWindow()
+                .environment(delegate.model)
+                .environment(delegate.onboarding)
+                .onboardingWindow(delegate.windows)
+                .launchOptions(delegate.options)
+        }
+        .windowStyle(.hiddenTitleBar)
+        .windowResizability(.contentSize)
+        .defaultWindowPlacement { _, _ in WindowPlacement(.center) }
+        .defaultLaunchBehavior(.suppressed)
+        .restorationBehavior(.disabled)
+
         Settings {
             SettingsView()
                 .environment(delegate.model)
@@ -65,6 +79,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let model: AppModel
     /// The Workshop (record 0009): Valve's steamcmd, or the fakes' stand-in.
     let workshop: WorkshopModel
+    /// First-run onboarding (M7), decided as the app starts.
+    let onboarding: Onboarding
     /// The fakes run's world, which its Fakes menu drives. Nil when wired: then
     /// nothing fake is made, and the model drives the real wallpaper.
     private let fakes: Fakes?
@@ -75,7 +91,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     override init() {
         let options = LaunchOptions.current
         if options.isFakes {
-            let fakes = Fakes(library: options.fakeLibrary)
+            let fakes = Fakes(library: options.fakeLibrary, onboarding: options.onboarding)
             self.fakes = fakes
             model = AppModel(services: fakes.makeServices())
         } else {
@@ -83,6 +99,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             model = AppModel(services: .wired())
         }
         workshop = WorkshopModel(services: options.isFakes ? .fakes() : .wired(), library: model)
+        onboarding = Onboarding(model: model)
         super.init()
     }
 
@@ -101,7 +118,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if let fakes {
             remote = FakesRemote { [weak self] verb, rest in self?.perform(verb, rest, fakes: fakes) }
         }
+        watchHotkeys()
         model.launch()
+        if onboarding.shows {
+            // A turn later, once SwiftUI has its scenes up.
+            Task { [windows] in windows.openOnboarding() }
+        }
     }
 
     /// A command from `Tools/pr-media/fakes.sh`. The popover opens and closes with
@@ -118,7 +140,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if !menu.performItem(titled: title) { AppLog.logger.notice("fakes: no menu item \(title, privacy: .public)") }
         case ("quit", _): NSApp.terminate(nil)
         default:
-            guard !FakesCommands(model: model).perform(verb, rest) else { return }
+            let system = FakesSystemCommands(onboarding: onboarding, fakes: fakes, windows: windows)
+            guard !FakesCommands(model: model).perform(verb, rest), !system.perform(verb, rest) else { return }
             AppLog.logger.notice("fakes: unknown command \(verb, privacy: .public) \(rest, privacy: .public)")
         }
     }

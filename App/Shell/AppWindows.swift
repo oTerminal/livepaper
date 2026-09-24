@@ -42,14 +42,19 @@ final class AppWindows {
 
     fileprivate func libraryDidOpen() {
         isLibraryOpen = true
-        NSApp.setActivationPolicy(.regular)
+        followOpenWindows()
     }
 
-    /// The close button or Command-W: the Dock icon goes, unless the Workshop window is open, and the app keeps running.
+    /// The close button or Command-W: the Dock icon goes, unless another window with one is open, and the app keeps running.
     fileprivate func libraryDidClose() {
         isLibraryOpen = false
-        NSApp.setActivationPolicy(isWorkshopOpen ? .regular : .accessory)
+        followOpenWindows()
         didCloseLibrary?()
+    }
+
+    /// The Dock icon is there while the library, the Workshop or onboarding is open.
+    private func followOpenWindows() {
+        NSApp.setActivationPolicy(isLibraryOpen || isWorkshopOpen || isOnboardingOpen ? .regular : .accessory)
     }
 
     // MARK: The Workshop window (record 0009)
@@ -67,12 +72,35 @@ final class AppWindows {
 
     fileprivate func workshopDidOpen() {
         isWorkshopOpen = true
-        NSApp.setActivationPolicy(.regular)
+        followOpenWindows()
     }
 
     fileprivate func workshopDidClose() {
         isWorkshopOpen = false
-        NSApp.setActivationPolicy(isLibraryOpen ? .regular : .accessory)
+        followOpenWindows()
+    }
+
+    // MARK: Onboarding (M7)
+
+    static let onboardingID = "onboarding"
+    private(set) var isOnboardingOpen = false
+
+    /// Opens onboarding's window in front, with the Dock icon, as the library window does.
+    func openOnboarding() {
+        willOpenWindow?()
+        NSApp.setActivationPolicy(.regular)
+        (openWindow ?? EnvironmentValues().openWindow)(id: Self.onboardingID)
+        NSApp.activate()
+    }
+
+    fileprivate func onboardingDidOpen() {
+        isOnboardingOpen = true
+        followOpenWindows()
+    }
+
+    fileprivate func onboardingDidClose() {
+        isOnboardingOpen = false
+        followOpenWindows()
     }
 }
 
@@ -83,6 +111,23 @@ extension View {
             .background(SceneActionsReader(windows: windows))
             .onAppear { windows.workshopDidOpen() }
             .onDisappear { windows.workshopDidClose() }
+    }
+}
+
+extension View {
+    /// Onboarding's window root: the Dock icon comes and goes with it, as with the library window.
+    func onboardingWindow(_ windows: AppWindows) -> some View {
+        environment(windows)
+            .background(SceneActionsReader(windows: windows))
+            .onAppear { windows.onboardingDidOpen() }
+            .onDisappear { windows.onboardingDidClose() }
+    }
+}
+
+extension NSWindow {
+    /// Onboarding's scene (`AppWindows.onboardingID`), named as the library window's is.
+    var isOnboardingWindow: Bool {
+        identifier?.rawValue.hasPrefix(AppWindows.onboardingID) ?? false
     }
 }
 

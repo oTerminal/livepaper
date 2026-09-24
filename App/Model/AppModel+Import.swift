@@ -41,8 +41,17 @@ extension AppModel {
                 showToast(.failed(name: failure.name, error: failure.error))
             }
             guard !found.candidates.isEmpty else { return }
-            perform(importList.enqueue(found.candidates, ids: found.candidates.map { _ in UUID() }))
+            enqueueImports(found.candidates)
         }
+    }
+
+    /// Candidates found already join the import list. Answers their rows, in
+    /// order, for a caller that waits on them (`ImportList.batch`).
+    @discardableResult
+    func enqueueImports(_ candidates: [ImportCandidate]) -> [UUID] {
+        let rows = candidates.map { _ in UUID() }
+        perform(importList.enqueue(candidates, ids: rows))
+        return rows
     }
 
     /// The Open panel, for the Import button and Command-O: files and folders,
@@ -50,6 +59,12 @@ extension AppModel {
     /// front, since what is chosen goes into it; a panel of its own otherwise
     /// (Command-O from Settings).
     func chooseFilesToImport() {
+        chooseFiles { [weak self] urls in self?.importItems(at: urls) }
+    }
+
+    /// The Open panel, handing what is chosen to `chosen`: onboarding's first
+    /// card takes it too, as a sheet on its own window.
+    func chooseFiles(_ chosen: @escaping ([URL]) -> Void) {
         guard canImport else { return }
         let panel = NSOpenPanel()
         panel.title = "Import"
@@ -58,16 +73,17 @@ extension AppModel {
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = true
         panel.allowedContentTypes = [.movie, .gif, .folder] + importableExtensions.sorted().compactMap { UTType(filenameExtension: $0) }
-        let chosen: (NSApplication.ModalResponse) -> Void = { [weak self] response in
+        let answered: (NSApplication.ModalResponse) -> Void = { response in
             guard response == .OK else { return }
-            self?.importItems(at: panel.urls)
+            chosen(panel.urls)
         }
-        if let window = NSApp.keyWindow, window.isLibraryWindow, window.attachedSheet == nil {
-            panel.beginSheetModal(for: window, completionHandler: chosen)
-            AppLog.logger.notice("\(AppLog.choosingFiles(asSheet: true), privacy: .public)")
+        if let window = NSApp.keyWindow, window.isLibraryWindow || window.isOnboardingWindow, window.attachedSheet == nil {
+            panel.beginSheetModal(for: window, completionHandler: answered)
+            let line = window.isLibraryWindow ? AppLog.choosingFiles(asSheet: true) : OnboardingLog.choosingFile
+            AppLog.logger.notice("\(line, privacy: .public)")
         } else {
             NSApp.activate()
-            panel.begin(completionHandler: chosen)
+            panel.begin(completionHandler: answered)
             AppLog.logger.notice("\(AppLog.choosingFiles(asSheet: false), privacy: .public)")
         }
     }
@@ -214,7 +230,7 @@ extension AppModel {
 }
 
 /// Discovery reads the disk, so it runs off the main actor.
-private nonisolated enum Discovering {
+nonisolated enum Discovering {
     struct Found: Sendable {
         var candidates: [ImportCandidate] = []
         var skipped: [SkippedSource] = []

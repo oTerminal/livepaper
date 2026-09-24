@@ -19,6 +19,16 @@ struct FakeSystemServicesTests {
         #expect([on, stillOn, off, services.loginItem] == [.on, .on, .off, .off])
     }
 
+    @Test(arguments: [LoginItemStatus.needsApproval, .notFound])
+    func `turning the login item on can answer as macOS can, for onboarding's login card`(answer: LoginItemStatus) {
+        let services = FakeSystemServices()
+        services.answerToTurningOn = answer
+
+        #expect(services.setOpenAtLogin(true) == answer)
+        #expect(services.loginItem == answer)
+        #expect(services.setOpenAtLogin(false) == .off)
+    }
+
     @Test(arguments: LoginItemStatus.allCases)
     func `the login item can start in any state, for the screenshots`(status: LoginItemStatus) {
         #expect(FakeSystemServices(loginItem: status).loginItem == status)

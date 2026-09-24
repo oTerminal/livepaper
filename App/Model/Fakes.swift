@@ -38,15 +38,28 @@ final class Fakes {
     let displaySleep = FakeDisplaySleepSensor([])
     let covered = FakeCoveredDisplaySensor([])
     let systemServices = FakeSystemServices()
+    /// The first launch played for onboarding (`-onboarding`); nil for a run that onboarded before.
+    let onboarding: FakeOnboarding?
+    let onboardingRecord: InMemoryOnboardingRecord
+    let selectionWorld: FakeSelectionWorld
+    /// Hotkeys the fakes remote presses (`fakes.sh hotkey next`), since the fakes register none.
+    let hotkeyPresses: AsyncStream<HotkeyAction>
+    let pressHotkey: AsyncStream<HotkeyAction>.Continuation
     private let library: FakeLibrary
     private var isPlaybackMetricsOn = false
 
-    init(library: FakeLibrary) {
+    init(library: FakeLibrary, onboarding: FakeOnboarding? = nil) {
         self.library = library
+        self.onboarding = onboarding
+        onboardingRecord = InMemoryOnboardingRecord(onboarding?.record ?? OnboardingRecord(onboardedVersion: Bundle.main.versionWords))
         host = FakeRenderHost()
         // Connecting, then live after about a second; a set takes long enough to see it working.
         host.liveAfter = .seconds(1)
         host.applyDelay = .milliseconds(600)
+        // Onboarding starts with Livepaper not yet the wallpaper: the heartbeat says so.
+        host.isSelected = onboarding?.isSelected ?? true
+        selectionWorld = FakeSelectionWorld(host: host)
+        (hotkeyPresses, pressHotkey) = AsyncStream.makeStream()
         displays = FakeDisplaySensor(connectedDisplays)
     }
 
@@ -60,6 +73,11 @@ final class Fakes {
             appStateStore: InMemoryAppStateStore(state.map(AppStateLoad.loaded) ?? .missing),
             art: .drawn,
             systemServices: systemServices,
+            startSystemServices: { _, _ in },
+            hotkeyPresses: hotkeyPresses,
+            selection: selectionWorld.selection,
+            wallpaperPane: selectionWorld.pane,
+            onboarding: onboardingServices(),
             sweep: { [] },
             lastRenderState: { nil },
             makeImporter: { library in

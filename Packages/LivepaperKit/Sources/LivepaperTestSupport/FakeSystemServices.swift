@@ -10,6 +10,9 @@ import Observation
 public final class FakeSystemServices: SystemServices {
     /// Settable, so that every state the login row can show can be shown.
     public var loginItem: LoginItemStatus
+    /// What turning the login item on answers: on, or, as macOS can, needs
+    /// approval or not found, for onboarding's login card.
+    public var answerToTurningOn = LoginItemStatus.on
     public private(set) var hotkeys: [HotkeyAction: KeyCombination]
     public private(set) var loginItemsSettingsOpened = 0
     public private(set) var leaveCount = 0
@@ -25,7 +28,7 @@ public final class FakeSystemServices: SystemServices {
     }
 
     public func setOpenAtLogin(_ on: Bool) -> LoginItemStatus {
-        loginItem = on ? .on : .off
+        loginItem = on ? answerToTurningOn : .off
         return loginItem
     }
 

@@ -24,13 +24,23 @@ struct PopoverFooter: View {
                 SymbolButton("Open Library", systemImage: "square.grid.2x2") { windows.openLibrary() }
                 SymbolButton("Settings", systemImage: "gearshape") { windows.openSettings() }
             }
-            StatusLine(status: model.statusLine.statusLineStatus) { model.restartWallpaperService() }
-                // Its words start under Mute's speaker, not 1 to 2 pt left of it: LabelToggle
-                // centres the speaker in its 20 pt slot, so the glyph sits 3 to 4 pt inside
-                // the slot's edge. The hairline is the optical step; the waves' speaker then
-                // stands 1 pt out, as a symbol beside words does, and the slashed one lines up.
-                .padding(.leading, Spacing.small + Spacing.hairline)
-                .padding(.trailing, Spacing.small)
+            HStack(spacing: Spacing.small) {
+                StatusLine(status: model.statusLine.statusLineStatus) { model.restartWallpaperService() }
+                    // As wide as its words, so that the pane's button follows them as Restart does.
+                    .fixedSize(horizontal: model.offersWallpaperPane, vertical: false)
+                if model.offersWallpaperPane {
+                    // Another wallpaper was picked by hand (M7): the user chooses Livepaper
+                    // again in System Settings, and nothing in the store is touched.
+                    CompactTextButton(title: Text("Open System Settings…")) { model.openWallpaperPane() }
+                    Spacer(minLength: 0)
+                }
+            }
+            // Its words start under Mute's speaker, not 1 to 2 pt left of it: LabelToggle
+            // centres the speaker in its 20 pt slot, so the glyph sits 3 to 4 pt inside
+            // the slot's edge. The hairline is the optical step; the waves' speaker then
+            // stands 1 pt out, as a symbol beside words does, and the slashed one lines up.
+            .padding(.leading, Spacing.small + Spacing.hairline)
+            .padding(.trailing, Spacing.small)
         }
     }
 

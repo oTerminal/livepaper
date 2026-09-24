@@ -146,6 +146,7 @@ extension AppModel {
     private func start() async {
         AppLog.logger.notice("\(AppLog.launched(fakes: self.services.isFakes), privacy: .public)")
         load()
+        services.startSystemServices(state, self)
         prepareScenes()
         watchHostStatus()
         do {
@@ -262,10 +263,6 @@ extension AppModel {
         }
         applyRenderState()
         AppLog.logger.notice("\(AppLog.resumedAll, privacy: .public)")
-    }
-
-    func togglePauseAll() {
-        if isPausedAll { resumeAll() } else { pauseAll() }
     }
 
     // MARK: Quit
