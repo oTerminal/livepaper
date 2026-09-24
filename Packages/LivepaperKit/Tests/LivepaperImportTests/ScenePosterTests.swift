@@ -69,8 +69,14 @@ struct ScenePosterTests {
         Row("a poster drawn from its scene by this build", ScenePoster.marker, true),
         Row("a poster cut from the item's preview, which says nothing", nil, false),
         Row("a poster drawn by an earlier build", "Livepaper scene poster 0", false),
+        Row("a poster drawn from programs an earlier translator made", "Livepaper scene poster 1, translator 0", false),
         Row("a picture another program wrote", "Photos", false),
     ]
+
+    /// Programs translated anew are drawn with, so a poster drawn from the old ones is drawn again.
+    @Test func `a drawn poster names the translator whose programs drew it`() {
+        #expect(ScenePoster.marker == "Livepaper scene poster 1, translator \(ScenePrograms.currentTranslator)")
+    }
 
     @Test(arguments: marks)
     func `a poster says whether it was drawn from its scene`(row: Row<String?, Bool>) throws {

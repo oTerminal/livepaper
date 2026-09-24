@@ -45,7 +45,9 @@ public enum ScenePoster {
     static let longestSide = 3840.0
     /// What a drawn poster records as the software that wrote it (its TIFF
     /// `Software`). A poster without it, or with an earlier build's, is drawn again.
-    public static let marker = "Livepaper scene poster 1"
+    /// It names the translator, so programs translated anew (`ScenePreparation.refresh`)
+    /// draw the poster anew too.
+    public static let marker = "Livepaper scene poster 1, translator \(ScenePrograms.currentTranslator)"
 
     /// The size a poster of a scene of `size` is drawn at, in pixels.
     public static func pixels(for size: Size) -> (width: Int, height: Int) {
@@ -106,9 +108,11 @@ public enum ScenePoster {
         _ wallpapers: [Wallpaper], in location: LibraryLocation, drawing: SceneDrawingType,
         log: @escaping @Sendable (Wallpaper, Outcome) async -> Void
     ) async -> [WallpaperID: Outcome] {
+        // Which scenes need it is read from their files, on a thread of its own, as all reading is.
+        let needing = (try? await onOwnThread { _ in wallpapers.filter { needsDrawing($0, in: location) } }) ?? []
         var outcomes: [WallpaperID: Outcome] = [:]
-        for wallpaper in wallpapers where !Task.isCancelled {
-            guard let scene = wallpaper.scene, needsDrawing(wallpaper, in: location) else { continue }
+        for wallpaper in needing where !Task.isCancelled {
+            guard let scene = wallpaper.scene else { continue }
             let folder = location.url(for: scene.project).deletingLastPathComponent()
             let size = Size(width: Double(scene.width), height: Double(scene.height))
             let poster = location.url(for: wallpaper.poster)

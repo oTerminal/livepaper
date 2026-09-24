@@ -20,7 +20,8 @@ extension SteamConversationTests {
     @Test(arguments: savedLoginRefusals)
     func `a sign-in logs out of a saved login Steam refuses, but not of one it could not ask about`(row: Row<String, [Effect]>) {
         let effects = Self.talk(.signIn(account: "someone"), [.console, .savedLogin, .signInFailed(row.input), .console])
-        #expect(effects == [.type("login someone"), .report(.signingIn)] + row.expected)
+        let expected: [Effect] = [.type("login someone"), .report(.signingIn)] + row.expected
+        #expect(effects == expected)
     }
 
     @Test func `a refused saved login is logged out of, written down by quitting, and the password asked for`() {
@@ -28,11 +29,12 @@ extension SteamConversationTests {
             [.console, .savedLogin, .signInFailed("Access Denied"), .console, .other, .console, .other],
             [.console, .noSavedLogin, .passwordPrompt, .signedIn, .console],
         ])
-        #expect(effects == [
+        let expected: [Effect] = [
             .type("login someone"), .report(.signingIn), .type("logout"), .type("quit"), .restart,
             .type("login someone"), .report(.signingIn), .typePassword,
             .finish(.success(.signedIn)), .type("quit"),
-        ])
+        ]
+        #expect(effects == expected)
     }
 
     @Test func `a saved login refused again after logging out of it ends the sign-in`() {
@@ -63,12 +65,13 @@ extension SteamConversationTests {
             [.console, .savedLogin, .signedIn, .console, .other, .console, .other],
             [.console, .noSavedLogin, .passwordPrompt],
         ])
-        #expect(effects == [
+        let expected: [Effect] = [
             .type("login someone"), .report(.signingOut),
             .type("logout"), .type("quit"), .restart,
             .type("login someone"),
             .finish(.success(.signedOut)), .stop,
-        ])
+        ]
+        #expect(effects == expected)
     }
 
     /// Signed in with the saved login, logged out and quit: what the next run says, and how the sign-out ends.
@@ -93,7 +96,8 @@ extension SteamConversationTests {
         let signedIn: [SteamLine] = [.console, .savedLogin, .signedIn, .console, .console]
         let effects = Self.talk(.signOut(account: "someone"), runs: [signedIn, row.input])
         let loggedOut: [Effect] = [.type("login someone"), .report(.signingOut), .type("logout"), .type("quit"), .restart]
-        #expect(effects == loggedOut + [.type("login someone")] + row.expected)
+        let expected: [Effect] = loggedOut + [.type("login someone")] + row.expected
+        #expect(effects == expected)
     }
 
     @Test func `steamcmd failing to go after logout is a failure`() {
@@ -109,10 +113,11 @@ extension SteamConversationTests {
             [.console, .savedLogin, .signInFailed("Access Denied"), .console, .console],
             [.console, .noSavedLogin],
         ])
-        #expect(effects == [
+        let expected: [Effect] = [
             .type("login someone"), .report(.signingOut), .type("logout"), .type("quit"), .restart,
             .type("login someone"), .finish(.success(.signedOut)), .stop,
-        ])
+        ]
+        #expect(effects == expected)
     }
 
     @Test func `signing out with no saved login has nothing to take back`() {

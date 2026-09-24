@@ -73,7 +73,7 @@ public struct SteamConversation: Equatable, Sendable {
 
     private enum Phase: Equatable, Sendable {
         case starting
-        case signingIn(passwordTyped: Bool, codesAsked: Int, approvalSaid: Bool, savedLoginTried: Bool)
+        case signingIn(SignIn)
         case signedIn
         case downloading
         /// Steam refused the saved login: `logout` goes at the next prompt.
@@ -89,11 +89,20 @@ public struct SteamConversation: Equatable, Sendable {
         case quitting
     }
 
+    /// How far a sign-in has got.
+    private struct SignIn: Equatable, Sendable {
+        var passwordTyped = false
+        var codesAsked = 0
+        var approvalSaid = false
+        /// steamcmd said it signs in with its saved login, and nothing has been typed since.
+        var savedLoginTried = false
+    }
+
     public let job: SteamJob
     private var phase = Phase.starting
     private var signedIn = false
     /// steamcmd has quit after a `logout`, so it has no saved login for the account any more.
-    private var loggedOut = false
+    private var hasQuitAfterLogout = false
 
     public init(job: SteamJob) {
         self.job = job
@@ -129,7 +138,7 @@ public struct SteamConversation: Equatable, Sendable {
         if phase == .leavingLoggedOut, status == 0 {
             // It has written the login down as gone: the job goes on in a new run.
             phase = .starting
-            loggedOut = true
+            hasQuitAfterLogout = true
             return [.restart]
         }
         if status == 42 {
@@ -162,29 +171,31 @@ public struct SteamConversation: Equatable, Sendable {
             progress = .signingOut
         }
         guard isSteamAccountName(account) else { return finish(.failure(.notAnAccountName), then: .type("quit")) }
-        if loggedOut, case .signOut = job {
+        if hasQuitAfterLogout, case .signOut = job {
             phase = .confirmingSignOut
             return [.type("login \(account)")]
         }
-        phase = .signingIn(passwordTyped: false, codesAsked: 0, approvalSaid: false, savedLoginTried: false)
+        phase = .signingIn(SignIn())
         return [.type("login \(account)"), .report(progress)]
     }
 
     private mutating func signingIn(_ line: SteamLine) -> [Effect] {
-        guard case .signingIn(let passwordTyped, let codesAsked, let approvalSaid, let savedLoginTried) = phase else { return [] }
+        guard case .signingIn(var signIn) = phase else { return [] }
         switch line {
         case .passwordPrompt, .codePrompt:
-            return prompted(line, passwordTyped: passwordTyped, codesAsked: codesAsked, approvalSaid: approvalSaid)
+            return prompted(line, signIn)
         case .awaitingApproval:
-            guard !approvalSaid else { return [] }
-            phase = .signingIn(passwordTyped: passwordTyped, codesAsked: codesAsked, approvalSaid: true, savedLoginTried: savedLoginTried)
+            guard !signIn.approvalSaid else { return [] }
+            signIn.approvalSaid = true
+            phase = .signingIn(signIn)
             return [.report(.waitingForApproval)]
         case .savedLogin:
-            phase = .signingIn(passwordTyped: passwordTyped, codesAsked: codesAsked, approvalSaid: approvalSaid, savedLoginTried: true)
+            signIn.savedLoginTried = true
+            phase = .signingIn(signIn)
             return []
         case .signInFailed(let result):
             let error = WorkshopError(signInResult: result)
-            guard savedLoginTried, !passwordTyped, !error.isAboutReachingSteam else { return finish(.failure(error), then: nil) }
+            guard signIn.savedLoginTried, !error.isAboutReachingSteam else { return finish(.failure(error), then: nil) }
             return savedLoginRefused(error)
         case .signedIn:
             signedIn = true
@@ -200,18 +211,22 @@ public struct SteamConversation: Equatable, Sendable {
 
     /// A password or Steam Guard prompt. Only a sign-in answers one: anything
     /// else would try a password it does not have.
-    private mutating func prompted(_ line: SteamLine, passwordTyped: Bool, codesAsked: Int, approvalSaid: Bool) -> [Effect] {
+    private mutating func prompted(_ line: SteamLine, _ signIn: SignIn) -> [Effect] {
         switch job {
         case .signIn: break
         case .signOut: return finish(.success(.signedOut), then: .stop)
         case .download, .update: return finish(.failure(.signInNeeded), then: .stop)
         }
+        var next = signIn
+        next.savedLoginTried = false
         if case .codePrompt(let kind) = line {
-            phase = .signingIn(passwordTyped: passwordTyped, codesAsked: codesAsked + 1, approvalSaid: approvalSaid, savedLoginTried: false)
-            return [.askForCode(kind, again: codesAsked > 0)]
+            next.codesAsked += 1
+            phase = .signingIn(next)
+            return [.askForCode(kind, again: signIn.codesAsked > 0)]
         }
-        guard !passwordTyped else { return finish(.failure(.wrongPassword), then: .stop) }
-        phase = .signingIn(passwordTyped: true, codesAsked: codesAsked, approvalSaid: approvalSaid, savedLoginTried: false)
+        guard !signIn.passwordTyped else { return finish(.failure(.wrongPassword), then: .stop) }
+        next.passwordTyped = true
+        phase = .signingIn(next)
         return [.typePassword]
     }
 
@@ -221,7 +236,7 @@ public struct SteamConversation: Equatable, Sendable {
     private mutating func savedLoginRefused(_ error: WorkshopError) -> [Effect] {
         switch job {
         case .download: return finish(.failure(.signInNeeded), then: nil)
-        case .signIn where loggedOut, .update: return finish(.failure(error), then: nil)
+        case .signIn where hasQuitAfterLogout, .update: return finish(.failure(error), then: nil)
         case .signIn, .signOut:
             phase = .forgettingSavedLogin
             return []

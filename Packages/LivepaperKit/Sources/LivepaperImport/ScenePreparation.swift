@@ -44,16 +44,24 @@ public enum ScenePreparation {
         _ wallpapers: [Wallpaper], in location: LibraryLocation, tools: ShaderTools?,
         log: (@Sendable (Wallpaper, Outcome) async -> Void)? = nil
     ) async -> [WallpaperID: Outcome] {
+        // Which scenes need it is read from their files, on a thread of its own, as all reading is.
+        let needing = (try? await onOwnThread { _ in wallpapers.filter { needsPreparing($0, in: location) } }) ?? []
         var outcomes: [WallpaperID: Outcome] = [:]
-        for wallpaper in wallpapers where !Task.isCancelled {
+        for wallpaper in needing where !Task.isCancelled {
             guard let scene = wallpaper.scene else { continue }
             let folder = location.url(for: scene.project).deletingLastPathComponent()
-            guard ScenePrograms.translator(in: folder) != ScenePrograms.currentTranslator else { continue }
             guard let outcome = try? await prepare(folder, tools: tools) else { break }
             outcomes[wallpaper.id] = outcome
             await log?(wallpaper, outcome)
         }
         return outcomes
+    }
+
+    /// A scene whose programs are missing, or another translator's.
+    static func needsPreparing(_ wallpaper: Wallpaper, in location: LibraryLocation) -> Bool {
+        guard let scene = wallpaper.scene else { return false }
+        let folder = location.url(for: scene.project).deletingLastPathComponent()
+        return ScenePrograms.translator(in: folder) != ScenePrograms.currentTranslator
     }
 
     // MARK: The work, on a thread of its own
