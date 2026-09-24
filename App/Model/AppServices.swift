@@ -42,6 +42,16 @@ struct AppServices {
     /// "Log Playback Metrics", the extension's probe: never kept, so every launch starts with it off.
     var isPlaybackMetricsOn: () -> Bool
     var setPlaybackMetrics: (Bool) -> Void
+    // M7: the doors, rotation and diagnostics.
+    /// Where the command socket the `livepaper` tool talks to is opened; nil in
+    /// the fakes run, whose world is fake.
+    var commandSocket: URL?
+    /// The Mac's sleep and wake: a wake moves each playlist on (`RotationDriver`).
+    var sleep: any SleepSensor
+    /// The wallpaper store's shape, for the diagnostics report: counts only, read and never written.
+    var storeShape: () -> StoreShape
+    /// The wallpaper extension's recent log lines, for the diagnostics report.
+    var extensionLog: () async -> ExtensionLogLines
 }
 
 extension AppServices {
@@ -93,7 +103,11 @@ extension AppServices {
                 try FileManager.default.trashItem(at: folder, resultingItemURL: nil)
             },
             isPlaybackMetricsOn: { host.isPlaybackMetricsOn },
-            setPlaybackMetrics: { host.setPlaybackMetrics($0) }
+            setPlaybackMetrics: { host.setPlaybackMetrics($0) },
+            commandSocket: location.commandSocket(fallback: .temporaryDirectory),
+            sleep: SystemSleepSensor(),
+            storeShape: { StoreShape(WallpaperStore(home: .homeDirectory).shape()) },
+            extensionLog: { await ExtensionLogLines.fetch() }
         )
     }
 

@@ -10,12 +10,17 @@ import LivepaperCore
 ///     select Harbour at Dusk | deselect | section Favourites | search harbour | sort name (or newest, oldest)
 ///     set Studio Display | set All Displays | favourite | delete | undo | fit stretch | volume 0.6
 ///     new playlist Night Shift | import | cancel panel | size 1180 1100
+///     door link livepaper://next | door drop Harbour at Night.mov (`Doors.performFake`)
 struct FakesCommands {
     let model: AppModel
+    let doors: Doors
+    /// The Fakes menu's sample files, written when asked for.
+    let samples: () -> [URL]
 
     /// Answers whether it was one of these.
     func perform(_ verb: String, _ rest: String) -> Bool {
-        browsing(verb, rest) ?? wallpaper(verb, rest) ?? edit(verb, rest) ?? window(verb, rest) ?? false
+        if verb == "door" { return doors.performFake(rest, samples: samples) }
+        return browsing(verb, rest) ?? wallpaper(verb, rest) ?? edit(verb, rest) ?? window(verb, rest) ?? false
     }
 
     /// Nil when the verb is not one of these; false when what it names is not there.

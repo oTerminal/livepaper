@@ -1,3 +1,5 @@
+import Foundation
+
 /// What a render host can do, so that policy does not need to know which host it is.
 public struct HostCapabilities: Equatable, Sendable {
     /// The host draws on the lock screen, so a locked display keeps playing.
@@ -35,7 +37,12 @@ public protocol RenderHost: AnyObject {
     /// The full state every time: applying the same state twice changes nothing.
     func apply(_ state: RenderState) async
     var status: AsyncStream<RenderHostStatus> { get }
+    /// `.restartAgent` restarts WallpaperAgent through `allowAgentRestart`, and
+    /// returns once it is back or the restart was refused.
     func recover(_ level: RecoveryLevel) async
+    /// When WallpaperAgent was last restarted, by any launch; nil when never.
+    /// Read after `recover(.restartAgent)`, it tells a restart from a refusal.
+    var lastAgentRestart: Date? { get }
     /// Writes the stopped render state: the host holds a still and releases its decoders (record 0003).
     func deactivate() async
 }

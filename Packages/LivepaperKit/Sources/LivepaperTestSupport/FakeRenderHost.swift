@@ -1,3 +1,4 @@
+import Foundation
 import LivepaperCore
 
 /// A render host that draws nothing and remembers what it was asked to do.
@@ -13,10 +14,17 @@ public final class FakeRenderHost: RenderHost {
     /// its clock, as the real host does when a heartbeat arrives. Nil never does:
     /// a test reports it. Any other report, or a deactivate, comes first.
     public var liveAfter: Duration?
+    /// How long `recover(.restartAgent)` takes, on the host's clock, as the real
+    /// host waits for WallpaperAgent to come back. Nil restarts at once.
+    public var agentRestartTime: Duration?
+    /// The time of day, for the gap between two restarts of the agent.
+    public var now: () -> Date = Date.init
 
     public private(set) var isActive = false
     public private(set) var appliedStates: [RenderState] = []
     public private(set) var recoveries: [RecoveryLevel] = []
+    /// As the real host keeps it: a restart is made only `agentRestartGap` after the last one.
+    public private(set) var lastAgentRestart: Date?
 
     public let status: AsyncStream<RenderHostStatus>
     private let statusContinuation: AsyncStream<RenderHostStatus>.Continuation
@@ -50,8 +58,17 @@ public final class FakeRenderHost: RenderHost {
         appliedStates.append(state)
     }
 
+    /// `.restartAgent` goes through `allowAgentRestart`, as the real host's does:
+    /// refused, it reports nothing.
     public func recover(_ level: RecoveryLevel) async {
+        if level == .restartAgent, let agentRestartTime {
+            try? await clock.sleep(for: agentRestartTime)
+        }
         recoveries.append(level)
+        if level == .restartAgent {
+            guard allowAgentRestart(last: lastAgentRestart, now: now()) else { return }
+            lastAgentRestart = now()
+        }
         report(.recovering(level))
         goLiveLater()
     }

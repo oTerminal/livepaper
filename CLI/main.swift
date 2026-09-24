@@ -16,6 +16,10 @@ import LivepaperCore
 // it opens Livepaper by bundle identifier, without bringing it forward, and
 // tries again for a while; with LIVEPAPER_NO_LAUNCH set it leaves it closed.
 // Exit status: 0 done, 1 refused, 2 usage, 3 unreachable (`CommandLineExit`).
+//
+// It ships inside the app, at Livepaper.app/Contents/Helpers/livepaper (in
+// Contents/MacOS it would collide with the app's `Livepaper` on a
+// case-insensitive disk), signed as app.livepaper.cli before the app is sealed.
 
 /// The app on the other end of the socket, opened once at most in a run.
 struct App {

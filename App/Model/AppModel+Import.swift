@@ -31,18 +31,67 @@ extension AppModel {
     /// cannot be read, says why in a toast; the rest join the import list.
     func importItems(at urls: [URL]) {
         guard canImport, !urls.isEmpty else { return }
-        Task {
-            let found = await Discovering.run(urls)
-            guard canImport else { return }
-            for skipped in found.skipped {
-                showToast(.skipped(skipped))
-            }
-            for failure in found.failures {
-                showToast(.failed(name: failure.name, error: failure.error))
-            }
-            guard !found.candidates.isEmpty else { return }
-            perform(importList.enqueue(found.candidates, ids: found.candidates.map { _ in UUID() }))
+        Task { _ = await enqueueImport(urls) }
+    }
+
+    /// `importItems(at:)`, for a command that answers once its rows are done
+    /// (`outcomes(of:)`): the rows its sources are on, and what never reached
+    /// the list. A source the list already has waits on that row.
+    func enqueueImport(_ urls: [URL]) async -> EnqueuedImport {
+        let found = await Discovering.run(urls)
+        guard canImport else { return EnqueuedImport() }
+        for skipped in found.skipped {
+            showToast(.skipped(skipped))
         }
+        for failure in found.failures {
+            showToast(.failed(name: failure.name, error: failure.error))
+        }
+        var enqueued = EnqueuedImport(
+            notListed: found.skipped.map(ImportedSource.skipped) + found.failures.map { .notImported(name: $0.name, error: $0.error) }
+        )
+        guard !found.candidates.isEmpty else { return enqueued }
+        let ids = found.candidates.map { _ in UUID() }
+        perform(importList.enqueue(found.candidates, ids: ids))
+        enqueued.rows = zip(ids, found.candidates).map { id, candidate in
+            let source = candidate.source.standardizedFileURL.path
+            let row = importList.rows.contains { $0.id == id } ? id
+                : importList.rows.last { $0.candidate.source.standardizedFileURL.path == source }?.id ?? id
+            return (row, candidate.name)
+        }
+        return enqueued
+    }
+
+    /// What each row came to, once every one is done: a row taken off the list
+    /// before it was done, or still running at quit, was cancelled.
+    func outcomes(of rows: [(id: UUID, name: String)]) async -> [ImportedSource] {
+        await withCheckedContinuation { continuation in
+            importWaiters.append(ImportWaiter(rows: rows, continuation: continuation))
+            settleImportWaiters()
+        }
+    }
+
+    /// Records what each waiting command's rows came to, and answers those whose rows are all done.
+    func settleImportWaiters(quitting: Bool = false) {
+        var stillWaiting: [ImportWaiter] = []
+        for var waiter in importWaiters {
+            for (id, name) in waiter.rows where waiter.outcomes[id] == nil {
+                if let row = importList.rows.first(where: { $0.id == id }) {
+                    if let source = row.importedSource {
+                        waiter.outcomes[id] = source
+                    } else if quitting {
+                        waiter.outcomes[id] = .cancelled(name: name)
+                    }
+                } else {
+                    waiter.outcomes[id] = .cancelled(name: name)
+                }
+            }
+            if waiter.rows.allSatisfy({ waiter.outcomes[$0.id] != nil }) {
+                waiter.continuation.resume(returning: waiter.rows.compactMap { waiter.outcomes[$0.id] })
+            } else {
+                stillWaiting.append(waiter)
+            }
+        }
+        importWaiters = stillWaiting
     }
 
     /// The Open panel, for the Import button and Command-O: files and folders,
@@ -111,6 +160,7 @@ extension AppModel {
             }
         }
         scheduleImportTick()
+        settleImportWaiters()
     }
 
     /// Reads the import's stream until it ends. Cancelling the task drops the stream, and that cancels the import.
@@ -211,6 +261,21 @@ extension AppModel {
             )
         })
     }
+}
+
+/// What a command's import put on the list, and what never reached it: skipped, or not searched.
+struct EnqueuedImport {
+    /// The row each candidate is on, and the candidate's name.
+    var rows: [(id: UUID, name: String)] = []
+    var notListed: [ImportedSource] = []
+}
+
+/// A command waiting for its import's rows. A finished row leaves the list
+/// after a while, so what each came to is kept as soon as it is known.
+struct ImportWaiter {
+    let rows: [(id: UUID, name: String)]
+    let continuation: CheckedContinuation<[ImportedSource], Never>
+    var outcomes: [UUID: ImportedSource] = [:]
 }
 
 /// Discovery reads the disk, so it runs off the main actor.
