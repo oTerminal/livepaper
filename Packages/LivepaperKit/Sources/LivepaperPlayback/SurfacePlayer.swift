@@ -16,10 +16,11 @@ import os
 /// from the same supervisor on the same decisions.
 ///
 /// A scene stopped keeps its last picture in the slot, whatever stopped it: a
-/// pause, a suspend, or a still of that scene (Pause All, Quit; record 0003),
-/// which lets the scene go as a suspend does and puts its poster under the
-/// picture for whatever hides the slot later. Shown again, it goes on from
-/// the scene time it stopped at, with its picture up throughout.
+/// pause (a pause rule, a display's own, Pause All), a suspend, or a still of
+/// that scene (Quit; record 0003), which lets the scene go as a suspend does
+/// and puts its poster under the picture for whatever hides the slot later.
+/// Shown again, it goes on from the scene time it stopped at, with its
+/// picture up throughout.
 ///
 /// On its owner's actor, which in the extension is the main actor, as `SurfaceLayers` is.
 public final class SurfacePlayer: SurfacePlayback {

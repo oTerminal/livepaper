@@ -10,7 +10,7 @@ nonisolated public enum HostLog {
     public static let activated = "host: activated, waiting for the extension's heartbeat"
 
     public static func status(_ status: RenderHostStatus) -> String {
-        "host: status \(name(of: status))"
+        "host: status \(status.name)"
     }
 
     public static func silence(_ level: RecoveryLevel) -> String {
@@ -67,17 +67,6 @@ nonisolated public enum HostLog {
     }
 
     public static let checkRequested = "host: check requested"
-
-    public static func name(of status: RenderHostStatus) -> String {
-        switch status {
-        case .stopped: "stopped"
-        case .connecting: "connecting"
-        case .notSelected: "notSelected"
-        case .live: "live"
-        case .recovering(let level): "recovering(\(String(describing: level)))"
-        case .unavailable: "unavailable"
-        }
-    }
 
     public static func name(of reason: AgentRestartReason) -> String {
         switch reason {

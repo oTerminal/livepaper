@@ -56,6 +56,12 @@ final class AppStateStoreTests {
         #expect(store.load() == .loaded(AppStateTests.fixtureState))
     }
 
+    @Test func `the version 1.1 fixture loads`() throws {
+        try write(Fixture.data("app-state-v1.1"))
+
+        #expect(store.load() == .loaded(AppStateLoginAndHotkeysTests.fixtureState))
+    }
+
     @Test func `a save writes the one file and leaves nothing beside it`() throws {
         try store.save(AppStateTests.fixtureState)
         try store.save(AppState())

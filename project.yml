@@ -39,8 +39,29 @@ targets:
   Livepaper:
     type: application
     platform: macOS
-    sources: [App]
+    sources:
+      - App
+      # The loops onboarding offers (M7), with PROVENANCE.md beside them: one
+      # folder in the app's resources, where `SampleWallpaper.bundled` looks.
+      - path: Resources/Samples
+        type: folder
+        buildPhase: resources
     scheme: {}
+    # The URL scheme (M7). XcodeGen writes App/Info.plist from this at `make gen`, and
+    # Xcode merges it with the keys GENERATE_INFOPLIST_FILE makes from the INFOPLIST_KEY_
+    # settings below. No NSServices and no CFBundleDocumentTypes: importing is done in
+    # the app's window alone, so neither Services, Open With nor the Dock offers it a file.
+    info:
+      path: App/Info.plist
+      properties:
+        # XcodeGen's own defaults for these would win over the build settings.
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        # livepaper://<verb>?<key>=<value> (Command in LivepaperCore). Any web page can
+        # open the scheme, so it names wallpapers by ID and has no verb that imports.
+        CFBundleURLTypes:
+          - CFBundleURLName: app.livepaper.Livepaper.command
+            CFBundleURLSchemes: [livepaper]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.livepaper.Livepaper
@@ -76,6 +97,16 @@ targets:
       - package: DesignSystem
       # Embedded in Contents/Extensions, where ExtensionKit finds it.
       - target: WallpaperExtension
+      # The `livepaper` tool (M7) ships inside the app, in Contents/Helpers: in
+      # Contents/MacOS it would collide with the app's `Livepaper` on a case-insensitive
+      # disk. Built first, and signed as it is copied, before Xcode signs the app,
+      # which seals it.
+      - target: livepaper-cli
+        embed: true
+        codeSign: true
+        copy:
+          destination: wrapper
+          subpath: Contents/Helpers
     postBuildScripts:
       # The ffmpeg helper (record 0006) goes next to the app's executable, where
       # Bundle.main.url(forAuxiliaryExecutable:) finds it, signed on its own before
@@ -151,4 +182,12 @@ targets:
         # app's "Livepaper" module on a case-insensitive disk.
         PRODUCT_MODULE_NAME: LivepaperCLI
         PRODUCT_BUNDLE_IDENTIFIER: app.livepaper.cli
+        # An Info.plist inside the binary, so that its signature names it by this
+        # identifier and carries the app's version, rather than `livepaper-<hash>`.
+        GENERATE_INFOPLIST_FILE: YES
+        CREATE_INFOPLIST_SECTION_IN_BINARY: YES
         SWIFT_DEFAULT_ACTOR_ISOLATION: nonisolated
+    dependencies:
+      # The command grammar, the socket's path and the reply: the tool reads no library file.
+      - package: LivepaperKit
+        product: LivepaperCore

@@ -31,18 +31,34 @@ extension AppModel {
     /// cannot be read, says why in a toast; the rest join the import list.
     func importItems(at urls: [URL]) {
         guard canImport, !urls.isEmpty else { return }
-        Task {
-            let found = await Discovering.run(urls)
-            guard canImport else { return }
-            for skipped in found.skipped {
-                showToast(.skipped(skipped))
-            }
-            for failure in found.failures {
-                showToast(.failed(name: failure.name, error: failure.error))
-            }
-            guard !found.candidates.isEmpty else { return }
-            perform(importList.enqueue(found.candidates, ids: found.candidates.map { _ in UUID() }))
+        Task { _ = await enqueueImport(urls) }
+    }
+
+    /// `importItems(at:)`, for onboarding's first card, which waits on its
+    /// rows (`ImportList.batch`): the rows its sources are on, and what never
+    /// reached the list. A source the list already has waits on that row.
+    func enqueueImport(_ urls: [URL]) async -> EnqueuedImport {
+        let found = await Discovering.run(urls)
+        guard canImport else { return EnqueuedImport() }
+        for skipped in found.skipped {
+            showToast(.skipped(skipped))
         }
+        for failure in found.failures {
+            showToast(.failed(name: failure.name, error: failure.error))
+        }
+        var enqueued = EnqueuedImport(
+            notListed: found.skipped.map(NotImported.skipped) + found.failures.map { NotImported(name: $0.name, error: $0.error) }
+        )
+        guard !found.candidates.isEmpty else { return enqueued }
+        let ids = found.candidates.map { _ in UUID() }
+        perform(importList.enqueue(found.candidates, ids: ids))
+        enqueued.rows = zip(ids, found.candidates).map { id, candidate in
+            let source = candidate.source.standardizedFileURL.path
+            let row = importList.rows.contains { $0.id == id } ? id
+                : importList.rows.last { $0.candidate.source.standardizedFileURL.path == source }?.id ?? id
+            return (row, candidate.name)
+        }
+        return enqueued
     }
 
     /// The Open panel, for the Import button and Command-O: files and folders,
@@ -50,6 +66,12 @@ extension AppModel {
     /// front, since what is chosen goes into it; a panel of its own otherwise
     /// (Command-O from Settings).
     func chooseFilesToImport() {
+        chooseFiles { [weak self] urls in self?.importItems(at: urls) }
+    }
+
+    /// The Open panel, handing what is chosen to `chosen`: onboarding's first
+    /// card takes it too, as a sheet on its own window.
+    func chooseFiles(_ chosen: @escaping ([URL]) -> Void) {
         guard canImport else { return }
         let panel = NSOpenPanel()
         panel.title = "Import"
@@ -58,16 +80,17 @@ extension AppModel {
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = true
         panel.allowedContentTypes = [.movie, .gif, .folder] + importableExtensions.sorted().compactMap { UTType(filenameExtension: $0) }
-        let chosen: (NSApplication.ModalResponse) -> Void = { [weak self] response in
+        let answered: (NSApplication.ModalResponse) -> Void = { response in
             guard response == .OK else { return }
-            self?.importItems(at: panel.urls)
+            chosen(panel.urls)
         }
-        if let window = NSApp.keyWindow, window.isLibraryWindow, window.attachedSheet == nil {
-            panel.beginSheetModal(for: window, completionHandler: chosen)
-            AppLog.logger.notice("\(AppLog.choosingFiles(asSheet: true), privacy: .public)")
+        if let window = NSApp.keyWindow, window.isLibraryWindow || window.isOnboardingWindow, window.attachedSheet == nil {
+            panel.beginSheetModal(for: window, completionHandler: answered)
+            let line = window.isLibraryWindow ? AppLog.choosingFiles(asSheet: true) : OnboardingLog.choosingFile
+            AppLog.logger.notice("\(line, privacy: .public)")
         } else {
             NSApp.activate()
-            panel.begin(completionHandler: chosen)
+            panel.begin(completionHandler: answered)
             AppLog.logger.notice("\(AppLog.choosingFiles(asSheet: false), privacy: .public)")
         }
     }
@@ -211,6 +234,13 @@ extension AppModel {
             )
         })
     }
+}
+
+/// What an import that is waited on put on the list, and what never reached it: skipped, or not searched.
+struct EnqueuedImport {
+    /// The row each candidate is on, and the candidate's name.
+    var rows: [(id: UUID, name: String)] = []
+    var notListed: [NotImported] = []
 }
 
 /// Discovery reads the disk, so it runs off the main actor.

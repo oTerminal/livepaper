@@ -31,10 +31,20 @@ extension RenderState {
     /// audio track unopened. The generation continues `previous`'s, and the
     /// answer is nil when it would say nothing `previous` does not. With no
     /// previous state it is generation 1 even when nothing is shown, so that the
-    /// extension learns it should show nothing. A stopped previous state is
-    /// followed by a live one: resuming is making a new state.
+    /// extension learns it should show nothing. A stopped previous state, the one
+    /// Quit leaves (record 0003), is followed by a live one.
+    ///
+    /// Pause All pauses every display in place, as a display's own pause does:
+    /// the extension holds each one's current picture and keeps its decoder, so
+    /// Resume All, a state made without it, is instant and leaves a display's
+    /// own pause as it was. It is the app's while it runs, never remembered.
     public static func make(
-        library: Library, state: AppState, connected: [DisplayIdentity], conditions: SensedConditions?, previous: RenderState?
+        library: Library,
+        state: AppState,
+        connected: [DisplayIdentity],
+        conditions: SensedConditions?,
+        isPausedAll: Bool = false,
+        previous: RenderState?
     ) -> RenderState? {
         let displays = Set(connected).sorted(byDisplay: \.self).compactMap { identity -> Display? in
             guard let wallpaper = state.wallpaper(shownOn: identity, in: library) else { return nil }
@@ -45,7 +55,7 @@ extension RenderState {
                 poster: wallpaper.poster,
                 presentation: wallpaper.presentation,
                 volume: state.playbackVolume(of: wallpaper),
-                userPaused: state.pausedDisplays.contains(identity),
+                userPaused: isPausedAll || state.pausedDisplays.contains(identity),
                 scene: wallpaper.scene
             )
         }

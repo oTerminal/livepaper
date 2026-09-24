@@ -50,15 +50,3 @@ public final class SystemWallClock: WallClock {
         return ScheduledCall { timer.cancel() }
     }
 }
-
-extension Duration {
-    nonisolated var timeInterval: TimeInterval {
-        Double(components.seconds) + Double(components.attoseconds) / 1e18
-    }
-}
-
-extension Date {
-    nonisolated static func + (date: Date, duration: Duration) -> Date {
-        date.addingTimeInterval(duration.timeInterval)
-    }
-}

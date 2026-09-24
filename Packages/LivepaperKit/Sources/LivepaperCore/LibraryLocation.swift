@@ -81,6 +81,15 @@ public struct LibraryLocation: Equatable, Sendable {
     /// Where an import is built, on the same volume, so that committing it is a rename.
     public var staging: URL { root.appending(path: ".staging", directoryHint: .isDirectory) }
 
+    /// The wallpaper store as it was before Livepaper was selected, kept so that
+    /// leaving can put back what it named, an Aerial included (record 0003).
+    public var keptWallpaperStore: URL {
+        root.appending(path: "wallpaper-store-before-livepaper.plist", directoryHint: .notDirectory)
+    }
+
+    /// The app's command socket, which the `livepaper` tool talks to (M7).
+    public var commandSocket: URL { root.appending(path: "command.sock", directoryHint: .notDirectory) }
+
     public func url(for path: LibraryPath) -> URL {
         root.appending(path: path.relative, directoryHint: .notDirectory)
     }

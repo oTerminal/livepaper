@@ -41,8 +41,8 @@ extension SurfacePlayback {
 extension SurfacePlayerTests {
     // MARK: Stopping a scene
 
-    /// How a scene is stopped: a pause (a pause rule, or the user's pause of one display), a
-    /// suspend, or the stopped render state (Pause All, Quit; record 0003).
+    /// How a scene is stopped: a pause (a pause rule, the user's pause of one display, or Pause
+    /// All), a suspend, or the stopped render state (Quit; record 0003).
     enum Stop: Sendable {
         case pause
         case suspend

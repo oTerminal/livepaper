@@ -37,16 +37,33 @@ final class Fakes {
     let lock = FakeLockSensor(false)
     let displaySleep = FakeDisplaySleepSensor([])
     let covered = FakeCoveredDisplaySensor([])
+    /// The Mac's sleep and wake, for the rotation driver: "Sleep and Wake" in the Fakes menu.
+    let sleep = FakeSleepSensor()
     let systemServices = FakeSystemServices()
+    /// The first launch played for onboarding (`-onboarding`); nil for a run that onboarded before.
+    let onboarding: FakeOnboarding?
+    let onboardingRecord: InMemoryOnboardingRecord
+    let selectionWorld: FakeSelectionWorld
+    /// Hotkeys the fakes remote presses (`fakes.sh hotkey next`), since the fakes register none.
+    let hotkeyPresses: AsyncStream<HotkeyAction>
+    let pressHotkey: AsyncStream<HotkeyAction>.Continuation
     private let library: FakeLibrary
     private var isPlaybackMetricsOn = false
 
-    init(library: FakeLibrary) {
+    init(library: FakeLibrary, onboarding: FakeOnboarding? = nil) {
         self.library = library
+        self.onboarding = onboarding
+        onboardingRecord = InMemoryOnboardingRecord(onboarding?.record ?? OnboardingRecord(onboardedVersion: BundleVersion.main.words))
         host = FakeRenderHost()
         // Connecting, then live after about a second; a set takes long enough to see it working.
         host.liveAfter = .seconds(1)
         host.applyDelay = .milliseconds(600)
+        // Long enough to see Restart working.
+        host.agentRestartTime = .milliseconds(800)
+        // Onboarding starts with Livepaper not yet the wallpaper: the heartbeat says so.
+        host.isSelected = onboarding?.isSelected ?? true
+        selectionWorld = FakeSelectionWorld(host: host)
+        (hotkeyPresses, pressHotkey) = AsyncStream.makeStream()
         displays = FakeDisplaySensor(connectedDisplays)
     }
 
@@ -59,7 +76,14 @@ final class Fakes {
             libraryStore: InMemoryLibraryStore(library),
             appStateStore: InMemoryAppStateStore(state.map(AppStateLoad.loaded) ?? .missing),
             art: .drawn,
-            systemServices: systemServices,
+            system: SystemWiring(
+                services: systemServices,
+                start: { _, _ in },
+                hotkeyPresses: hotkeyPresses,
+                selection: selectionWorld.selection,
+                wallpaperPane: selectionWorld.pane
+            ),
+            onboarding: onboardingServices(),
             sweep: { [] },
             lastRenderState: { nil },
             makeImporter: { library in
@@ -81,7 +105,14 @@ final class Fakes {
             displayName: { Self.names[$0.identity] ?? "Display \($0.displayID)" },
             trash: { _ in },
             isPlaybackMetricsOn: { [weak self] in self?.isPlaybackMetricsOn ?? false },
-            setPlaybackMetrics: { [weak self] in self?.isPlaybackMetricsOn = $0 }
+            setPlaybackMetrics: { [weak self] in self?.isPlaybackMetricsOn = $0 },
+            // No socket: the `livepaper` tool must not reach a fake world. `fakes.sh door socket` stands in.
+            commandSocket: nil,
+            sleep: sleep,
+            // Livepaper selected on a Mac with one Space, the store kept from before it.
+            storeShape: { WallpaperStoreShape(store: .read(desktopEntries: 2, namingLivepaper: 2), keptCopyExists: true) },
+            // A subsystem nothing logs to: the report's section reads "No lines", and nothing real is read.
+            extensionLog: { await ExtensionLogLines.fetch(subsystem: "app.livepaper.fakes") }
         )
     }
 

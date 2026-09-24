@@ -38,9 +38,10 @@ final class AppModel: ImportLibrary {
     /// In the order the display sensor lists them.
     private(set) var displays: [Display] = []
     private(set) var hostStatus: RenderHostStatus = .stopped
-    /// Pause All: the stopped state (record 0003). Not remembered: the next launch is live.
+    /// Pause All: every display paused in place, as its own pause does. Not
+    /// remembered: the next launch is live.
     private(set) var isPausedAll = false
-    /// The render state made last, stopped while paused all.
+    /// The render state made last.
     private(set) var renderState: RenderState?
     private(set) var conditions: SensedConditions?
 
@@ -70,13 +71,13 @@ final class AppModel: ImportLibrary {
     @ObservationIgnored private(set) var isQuitting = false
     /// Displays are known once the sensor has spoken. Until then no render state
     /// is made: it would show nothing on every display.
-    @ObservationIgnored private var areDisplaysKnown = false
+    @ObservationIgnored private(set) var areDisplaysKnown = false
     @ObservationIgnored private(set) var sensing: ConditionsSensing?
     /// Made once the launch has swept: observed, so Import is offered then.
     private(set) var importer: (any ImportRunning)?
     /// Work that goes on beside the app, the scenes' preparation among it, cancelled at quit.
     @ObservationIgnored var watches: [Task<Void, Never>] = []
-    @ObservationIgnored private var launching: Task<Void, Never>?
+    @ObservationIgnored private(set) var launching: Task<Void, Never>?
     @ObservationIgnored private var quitting: Task<Void, Never>?
     /// Render states are applied in the order they were made, each after the one before.
     @ObservationIgnored private var applying: Task<Void, Never>?
@@ -94,6 +95,11 @@ final class AppModel: ImportLibrary {
     @ObservationIgnored var settling: [WallpaperID: Task<Void, Never>] = [:]
     /// Moves on with each set, so that only the latest one's apply says done.
     @ObservationIgnored var feedbackTokens: [Assignment: Int] = [:]
+    /// Moves each display's playlist on (AppModel+Rotation.swift).
+    @ObservationIgnored var rotationDriver: RotationDriver?
+    /// What came of the status line's Restart, and the clock that ends its waits.
+    var serviceRestart = ServiceRestart()
+    @ObservationIgnored var serviceRestartTick: Task<Void, Never>?
 
     init(services: AppServices) {
         self.services = services
@@ -146,6 +152,8 @@ extension AppModel {
     private func start() async {
         AppLog.logger.notice("\(AppLog.launched(fakes: self.services.isFakes), privacy: .public)")
         load()
+        services.system.start(state, self)
+        makeRotationDriver()
         prepareScenes()
         watchHostStatus()
         do {
@@ -201,6 +209,7 @@ extension AppModel {
         watches.append(Task { [weak self] in
             for await status in statuses {
                 self?.hostStatus = status
+                self?.serviceRestart.hostChanged(to: status)
             }
         })
     }
@@ -216,8 +225,10 @@ extension AppModel {
 
     private func displaysChanged(_ connected: [ConnectedDisplay]) {
         displays = connected.map { Display(identity: $0.identity, name: services.displayName($0), pixelSize: $0.pixelSize) }
+        let isFirst = !areDisplaysKnown
         areDisplaysKnown = true
         resolveSection()
+        rotationFollowsDisplays(isFirst: isFirst)
         applyRenderState()
     }
 
@@ -238,34 +249,24 @@ extension AppModel {
 
     // MARK: Pause All
 
-    /// Every display holds its poster as a still and gives its decoder up: the
-    /// stopped state (record 0003), not remembered, so the next launch is live.
+    /// Every display pauses in place, as its own pause does: its picture held
+    /// and its decoder kept, so Resume All is instant. Not remembered, so the
+    /// next launch is live; stopping is Quit's alone (record 0003).
     func pauseAll() {
-        guard isLaunched, !isPausedAll, !isQuitting else { return }
+        guard isLaunched, !isPausedAll, !isQuitting, libraryProblem == nil else { return }
         isPausedAll = true
-        // What the host writes: the last state, stopped, at the next generation. The cards read it as paused.
-        renderState = renderState?.next { $0.isStopped = true }
-        enqueue { await $0.deactivate() }
+        updateRotation()
+        applyRenderState()
         AppLog.logger.notice("\(AppLog.pausedAll(generation: self.renderState?.generation), privacy: .public)")
     }
 
-    /// At once: the host is activated again and a live state follows the stopped one.
+    /// At once: each display plays again, or stays paused on its own.
     func resumeAll() {
         guard isPausedAll, !isQuitting else { return }
         isPausedAll = false
-        enqueue { host in
-            do {
-                try await host.activate()
-            } catch {
-                AppLog.logger.error("\(AppLog.activationFailed(error), privacy: .public)")
-            }
-        }
+        updateRotation()
         applyRenderState()
         AppLog.logger.notice("\(AppLog.resumedAll, privacy: .public)")
-    }
-
-    func togglePauseAll() {
-        if isPausedAll { resumeAll() } else { pauseAll() }
     }
 
     // MARK: Quit
@@ -283,6 +284,7 @@ extension AppModel {
 
     private func stop() async {
         await launching?.value
+        stopRotationAndRestart()
         // Edits in progress are kept; the displays have them at the next launch.
         settleDrafts()
         runningImport?.task.cancel()
@@ -312,10 +314,11 @@ extension AppModel {
 
     /// `commit`, for what must hear that a change was refused (an import's insert, a delete,
     /// Set on Display's feedback). Answers the apply that carries it to the displays; nil
-    /// when it is saved and they have it later (paused all, or before the launch has read them).
+    /// when it is saved and they have it later (before the launch has read them).
     @discardableResult
     func change(library newLibrary: Library? = nil, state newState: AppState? = nil) throws -> Task<Void, Never>? {
         if let libraryProblem { throw libraryProblem }
+        guard hasStarted else { throw refusedBeforeStart() }
         if let newLibrary, newLibrary != library {
             do {
                 try services.libraryStore.save(newLibrary)
@@ -334,6 +337,7 @@ extension AppModel {
                 AppLog.logger.error("\(AppLog.stateSaveFailed(error), privacy: .public)")
             }
             histories.forget(changedFrom: before, to: newState)
+            updateRotation()
         }
         resolveSection()
         gridDidChange()
@@ -341,17 +345,22 @@ extension AppModel {
     }
 
     /// Makes the render state for what is kept now and hands it to the host,
-    /// after the one before it. Nothing is made before the launch has read the
-    /// displays, while paused all, while quitting, or while the library could
-    /// not be read.
+    /// after the one before it, every display paused while paused all. Nothing
+    /// is made before the launch has read the displays, while quitting, or while
+    /// the library could not be read.
     ///
     /// Answers the apply that carries what is kept now: a new one, or the one
     /// still running when nothing has changed; nil when nothing is applied now.
     @discardableResult
     func applyRenderState() -> Task<Void, Never>? {
-        guard isLaunched, areDisplaysKnown, !isPausedAll, !isQuitting, libraryProblem == nil else { return nil }
+        guard isLaunched, areDisplaysKnown, !isQuitting, libraryProblem == nil else { return nil }
         guard let next = RenderState.make(
-            library: library, state: state, connected: displays.map(\.identity), conditions: conditions, previous: renderState
+            library: library,
+            state: state,
+            connected: displays.map(\.identity),
+            conditions: conditions,
+            isPausedAll: isPausedAll,
+            previous: renderState
         ) else { return applying }
         renderState = next
         madeLast = next
@@ -375,19 +384,6 @@ extension AppModel {
         }
         applying = task
         return task
-    }
-
-    /// The grid changed (section, search, sort, library): the selection stays while the grid shows it.
-    func gridDidChange() {
-        selection.gridChanged(grid.map(\.id))
-    }
-
-    /// The sidebar leaves a display that was unplugged, or a playlist that was deleted, for All.
-    private func resolveSection() {
-        let resolved = section.resolved(displays: displays.map(\.identity), playlists: state.playlists)
-        if resolved != section {
-            section = resolved
-        }
     }
 
     /// A delete's toast ended without its undo: expired, dismissed, replaced, or

@@ -104,6 +104,10 @@ _Avoid_: Power setting, battery mode
 The state in which Livepaper, rather than a system wallpaper, is what the displays show.
 _Avoid_: Active mode, running
 
+**Selection**:
+Livepaper being the system wallpaper: what the wallpaper store names for the desktop, made by onboarding's one edit of the store or by the user's click in System Settings, and ended only by leaving (record 0003). Not the library grid's selection, the one tile picked in the window.
+_Avoid_: Activation, enabled, installed
+
 **Previous wallpaper**:
 The system wallpaper that was set before the user chose Livepaper. Stopping does not bring it back (record 0003); it is put back when the user leaves Livepaper.
 _Avoid_: Original wallpaper, backup

@@ -104,6 +104,16 @@ struct ConditionsSensingTests {
         #expect(await conditions.next() == SensedConditions(sensedAt: Moment.after(100), coveredDisplays: [Self.one]))
     }
 
+    @Test func `the covered-display sensor is told whether covering pauses, and told again when the rule changes`() {
+        #expect(covered.coveringPauses)
+
+        sensing.rules = PauseRules(whenDesktopCovered: false)
+        #expect(covered.coveringPauses == false)
+        sensing.rules = PauseRules()
+
+        #expect(covered.coveringPauses)
+    }
+
     @Test func `the connected displays are kept for whoever needs them`() async {
         sensing.start()
 

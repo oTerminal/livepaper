@@ -4,6 +4,9 @@
 # script and the PR's media when the menu-bar item cannot be clicked. Commands:
 #   open popover | close popover | open library | open settings | quit
 #   menu <title>    chooses the Fakes menu item with that title, e.g. menu Recovering at Restart Agent
+#   onboarding …    the cards of a run started with `-onboarding YES`: primary, secondary, sample 2,
+#                   login answers needs approval, store unreadable, choose livepaper (FakesSystemCommands)
+#   hotkey pause    presses a hotkey: pause, next, mute or library
 # The command is heard by every fakes run on this Mac and by nothing else; with
 # LIVEPAPER_FAKES=<name>, only by the run started with `-fakesRemote <name>`.
 set -e

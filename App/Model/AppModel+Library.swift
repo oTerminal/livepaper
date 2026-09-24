@@ -11,6 +11,19 @@ extension AppModel {
 
     // MARK: Selection
 
+    /// The grid changed (section, search, sort, library): the selection stays while the grid shows it.
+    func gridDidChange() {
+        selection.gridChanged(grid.map(\.id))
+    }
+
+    /// The sidebar leaves a display that was unplugged, or a playlist that was deleted, for All.
+    func resolveSection() {
+        let resolved = section.resolved(displays: displays.map(\.identity), playlists: state.playlists)
+        if resolved != section {
+            section = resolved
+        }
+    }
+
     func select(_ id: WallpaperID) {
         selection.click(id)
     }

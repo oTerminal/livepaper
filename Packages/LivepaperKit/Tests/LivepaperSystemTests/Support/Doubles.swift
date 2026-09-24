@@ -118,6 +118,19 @@ final class MemoryAgentRestartStore: AgentRestartStore {
     var lastRestart: Date?
 }
 
+/// A wallpaper store that is only read, as the host reads it before a restart, and says what the test sets.
+@MainActor
+final class FakeStoreReader: WallpaperStoreReading {
+    /// Both Desktop entries name Livepaper, until a test says otherwise.
+    var answer = WallpaperStoreShape(store: .read(desktopEntries: 2, namingLivepaper: 2), keptCopyExists: true)
+    private(set) var reads = 0
+
+    func shape() -> WallpaperStoreShape {
+        reads += 1
+        return answer
+    }
+}
+
 extension Moment {
     /// Milliseconds since launch, so that times made by adding durations compare exactly.
     static func millisecond(of date: Date) -> Int {

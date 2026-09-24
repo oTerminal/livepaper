@@ -40,20 +40,38 @@ struct OnboardingCardPage: View {
         StateSection(
             title: "Stepping through",
             note: """
-            The card keeps its identity, so moving between steps re-enters nothing. A click crossfades the picture, \
-            words and dots and the height snaps; Return presses Continue with no animation.
+            Given every step, the card is the tallest step's height at each: the words stay at the top and the dots and \
+            buttons at the bottom, so a step change happens in a still frame. The card keeps its identity, so moving \
+            between steps re-enters nothing; a click crossfades the picture, and the rest of the step as one page. Try \
+            0.1x on “Choose a video”, which has an accessory. Return presses Continue with no animation. Each step opens \
+            with the focus on its primary button (keyboard navigation on).
             """
         ) {
             OnboardingCard(
-                title: steps[step].title,
-                message: steps[step].message,
+                steps: steps.indices.map { index in
+                    OnboardingCardStep(
+                        title: steps[index].title,
+                        message: steps[index].message,
+                        primaryTitle: index == steps.count - 1 ? "Done" : "Continue",
+                        secondaryTitle: index == 0 ? nil : "Back",
+                        showsAccessory: index == 1
+                    )
+                },
                 stepIndex: step,
-                stepCount: steps.count,
-                primaryTitle: step == steps.count - 1 ? "Done" : "Continue",
                 onPrimary: { step = (step + 1) % steps.count },
-                secondaryTitle: step == 0 ? nil : "Back",
                 onSecondary: { step = max(step - 1, 0) },
-                illustration: { SamplePicture(seed: 10 + step) }
+                illustration: { SamplePicture(seed: 10 + step) },
+                accessory: {
+                    HStack(spacing: Spacing.small) {
+                        ForEach(1..<4) { seed in
+                            WallpaperTile(
+                                id: seed, poster: SamplePicture.image(seed: 40 + seed), title: "Sample \(seed)"
+                            ) {} livePreview: {
+                                EmptyView()
+                            }
+                        }
+                    }
+                }
             )
         }
 
@@ -66,6 +84,45 @@ struct OnboardingCardPage: View {
                 primaryTitle: "Done",
                 onPrimary: {},
                 illustration: { SamplePicture(seed: 5) }
+            )
+        }
+
+        StateSection(
+            title: "With an accessory",
+            note: """
+            Controls of the step's own under the words, entering with them: here, wallpapers to start with. Unlike the \
+            illustration they are read by VoiceOver and can be pressed. They come and go with their step's page.
+            """
+        ) {
+            OnboardingCard(
+                title: "Add a wallpaper",
+                message: "Drop a file on this card, or start with one of these.",
+                stepIndex: 0,
+                stepCount: 3,
+                primaryTitle: "Choose File…",
+                onPrimary: {},
+                illustration: { SamplePicture(seed: 21) },
+                accessory: {
+                    HStack(spacing: Spacing.small) {
+                        ForEach(1..<4) { seed in
+                            WallpaperTile(id: seed, poster: SamplePicture.image(seed: 30 + seed), title: "Sample \(seed)") {} livePreview: {
+                                EmptyView()
+                            }
+                        }
+                    }
+                }
+            )
+        }
+
+        StateSection(title: "A card alone", note: "One card shows no page dots: one dot would only say “Step 1 of 1”.") {
+            OnboardingCard(
+                title: "Move Livepaper to Applications",
+                message: "Quit Livepaper, drag it into the Applications folder, and open it from there.",
+                stepIndex: 0,
+                stepCount: 1,
+                primaryTitle: "Quit",
+                onPrimary: {},
+                illustration: { SamplePicture(seed: 6) }
             )
         }
 

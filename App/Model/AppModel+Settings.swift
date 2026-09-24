@@ -2,7 +2,8 @@ import AppKit
 import LivepaperCore
 
 // Settings: the pause rules, the login item, the hotkeys, and leaving Livepaper.
-// The last three talk to `SystemServices`: the fake until M7.
+// The last three talk to `SystemServices`: `MacSystemServices` wired, the fake
+// in the fakes run.
 
 extension AppModel {
     // MARK: Pause rules
@@ -43,11 +44,15 @@ extension AppModel {
     // MARK: Leaving
 
     /// "Stop using Livepaper as wallpaper", once confirmed: the previous wallpaper
-    /// goes back (M7), then the app quits, holding the stopped state as a quit does.
+    /// goes back and the login item goes (M7), then the app quits, holding the
+    /// stopped state as a quit does. The library is kept, and the next launch
+    /// offers onboarding's last card alone.
     func leaveLivepaper() {
+        guard hasStarted else { return }
         let services = systemServices
         Task {
             await services.leaveLivepaper()
+            recordLeaving()
             // From the run loop, not this task: Terminate waits in a nested run loop
             // for the quit, whose task would otherwise queue behind this one.
             NSApp.perform(#selector(NSApplication.terminate(_:)), with: nil, afterDelay: 0)

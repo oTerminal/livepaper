@@ -23,6 +23,10 @@ struct LaunchOptions: Equatable {
     var fakeLibrary = FakeLibrary.empty
     /// The name the fakes run's remote answers to (`FakesRemote`), when two runs are up at once.
     var fakesRemote: String?
+    /// The first launch the fakes run plays, so that onboarding can be recorded:
+    /// `-onboarding YES`, `translocated`, `afterLeaving` or `updated`. The wired
+    /// run ignores it: its onboarding follows the preferences alone.
+    var onboarding: FakeOnboarding?
     var slowMotion: Bool?
     var reduceMotion: Bool?
     var reduceTransparency: Bool?
@@ -38,6 +42,7 @@ struct LaunchOptions: Equatable {
         isFakes = Self.flag(arguments["fakes"]) ?? false
         fakeLibrary = (arguments["fakeLibrary"] as? String).flatMap(FakeLibrary.init) ?? .empty
         fakesRemote = arguments["fakesRemote"] as? String
+        onboarding = (arguments["onboarding"] as? String).flatMap(FakeOnboarding.init(argument:))
         slowMotion = Self.flag(arguments["slowMotion"])
         reduceMotion = Self.flag(arguments["reduceMotion"])
         reduceTransparency = Self.flag(arguments["reduceTransparency"])

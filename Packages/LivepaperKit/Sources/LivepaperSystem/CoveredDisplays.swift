@@ -21,6 +21,19 @@ nonisolated public struct WindowListEntry: Equatable, Sendable {
     public static let coveringLevels = Int(CGWindowLevelForKey(.normalWindow))...
 }
 
+/// What one read of the window list says.
+nonisolated public struct WindowListReading: Equatable, Sendable {
+    /// The displays whose desktop is fully covered (`coveredDisplays`).
+    public var covered: Set<DisplayIdentity>
+    /// Whether Show Desktop has the windows aside (`isShowingDesktop`).
+    public var showingDesktop: Bool
+
+    public init(covered: Set<DisplayIdentity> = [], showingDesktop: Bool = false) {
+        self.covered = covered
+        self.showingDesktop = showingDesktop
+    }
+}
+
 /// The displays whose desktop is fully covered: one window on screen at a
 /// covering level, not owned by one of `ignoredOwners`, contains the display's
 /// frame, less the strip beside a camera housing.
@@ -29,9 +42,11 @@ nonisolated public struct WindowListEntry: Equatable, Sendable {
 /// bar, and the strip beside the housing is black: the desktop is not
 /// composited there either. The owners to ignore are the app itself, the
 /// Dock, which keeps a display-sized window on every display, above the
-/// normal level, that covers nothing, and loginwindow, whose lock screen
+/// normal level, that covers nothing, loginwindow, whose lock screen
 /// shield is display-sized too and stays listed for about a second after the
-/// unlock: the lock screen is the lock sensor's business. Several windows
+/// unlock: the lock screen is the lock sensor's business, and WindowManager,
+/// whose Show Desktop window is display-sized above the normal level while
+/// the desktop shows through it (`isShowingDesktop`). Several windows
 /// that cover a display between them do not count; that is v1's known gap. A
 /// zoomed window leaves the menu bar, where the wallpaper shows through, so
 /// it does not count either, except in one case: with the Dock hidden, a
@@ -49,6 +64,24 @@ nonisolated public func coveredDisplays(
             .filter { display in covering.contains { $0.bounds.contains(display.frameToCover) } }
             .map(\.identity)
     )
+}
+
+/// Whether Show Desktop has the windows aside: one of `windowManager`'s
+/// windows, at a covering level, contains a display's frame.
+///
+/// On macOS 27 Show Desktop slides every window almost off the display,
+/// leaving a 12 pt sliver at its edge, and WindowManager lists a window of its
+/// own over the whole display at level 18, which the desktop shows through and
+/// which takes the click that brings the windows back. The windows keep their
+/// place in the on-screen list, at their new bounds, and nothing is posted
+/// when they leave or when they come back.
+nonisolated public func isShowingDesktop(
+    windows: [WindowListEntry],
+    displays: [ConnectedDisplay],
+    windowManager: Set<Int32>
+) -> Bool {
+    let windowManagers = windows.filter { windowManager.contains($0.ownerPID) }
+    return !coveredDisplays(windows: windowManagers, displays: displays, ignoringOwners: []).isEmpty
 }
 
 extension ConnectedDisplay {

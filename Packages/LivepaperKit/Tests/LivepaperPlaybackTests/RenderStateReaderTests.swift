@@ -7,6 +7,8 @@ struct RenderStateReaderTests {
     static let playing = RenderState(generation: 7, displays: [.numbered(1)], pauseRules: PauseRules(), conditions: nil)
     static let later = playing.next { $0.displays = [.numbered(1, showing: 2)] }
     static let stopped = playing.next { $0.isStopped = true }
+    /// Pause All: every display paused by the user, as its own pause is.
+    static let pausedAll = playing.next { $0.displays = [.numbered(1, userPaused: true)] }
 
     // MARK: What a read does to what is shown
 
@@ -53,6 +55,11 @@ struct RenderStateReaderTests {
         Row("no render state shows nothing", Question(current: .none), .nothing),
         Row("a display absent from the state shows nothing", Question(current: .state(playing), display: 3), .nothing),
         Row("the stopped state holds the display's poster", Question(current: .state(stopped)), .still(.numbered(1))),
+        Row(
+            "Pause All pauses the display in place, as its own pause does",
+            Question(current: .state(pausedAll)),
+            .playback(.numbered(1), .pause(.user))
+        ),
         Row("a readable state plays the display's wallpaper", Question(current: .state(playing)), .playback(.numbered(1), .play)),
         Row("a covered display pauses by its rule", Question(current: .state(covered)), .playback(.numbered(1), .pause(.desktopCovered))),
         Row(
@@ -80,6 +87,7 @@ struct RenderStateReaderTests {
         Row("no render state is holding still", .none, true),
         Row("the stopped state is holding still", .state(stopped), true),
         Row("a playing state is not", .state(playing), false),
+        Row("Pause All's state is not: each display is paused, its decoder kept", .state(pausedAll), false),
     ]
 
     @Test(arguments: stills)

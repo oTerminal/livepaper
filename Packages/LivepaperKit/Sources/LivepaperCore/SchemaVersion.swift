@@ -44,9 +44,3 @@ enum PersistedJSON {
         JSONDecoder()
     }
 }
-
-extension Date {
-    func elapsed(since earlier: Date) -> Duration {
-        .seconds(timeIntervalSince(earlier))
-    }
-}

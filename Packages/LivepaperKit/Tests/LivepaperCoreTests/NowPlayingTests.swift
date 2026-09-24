@@ -27,6 +27,8 @@ struct NowPlayingTests {
     struct Situation: Sendable {
         var state: AppState
         var conditions: SensedConditions?
+        var isPausedAll = false
+        /// The stopped state Quit leaves (record 0003), which a relaunch reads until it makes a live one.
         var stopped = false
         var host = HostCapabilities(showsLockScreen: true)
     }
@@ -35,10 +37,23 @@ struct NowPlayingTests {
     static func card(_ situation: Situation) throws -> NowPlaying {
         let library = try library()
         var render = RenderState.make(
-            library: library, state: situation.state, connected: [first], conditions: situation.conditions, previous: nil
+            library: library,
+            state: situation.state,
+            connected: [first],
+            conditions: situation.conditions,
+            isPausedAll: situation.isPausedAll,
+            previous: nil
         )
         if situation.stopped { render = render?.next { $0.isStopped = true } }
-        let cards = nowPlaying(library: library, state: situation.state, connected: [first], render: render, host: situation.host, now: now)
+        let cards = nowPlaying(
+            library: library,
+            state: situation.state,
+            connected: [first],
+            render: render,
+            isPausedAll: situation.isPausedAll,
+            host: situation.host,
+            now: now
+        )
         return try #require(cards.first)
     }
 
@@ -103,7 +118,18 @@ struct NowPlayingTests {
             Situation(state: state(), conditions: SensedConditions(sensedAt: Moment.after(-60), coveredDisplays: [first])),
             Card(status: nil, isPlaying: true)
         ),
-        Row("Pause All", Situation(state: state(), stopped: true), Card(status: "Paused", isPlaying: false)),
+        Row("Pause All", Situation(state: state(), isPausedAll: true), Card(status: "Paused", isPlaying: false)),
+        Row(
+            "Pause All over the display's own pause, which its button still shows",
+            Situation(state: state { $0.pausedDisplays = [first] }, isPausedAll: true),
+            Card(status: "Paused", isPlaying: false, isUserPaused: true)
+        ),
+        Row(
+            "Pause All beats every sensed reason, as the user's pause does",
+            Situation(state: state(), conditions: sensed { $0.lowPowerMode = true }, isPausedAll: true),
+            Card(status: "Paused", isPlaying: false)
+        ),
+        Row("the stopped state Quit left", Situation(state: state(), stopped: true), Card(status: "Paused", isPlaying: false)),
         Row(
             "the user's pause beats every sensed reason",
             Situation(state: state { $0.pausedDisplays = [first] }, conditions: sensed { $0.lowPowerMode = true }),
@@ -132,6 +158,19 @@ struct NowPlayingTests {
         let cards = nowPlaying(library: library, state: paused, connected: [Self.first], render: nil, host: Self.host, now: Self.now)
 
         #expect(cards.map(\.status) == ["Paused"])
+    }
+
+    @Test func `under Pause All a card reads paused at once, before a render state carries it`() throws {
+        let library = try Self.library()
+        let state = Self.state()
+        let live = RenderState.make(library: library, state: state, connected: [Self.first], conditions: nil, previous: nil)
+
+        let cards = nowPlaying(
+            library: library, state: state, connected: [Self.first], render: live, isPausedAll: true, host: Self.host, now: Self.now
+        )
+
+        #expect(cards.map(\.status) == ["Paused"])
+        #expect(cards.map(\.isPlaying) == [false])
     }
 
     // MARK: What each card shows

@@ -38,12 +38,19 @@ public struct NowPlaying: Equatable, Sendable, Identifiable {
 /// One card per connected display, in the order given.
 ///
 /// The status is `decidePlayback`'s reason on what `render` last carried, with
-/// the state's pause rules and the user's pause from the state, so that a pause
-/// shows before the render state that carries it is applied. A stopped render
-/// state (Pause All) reads "Paused"; with none applied yet, only the user's
-/// pause counts.
+/// the state's pause rules and the user's pauses from the state and Pause All,
+/// so that a pause shows before the render state that carries it is applied.
+/// Pause All pauses every display as its own pause does, and reads "Paused";
+/// so does the stopped state Quit leaves (record 0003), until a live one
+/// follows it. With none applied yet, only the user's pauses count.
 public func nowPlaying(
-    library: Library, state: AppState, connected: [DisplayIdentity], render: RenderState? = nil, host: HostCapabilities, now: Date
+    library: Library,
+    state: AppState,
+    connected: [DisplayIdentity],
+    render: RenderState? = nil,
+    isPausedAll: Bool = false,
+    host: HostCapabilities,
+    now: Date
 ) -> [NowPlaying] {
     connected.map { display in
         var card = NowPlaying(
@@ -63,7 +70,7 @@ public func nowPlaying(
         }
 
         var conditions = render?.playbackConditions(for: display, now: now) ?? PlaybackConditions(sensedAt: .distantPast, now: now)
-        conditions.userPaused = card.isUserPaused
+        conditions.userPaused = card.isUserPaused || isPausedAll
         switch decidePlayback(conditions, rules: state.pauseRules, host: host) {
         case .play:
             card.isPlaying = true

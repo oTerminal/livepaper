@@ -46,6 +46,20 @@ struct LivepaperApp: App {
         .defaultLaunchBehavior(.suppressed)
         .restorationBehavior(.disabled)
 
+        // M7: first-run onboarding, opened at launch when the preferences say it has not run.
+        Window("Welcome to Livepaper", id: AppWindows.onboardingID) {
+            OnboardingWindow()
+                .environment(delegate.model)
+                .environment(delegate.onboarding)
+                .onboardingWindow(delegate.windows)
+                .launchOptions(delegate.options)
+        }
+        .windowStyle(.hiddenTitleBar)
+        .windowResizability(.contentSize)
+        .defaultWindowPlacement { _, _ in WindowPlacement(.center) }
+        .defaultLaunchBehavior(.suppressed)
+        .restorationBehavior(.disabled)
+
         Settings {
             SettingsView()
                 .environment(delegate.model)
@@ -59,12 +73,20 @@ struct LivepaperApp: App {
 /// Makes the model, on the real host or, with `-fakes YES`, on the fakes; puts
 /// the menu-bar item up at launch; and holds Quit until the stopped render state
 /// is written, so that each display is left holding its poster (record 0003).
+///
+/// A translocated launch (M7) shows the move card and nothing else: no
+/// menu-bar item, no model launch, so no library read, host, sensors, hotkeys
+/// or socket, no doors, and nothing written at quit. Closing the card quits.
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let options = LaunchOptions.current
     let windows = AppWindows()
     let model: AppModel
     /// The Workshop (record 0009): Valve's steamcmd, or the fakes' stand-in.
     let workshop: WorkshopModel
+    /// `livepaper://` links and the command socket (M7).
+    let doors: Doors
+    /// First-run onboarding (M7), decided as the app starts.
+    let onboarding: Onboarding
     /// The fakes run's world, which its Fakes menu drives. Nil when wired: then
     /// nothing fake is made, and the model drives the real wallpaper.
     private let fakes: Fakes?
@@ -75,7 +97,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     override init() {
         let options = LaunchOptions.current
         if options.isFakes {
-            let fakes = Fakes(library: options.fakeLibrary)
+            let fakes = Fakes(library: options.fakeLibrary, onboarding: options.onboarding)
             self.fakes = fakes
             model = AppModel(services: fakes.makeServices())
         } else {
@@ -83,11 +105,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             model = AppModel(services: .wired())
         }
         workshop = WorkshopModel(services: options.isFakes ? .fakes() : .wired(), library: model)
+        doors = Doors(model: model, windows: windows, workshop: workshop)
+        onboarding = Onboarding(model: model)
         super.init()
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.appearance = options.nsAppearance
+        if let fakes {
+            remote = FakesRemote { [weak self] verb, rest in self?.perform(verb, rest, fakes: fakes) }
+        }
+        guard startsLivepaper else {
+            AppLog.logger.notice("\(AppLog.translocatedLaunch, privacy: .public)")
+            // A turn later, once SwiftUI has its scenes up.
+            Task { [windows] in windows.openOnboarding() }
+            return
+        }
         let popover = PopoverView()
             .environment(model)
             .environment(windows)
@@ -98,11 +131,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         windows.didCloseLibrary = { [model] in model.libraryWindowDidClose() }
         workshop.showWorkshop = { [windows] in windows.openWorkshop() }
         menuBarItem = item
-        if let fakes {
-            remote = FakesRemote { [weak self] verb, rest in self?.perform(verb, rest, fakes: fakes) }
-        }
+        watchHotkeys()
         model.launch()
+        if onboarding.shows {
+            // A turn later, once SwiftUI has its scenes up.
+            Task { [windows] in windows.openOnboarding() }
+        }
+        if let socket = model.services.commandSocket {
+            doors.openSocket(at: socket)
+        }
     }
+
+    /// `livepaper://` links. A link that launched the app arrives before
+    /// `applicationDidFinishLaunching`; the model runs it once the launch has
+    /// read the library. A file is left, with a log line: importing is done in
+    /// the app's window alone.
+    func application(_ application: NSApplication, open urls: [URL]) {
+        guard startsLivepaper else {
+            AppLog.logger.notice("\(AppLog.translocatedDoor(urls.count), privacy: .public)")
+            return
+        }
+        doors.open(urls)
+    }
+
+    /// False on a translocated launch, which shows the move card alone and starts nothing.
+    private var startsLivepaper: Bool { onboarding.plan.startsLivepaper }
 
     /// A command from `Tools/pr-media/fakes.sh`. The popover opens and closes with
     /// motion, as a click would, so that a recording shows it.
@@ -118,7 +171,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if !menu.performItem(titled: title) { AppLog.logger.notice("fakes: no menu item \(title, privacy: .public)") }
         case ("quit", _): NSApp.terminate(nil)
         default:
-            guard !FakesCommands(model: model).perform(verb, rest) else { return }
+            let commands = FakesCommands(model: model, doors: doors)
+            let system = FakesSystemCommands(onboarding: onboarding, fakes: fakes, windows: windows)
+            guard !commands.perform(verb, rest), !system.perform(verb, rest) else { return }
             AppLog.logger.notice("fakes: unknown command \(verb, privacy: .public) \(rest, privacy: .public)")
         }
     }
@@ -137,14 +192,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
     }
 
-    /// Closing the library window leaves the app in the menu bar.
+    /// Closing the library window leaves the app in the menu bar. Closing the
+    /// move card quits, since a translocated launch has nothing else.
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-        false
+        !startsLivepaper
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        // Nothing was started, so there is no stopped state to write.
+        guard startsLivepaper else { return .terminateNow }
         // steamcmd runs in a session of its own, and would outlive the app.
         workshop.stopAll()
+        doors.closeSocket()
         Task {
             await model.quit()
             sender.reply(toApplicationShouldTerminate: true)

@@ -17,9 +17,9 @@ nonisolated public enum AgentRestartReason: Hashable, Sendable {
 nonisolated public enum AgentRestartRefusal: Equatable, Sendable {
     /// The last restart was less than `agentRestartGap` ago.
     case tooSoon(allowedFrom: Date)
-    /// The last restart has not been followed by a heartbeat. When Livepaper is
-    /// not selected the agent never launches the extension, so restarting it
-    /// again would only redraw the desktop every ten minutes, forever.
+    /// The last restart has not been followed by a heartbeat. An extension that
+    /// never answers, though the store names Livepaper or cannot be read, would
+    /// otherwise have the desktop redrawn every ten minutes, forever.
     case awaitingHeartbeat
 }
 
@@ -35,12 +35,17 @@ nonisolated public enum HostEvent: Equatable, Sendable {
     case systemDidWake(at: Date)
     /// `recover(.restartAgent)` was called.
     case restartRequested(at: Date)
+    /// What `.readBeforeRestart` asked for, read at once: what the wallpaper
+    /// store says of Livepaper, and the last restart any part of the app
+    /// recorded in the shared `AgentRestartStore`, Selection's included.
+    case readForRestart(AgentRestartReason, store: StoreSelection, lastAgentRestart: Date?, at: Date)
     case deactivated
 
     /// When the event happened; the two that carry no time change nothing that depends on it.
     public var time: Date? {
         switch self {
         case .activated(let at, _), .heartbeat(_, let at), .tick(let at), .systemDidWake(let at), .restartRequested(let at): at
+        case .readForRestart(_, _, _, let at): at
         case .systemWillSleep, .deactivated: nil
         }
     }
@@ -56,6 +61,14 @@ nonisolated public enum HostAction: Equatable, Sendable {
     case restartAgent(AgentRestartReason)
     /// Said once per reason until something changes, so that the log shows it without repeating it.
     case restartRefused(AgentRestartReason, AgentRestartRefusal)
+    /// Before an automatic restart: read the wallpaper store (never write it)
+    /// and the shared record of the last restart, and send `.readForRestart`
+    /// in the same turn.
+    case readBeforeRestart(AgentRestartReason)
+
+    public var isReadBeforeRestart: Bool {
+        if case .readBeforeRestart = self { true } else { false }
+    }
 }
 
 /// The render host's status, reduced over heartbeats, silence and the clock.
@@ -64,8 +77,17 @@ nonisolated public enum HostAction: Equatable, Sendable {
 /// Silence gives `.recovering(level)` by `judgeHeartbeat`, and each level is
 /// acted on once as it is reached. Every restart of the agent, whatever asked
 /// for it, goes through `allowAgentRestart`. On top of that, an automatic
-/// restart is not made while the last restart has had no heartbeat since:
-/// when Livepaper is not selected, silence is all the app ever gets.
+/// restart is not made while the last restart has had no heartbeat since.
+///
+/// Not selected is not silence. WallpaperAgent launches the extension only
+/// while Livepaper is the system wallpaper, so a user who chose another hears
+/// nothing from it. Before an automatic restart the owner reads the wallpaper
+/// store and the shared record of the last restart (`.readBeforeRestart`):
+/// when the store names Livepaper nowhere, the status is `.notSelected`, no
+/// restart is made and the ladder stops until a heartbeat, a wake or an
+/// activation (record 0003: no agent restart on an ordinary launch); when it
+/// cannot be read, the ladder goes on. The record holds restarts made
+/// elsewhere, Selection's among them, so the gap runs from those too.
 ///
 /// Silence before the first heartbeat since activation is the install hazard
 /// (record 0001): the extension was killed and the agent has not started it
@@ -109,6 +131,12 @@ nonisolated public struct HostStatusReducer: Equatable, Sendable {
     /// The highest level acted on in this silence.
     private var climbed: RecoveryLevel?
     private var refusalsSaid: Set<AgentRestartReason> = []
+    /// The automatic restart waiting for `.readForRestart`.
+    private var reading: AgentRestartReason?
+    /// The store named Livepaper nowhere when silence last reached the agent.
+    /// Kept through a wake, since a wake changes no store; a heartbeat or an
+    /// activation ends it, and so does the store naming Livepaper again.
+    private var storeNamesLivepaperNowhere = false
 
     public init(timing: HeartbeatTiming = .standard) {
         self.timing = timing
@@ -124,6 +152,8 @@ nonisolated public struct HostStatusReducer: Equatable, Sendable {
         case .systemWillSleep: if case .awake = phase { phase = .asleep }
         case .systemDidWake(let at): wake(at: at)
         case .restartRequested(let at): actions = requestRestart(.user, at: at)
+        case .readForRestart(let reason, let store, let recorded, let at):
+            actions = read(reason, store: store, lastAgentRestart: recorded, at: at)
         case .deactivated: deactivate()
         }
         status = derivedStatus(at: event.time)
@@ -131,15 +161,23 @@ nonisolated public struct HostStatusReducer: Equatable, Sendable {
         return actions
     }
 
-    /// A restart recorded later than now was recorded before the clock moved
-    /// back; it counts as made now, so that the gap still runs, and no longer.
+    /// An activation starts afresh, keeping the restart an earlier launch recorded.
     private mutating func activate(at now: Date, lastAgentRestart recorded: Date?) {
         phase = .awake(graceFrom: now)
         activatedAt = now
         climbed = nil
-        if let recorded {
-            lastAgentRestart = max(lastAgentRestart ?? .distantPast, min(recorded, now))
-        }
+        reading = nil
+        storeNamesLivepaperNowhere = false
+        keep(recorded, at: now)
+    }
+
+    /// A restart recorded by another launch or another part of the app: the
+    /// later of it and the one known. One recorded later than now was recorded
+    /// before the clock moved back, and counts as made now, so that the gap
+    /// still runs, and no longer.
+    private mutating func keep(_ recorded: Date?, at now: Date) {
+        guard let recorded else { return }
+        lastAgentRestart = max(lastAgentRestart ?? .distantPast, min(recorded, now))
     }
 
     private mutating func wake(at now: Date) {
@@ -159,6 +197,7 @@ nonisolated public struct HostStatusReducer: Equatable, Sendable {
     private mutating func deactivate() {
         phase = .stopped
         climbed = nil
+        reading = nil
     }
 
     private mutating func receive(_ heartbeat: Heartbeat, at now: Date) -> [HostAction] {
@@ -168,6 +207,8 @@ nonisolated public struct HostStatusReducer: Equatable, Sendable {
         lastHeartbeat = heartbeat
         lastHeartbeatAt = now
         restartUnanswered = false
+        storeNamesLivepaperNowhere = false
+        reading = nil
         climbed = nil
         refusalsSaid.remove(.silence)
         if !heartbeat.flags.contains(.spiralDetected) { refusalsSaid.remove(.spiral) }
@@ -196,13 +237,45 @@ nonisolated public struct HostStatusReducer: Equatable, Sendable {
         return actions
     }
 
+    /// A click restarts at once, within the gap the host knows of: its answer is
+    /// told by `lastAgentRestart` moving. An automatic restart that the host's
+    /// own record allows is read for first.
     private mutating func requestRestart(_ reason: AgentRestartReason, at now: Date) -> [HostAction] {
         if reason != .user, restartUnanswered {
             return refuse(reason, .awaitingHeartbeat)
         }
-        if let last = lastAgentRestart, !allowAgentRestart(last: last, now: now) {
-            return refuse(reason, .tooSoon(allowedFrom: last + agentRestartGap))
+        if let refusal = gapRefusal(reason, at: now) { return refusal }
+        guard reason == .user else {
+            reading = reason
+            return [.readBeforeRestart(reason)]
         }
+        return restart(reason, at: now)
+    }
+
+    /// What was read for an automatic restart: the gap counts from the latest
+    /// restart anyone recorded, and silence with Livepaper named nowhere in the
+    /// store is not selected, and restarts nothing.
+    private mutating func read(
+        _ reason: AgentRestartReason, store: StoreSelection, lastAgentRestart recorded: Date?, at now: Date
+    ) -> [HostAction] {
+        guard reading == reason, phase != .stopped else { return [] }
+        reading = nil
+        keep(recorded, at: now)
+        if reason == .silence {
+            storeNamesLivepaperNowhere = store == .notSelected
+            if storeNamesLivepaperNowhere { return [] }
+        }
+        if let refusal = gapRefusal(reason, at: now) { return refusal }
+        return restart(reason, at: now)
+    }
+
+    /// Nil when the gap allows a restart now; else the refusal, said once per reason.
+    private mutating func gapRefusal(_ reason: AgentRestartReason, at now: Date) -> [HostAction]? {
+        guard let last = lastAgentRestart, !allowAgentRestart(last: last, now: now) else { return nil }
+        return refuse(reason, .tooSoon(allowedFrom: last + agentRestartGap))
+    }
+
+    private mutating func restart(_ reason: AgentRestartReason, at now: Date) -> [HostAction] {
         lastAgentRestart = now
         restartUnanswered = true
         refusalsSaid.removeAll()
@@ -239,6 +312,7 @@ nonisolated public struct HostStatusReducer: Equatable, Sendable {
         case .asleep:
             return status
         case .awake:
+            if storeNamesLivepaperNowhere { return .notSelected }
             if restartUnanswered { return .recovering(.restartAgent) }
             if let now, let level = levelReached(at: now) { return .recovering(level) }
             guard heardSinceActivation, let heartbeat = lastHeartbeat else { return .connecting }
@@ -258,7 +332,7 @@ nonisolated public struct HostStatusReducer: Equatable, Sendable {
     private func nextCheck(after now: Date) -> Date? {
         guard case .awake(let graceFrom) = phase else { return nil }
         if levelReached(at: now) == .restartAgent {
-            guard !restartUnanswered, let last = lastAgentRestart else { return nil }
+            guard !restartUnanswered, !storeNamesLivepaperNowhere, let last = lastAgentRestart else { return nil }
             let gapOpens = last + agentRestartGap
             return gapOpens > now ? gapOpens + Self.resolution : nil
         }

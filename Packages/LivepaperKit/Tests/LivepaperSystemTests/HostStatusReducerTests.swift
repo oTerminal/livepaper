@@ -5,6 +5,8 @@ import Testing
 
 /// Drives the reducer as the client does: events as they come, and a tick at
 /// each `nextCheck`, with the times written down in milliseconds since launch.
+/// What the reducer asks to read before an automatic restart is answered at
+/// once, as the client answers it, from `store` and `recordedRestart`.
 struct HostScript {
     /// An action, with any time in it in milliseconds since launch.
     enum Did: Equatable {
@@ -13,7 +15,7 @@ struct HostScript {
         case restart(AgentRestartReason)
         case refuse(AgentRestartReason, untilMillisecond: Int?)
 
-        init(_ action: HostAction) {
+        init?(_ action: HostAction) {
             switch action {
             case .postRecover(let level): self = .post(level)
             case .recoverSkipped(let level): self = .skip(level)
@@ -22,6 +24,8 @@ struct HostScript {
                 self = .refuse(reason, untilMillisecond: Moment.millisecond(of: allowedFrom))
             case .restartRefused(let reason, .awaitingHeartbeat):
                 self = .refuse(reason, untilMillisecond: nil)
+            case .readBeforeRestart:
+                return nil
             }
         }
     }
@@ -40,15 +44,32 @@ struct HostScript {
 
     var reducer = HostStatusReducer(timing: .standard)
     var steps: [Step] = []
+    /// What the wallpaper store says of Livepaper when the reducer reads it.
+    var store: StoreSelection
+    /// The shared record of the last restart (`AgentRestartStore`): the reducer's
+    /// own restarts go there, and a test can write one made elsewhere, as Selection does.
+    var recordedRestart: Date?
+    /// How many times the reducer read before a restart.
+    private(set) var reads = 0
 
-    init(activatedAt seconds: Double = 0, lastAgentRestartAt restartSecond: Double? = nil) {
-        send(.activated(at: Moment.after(seconds), lastAgentRestart: restartSecond.map(Moment.after)))
+    init(activatedAt seconds: Double = 0, lastAgentRestartAt restartSecond: Double? = nil, store: StoreSelection = .selected) {
+        self.store = store
+        recordedRestart = restartSecond.map(Moment.after)
+        send(.activated(at: Moment.after(seconds), lastAgentRestart: recordedRestart))
     }
 
     mutating func send(_ event: HostEvent, at date: Date? = nil) {
-        let actions = reducer.reduce(event)
         let when = date ?? event.time ?? Moment.launch
-        steps += actions.map { Step(Moment.millisecond(of: when), Did($0)) }
+        var actions = reducer.reduce(event)
+        while let read = actions.firstIndex(where: \.isReadBeforeRestart) {
+            guard case .readBeforeRestart(let reason) = actions.remove(at: read) else { break }
+            reads += 1
+            actions += reducer.reduce(.readForRestart(reason, store: store, lastAgentRestart: recordedRestart, at: when))
+        }
+        if actions.contains(where: { if case .restartAgent = $0 { true } else { false } }) {
+            recordedRestart = reducer.lastAgentRestart
+        }
+        steps += actions.compactMap { action in Did(action).map { Step(Moment.millisecond(of: when), $0) } }
     }
 
     mutating func heartbeat(_ flags: Heartbeat.Flags = .desktopSurfaceAcquired, at seconds: Double) {
@@ -172,7 +193,7 @@ struct HostStatusReducerTests {
         #expect(script.reducer.lastAgentRestart.map(Moment.millisecond(of:)) == 30_001)
     }
 
-    @Test func `when Livepaper is not selected the agent is restarted once, not every ten minutes`() {
+    @Test func `when the extension stays silent the agent is restarted once, not every ten minutes`() {
         var script = HostScript()
 
         script.runClock(until: 86_400)
