@@ -86,6 +86,11 @@ enum EngineLog {
         "scene: surface \(surface) shows \(folder.lastPathComponent) in the Metal slot\(waited ? "" : ", with no picture after 1 s")"
     }
 
+    /// A still of the scene up: its last picture stays in the slot, the scene let go and its poster under it.
+    static func sceneHeldStill(_ surface: SurfaceID, _ folder: URL, at time: Double) -> String {
+        "scene: surface \(surface) holds \(folder.lastPathComponent) still on its last picture, at \(String(format: "%.2f", time)) s"
+    }
+
     private static func describe(_ error: (any Error)?) -> String {
         guard let error = error as NSError? else { return "no error given" }
         return "\(error.domain) \(error.code): \(error.localizedDescription)"

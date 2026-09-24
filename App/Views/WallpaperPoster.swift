@@ -24,7 +24,7 @@ struct WallpaperPoster<Content: View>: View {
 
     var body: some View {
         if let url = model.art.posterURL(for: wallpaper) {
-            PosterImage(url: url, content: content)
+            PosterImage(url: url, revision: model.art.posterRevision(for: wallpaper), content: content)
         } else {
             content(model.art.poster(for: wallpaper, size: DrawnPoster.size))
         }

@@ -62,6 +62,9 @@ targets:
         product: LivepaperImport
       - package: LivepaperKit
         product: LivepaperPlayback
+      # What draws a scene, for the posters the app draws from scenes (record 0007).
+      - package: LivepaperKit
+        product: LivepaperScene
       - package: LivepaperKit
         product: LivepaperSystem
       # Workshop items through Valve's steamcmd with the user's own login (record 0009).

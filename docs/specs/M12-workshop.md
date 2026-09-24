@@ -136,6 +136,18 @@ The branch's final build, installed and running, driven by Accessibility presses
 - The app set steamcmd up in `Livepaper/Steam/steamcmd/`, and steamcmd's `Frameworks -> MacOS/Frameworks` link landed in `Livepaper/Steam/`, not in the library's root. The `Livepaper/steamcmd/` an earlier build had set up, and the link it had left in the root, went to the Trash first.
 - Seen: the Workshop window's toolbar (Get disabled on the Workshop's front page, "Go to an item's page to get it", and enabled on an item's page), Settings' section signed in, and, in the fakes run, the sign-in sheet on Settings, cancelled.
 
+### Sign-out, and a saved login Steam refuses (2026-09-24)
+
+After the merge the user signed out in Settings (`workshop: signed out of Steam; steamcmd's saved login revoked`, 09:19:23), then tried to sign in again twice: `workshop: sign-in failed: steamSaid("Access Denied")`, about 3 s after each start, before any password was asked for. steamcmd's own `logs/console_log.txt` (in `Livepaper/Steam/steamcmd/`) showed why:
+
+- The sign-out ran as built: the saved login, `logout` ("Logging off current session... OK"), then `login` again, which said `Cached credentials not found.` and `password:`. Livepaper stopped steamcmd at that prompt, as the proof it wanted. steamcmd never reached `Unloading Steam API...`.
+- Each sign-in after it began `Logging in using cached credentials.` and ended `ERROR (Access Denied)`. steamcmd forgets a login at `logout` but writes that down only when it quits, so the revoked login was still on disk, and it tried that instead of asking for the password.
+- Checked by hand with the app's steamcmd, typing nothing secret: `login` gave `Access Denied` from the cached credentials; `logout`, then `quit`, exited 0; the next run's `login` said `Cached credentials not found.` and asked for the password.
+
+Neither of the handoff's other leads was it: Steam said `Access Denied` to the cached login within 2 s, so no rate limit was met and no password line was ever typed over the pty.
+
+So a `logout` is now always followed by `quit`, and the job goes on in a new run of steamcmd (`SteamConversation`'s `.restart`). A sign-out logs out, quits, and proves the login gone in the second run. A sign-in whose saved login Steam refuses (anything but no connection, a timeout or a rate limit) logs out of it, quits, and asks for the password in the second run; refused again, it ends with Steam's words. A download whose saved login Steam refuses asks the user to sign in (`signInNeeded`). The fake steamcmd now keeps a `logout` only when it quits, and can hold a revoked login; against it the old driver failed six tests, the user's case among them ("after signing out, signing in again asks for the password").
+
 ### What the user tries after the merge
 
 With the merged build installed and running, on this Mac:

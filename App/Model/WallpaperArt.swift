@@ -22,6 +22,9 @@ final class WallpaperArt {
     /// Counts the posters decoded, so that a view that asked before its poster
     /// was ready is drawn again when it is.
     private var decodedCount = 0
+    /// How many times each poster file was written again since launch (a scene's,
+    /// drawn from the scene: `ScenePoster`), so that one decoded before is decoded again.
+    private var revisions: [URL: Int] = [:]
     @ObservationIgnored private var decoding: Set<PosterCache.Request> = []
     /// Pictures that could not be read, never asked for again.
     @ObservationIgnored private var unreadable: Set<URL> = []
@@ -44,7 +47,7 @@ final class WallpaperArt {
 
     /// Any picture file, such as a Wallpaper Engine item's preview in the import list.
     func picture(at url: URL, size: CGSize, scale: CGFloat = 2) -> Image? {
-        let request = PosterCache.Request(url: url, size: size, scale: scale)
+        let request = PosterCache.Request(url: url, size: size, scale: scale, revision: revisions[url] ?? 0)
         guard request.isDrawable, !unreadable.contains(url) else { return nil }
         // Read, so that a poster decoded later draws the view again.
         _ = decodedCount
@@ -60,13 +63,30 @@ final class WallpaperArt {
                 decodedCount += 1
             }
         }
-        return nil
+        // A poster written again keeps its earlier picture up until the new one is decoded.
+        guard request.revision > 0 else { return nil }
+        let earlier = PosterCache.Request(url: url, size: size, scale: scale)
+        return PosterCache.shared.cached(earlier).map { Image(decorative: $0.image, scale: scale) }
     }
 
     /// The poster file, for `PosterImage`; nil in the fakes run.
     func posterURL(for wallpaper: Wallpaper) -> URL? {
         guard case .library(let location) = source else { return nil }
         return location.url(for: wallpaper.poster)
+    }
+
+    /// How many times the wallpaper's poster file was written again since launch, for `PosterImage`.
+    func posterRevision(for wallpaper: Wallpaper) -> Int {
+        posterURL(for: wallpaper).flatMap { revisions[$0] } ?? 0
+    }
+
+    /// The wallpaper's poster file was written again, as a scene's is once it is
+    /// drawn from the scene: every view showing it reads it again, keeping the
+    /// picture it has until the new one is decoded.
+    func posterChanged(for wallpaper: Wallpaper) {
+        guard let url = posterURL(for: wallpaper) else { return }
+        revisions[url, default: 0] += 1
+        unreadable.remove(url)
     }
 
     /// What a tile plays once it goes live: the hover preview. Nil when the

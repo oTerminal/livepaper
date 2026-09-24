@@ -65,7 +65,7 @@ final class Fakes {
             makeImporter: { library in
                 FakeImporter(library: library, clock: ContinuousClock(), step: .milliseconds(300), makeWallpaper: Self.importedWallpaper)
             },
-            prepareScenes: { _, _ in },
+            prepareScenes: { _, _, _ in },
             makeSensing: { [host, displays, power, lock, displaySleep, covered] rules, onChange in
                 ConditionsSensing(
                     rules: rules,
@@ -193,7 +193,7 @@ final class Fakes {
     }
 
     /// Eight wallpapers, two of them favourites, a playlist of four, and one on
-    /// the built-in display; the Studio Display is left with none.
+    /// the built-in display at 60% volume; the Studio Display is left with none.
     private func seeded(_ library: FakeLibrary) -> (Library, AppState?) {
         guard library == .seeded else { return (Library(), nil) }
         let now = Date()
@@ -207,7 +207,7 @@ final class Fakes {
             Sample("Neon Alley", seconds: 15, 3840, 2160, fps: 30, "prores", megabytes: 410),
             Sample("Desert Dunes", seconds: 27, 3840, 1600, fps: 30, "hevc", megabytes: 66),
         ]
-        let wallpapers = samples.enumerated().map { index, sample in
+        var wallpapers = samples.enumerated().map { index, sample in
             Self.makeWallpaper(
                 id: WallpaperID(uuid: fixedUUID("5EED0000", index + 1)),
                 name: sample.name,
@@ -217,6 +217,9 @@ final class Fakes {
                 details: sample.details
             )
         }
+        // The one on the built-in display has its sound up, so the popover's and the
+        // inspector's sliders show a level; the rest are silent, as an import leaves them.
+        wallpapers[0].volume = 0.6
         var library = Library()
         for wallpaper in wallpapers {
             guard let next = try? library.inserting(wallpaper) else { preconditionFailure("the seeded wallpapers are distinct") }

@@ -2,7 +2,10 @@
 # A stand-in for Valve's steamcmd, for LivepaperWorkshopTests. It speaks the
 # console as Valve's macOS steamcmd did on 2026-09-23 (SteamOutputTests has the
 # lines), and keeps its "saved login" as a file under $HOME, as the real one
-# keeps it under ~/Library/Application Support/Steam. It never touches the
+# keeps it under ~/Library/Application Support/Steam. As the real one did on
+# 2026-09-24, it forgets a login at `logout` but writes that down only when it
+# quits: stopped at a prompt, it leaves the saved login in place. A saved login
+# whose file says "revoked" is one Steam refuses. It never touches the
 # network, and what it "downloads" is a Wallpaper Engine video item it writes
 # itself: a project.json and an empty video file.
 #
@@ -45,6 +48,8 @@ printf '"@sSteamCmdForcePlatformType" = "windows"\r\n'
 
 account=""
 signed_in=0
+# The account whose saved login `logout` forgot; its file goes only at `quit`.
+forgotten=""
 console() { printf '\r\nSteam>'; }
 
 # A code prompt; answers whether the code typed was the right one.
@@ -60,9 +65,14 @@ while IFS= read -r line; do
     case "$1" in
     login)
         account="$2"
-        if [ -f "$state/login-$account" ]; then
+        if [ -f "$state/login-$account" ] && [ "$forgotten" != "$account" ]; then
             printf 'Logging in using cached credentials.\r\n'
             printf "Logging in user '%s' [U:1:0] to Steam Public..." "$account"
+            if [ "$(cat "$state/login-$account")" = revoked ]; then
+                printf 'ERROR (Access Denied)\r\n'
+                console
+                continue
+            fi
         else
             printf 'Cached credentials not found.\r\n\r\npassword: '
             IFS= read -r password
@@ -91,7 +101,8 @@ while IFS= read -r line; do
                 printf 'OK\r\n'
                 ;;
             esac
-            touch "$state/login-$account"
+            : > "$state/login-$account"
+            forgotten=""
         fi
         printf 'OK\r\nWaiting for client config...OK\r\nWaiting for user info...OK\r\n'
         signed_in=1
@@ -114,11 +125,12 @@ while IFS= read -r line; do
         fi
         ;;
     logout)
-        if [ "$FAKE_KEEP_LOGIN" != 1 ]; then rm -f "$state/login-$account"; fi
+        if [ "$FAKE_KEEP_LOGIN" != 1 ]; then forgotten="$account"; fi
         signed_in=0
         ;;
     quit)
         printf 'Unloading Steam API...OK\r\n'
+        if [ -n "$forgotten" ]; then rm -f "$state/login-$forgotten"; fi
         exit 0
         ;;
     *)

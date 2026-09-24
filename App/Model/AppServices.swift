@@ -1,6 +1,7 @@
 import AppKit
 import LivepaperCore
 import LivepaperImport
+import LivepaperScene
 import LivepaperSystem
 import LivepaperTestSupport
 
@@ -24,10 +25,14 @@ struct AppServices {
     var makeImporter: (any ImportLibrary) -> any ImportRunning
     /// Prepares again, one at a time and off the main actor, the scenes whose
     /// programs are missing or were written by an older translator
-    /// (`ScenePreparation.refresh`); `log` hears each outcome. Runs at launch,
-    /// after the sweep. Nothing in the fakes run.
+    /// (`ScenePreparation.refresh`), then draws the poster of each scene that
+    /// can be drawn and whose poster was not drawn from it by this build
+    /// (`ScenePoster.refresh`); `prepared` and `drawn` hear each outcome. Runs at
+    /// launch, after the sweep. Nothing in the fakes run.
     var prepareScenes: (
-        _ wallpapers: [Wallpaper], _ log: @escaping @Sendable (Wallpaper, ScenePreparation.Outcome) async -> Void
+        _ wallpapers: [Wallpaper],
+        _ prepared: @escaping @Sendable (Wallpaper, ScenePreparation.Outcome) async -> Void,
+        _ drawn: @escaping @Sendable (Wallpaper, ScenePoster.Outcome) async -> Void
     ) async -> Void
     /// The sensors behind the pause rules and the connected displays.
     var makeSensing: (_ rules: PauseRules, _ onChange: @escaping @MainActor (SensedConditions) -> Void) -> ConditionsSensing
@@ -61,25 +66,20 @@ extension AppServices {
             art: .library(location),
             systemServices: FakeSystemServices(),
             sweep: { try sweepInterruptedImports(in: location) },
-            lastRenderState: {
-                let data: Data
-                do {
-                    data = try Data(contentsOf: location.renderState)
-                } catch let error as CocoaError where [.fileReadNoSuchFile, .fileNoSuchFile].contains(error.code) {
-                    return nil
-                }
-                return try RenderState.decode(data)
-            },
+            lastRenderState: { try lastRenderState(at: location.renderState) },
             makeImporter: { library in
                 Importer(
                     location: location,
                     library: library,
                     ffmpeg: FFmpegTool.locate(replacement: replacement, bundled: Bundle.main.url(forAuxiliaryExecutable: "ffmpeg")),
-                    shaderTools: shaderTools
+                    shaderTools: shaderTools,
+                    // A scene's poster is drawn by what draws it on the desktop.
+                    sceneDrawing: WallpaperEngineScene.self
                 )
             },
-            prepareScenes: { wallpapers, log in
-                _ = await ScenePreparation.refresh(wallpapers, in: location, tools: shaderTools, log: log)
+            prepareScenes: { wallpapers, prepared, drawn in
+                _ = await ScenePreparation.refresh(wallpapers, in: location, tools: shaderTools, log: prepared)
+                _ = await ScenePoster.refresh(wallpapers, in: location, drawingType: WallpaperEngineScene.self, log: drawn)
             },
             makeSensing: { rules, onChange in
                 ConditionsSensing(rules: rules, host: host.capabilities, onChange: onChange)
@@ -95,6 +95,17 @@ extension AppServices {
             isPlaybackMetricsOn: { host.isPlaybackMetricsOn },
             setPlaybackMetrics: { host.setPlaybackMetrics($0) }
         )
+    }
+
+    /// The render state in `file`; nil when there is none.
+    private static func lastRenderState(at file: URL) throws -> RenderState? {
+        let data: Data
+        do {
+            data = try Data(contentsOf: file)
+        } catch let error as CocoaError where [.fileReadNoSuchFile, .fileNoSuchFile].contains(error.code) {
+            return nil
+        }
+        return try RenderState.decode(data)
     }
 }
 

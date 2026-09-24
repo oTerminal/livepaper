@@ -22,6 +22,11 @@ struct PopoverView: View {
             Divider()
                 .padding(.horizontal, Spacing.small)
             PopoverFooter()
+                // The status line is last, and its 40 pt already keeps about 12 pt
+                // under its words, the inset the popover keeps at its sides. The
+                // glass's 4 pt, there for the cards' concentric corners, came on top
+                // and left the words high, with more room under them than beside them.
+                .padding(.bottom, -Spacing.tight)
         }
         .frame(width: PopoverMetrics.width)
     }

@@ -15,12 +15,19 @@ import os
 /// the recovery levels mean for a scene what they mean for a video; they come
 /// from the same supervisor on the same decisions.
 ///
+/// A scene stopped keeps its last picture in the slot, whatever stopped it: a
+/// pause, a suspend, or a still of that scene (Pause All, Quit; record 0003),
+/// which lets the scene go as a suspend does and puts its poster under the
+/// picture for whatever hides the slot later. Shown again, it goes on from
+/// the scene time it stopped at, with its picture up throughout.
+///
 /// On its owner's actor, which in the extension is the main actor, as `SurfaceLayers` is.
 public final class SurfacePlayer: SurfacePlayback {
     public let layers: SurfaceLayers
     let engine: SceneEngine
     private let logger: Logger
-    /// The scene up, and what it is doing; nil while the layers play a video or hold a still.
+    /// The scene up, and what it is doing: `.still` for a scene held still on its last picture.
+    /// Nil while the layers play a video, or hold a still with no picture of a scene over it.
     private var scene: (wallpaper: SurfaceWallpaper, state: SurfacePlaybackState)?
     /// Counts the requests that change what the scene engine does. Work that waited, on a load,
     /// a poster or a first picture, goes on only if none came meanwhile: a later request for
@@ -51,7 +58,8 @@ public final class SurfacePlayer: SurfacePlayback {
         }
         engine.setVolume(wallpaper.volume)
         if let current = scene, current.wallpaper.scene == drawn {
-            // The same scene: its presentation and volume change in place, and it plays on.
+            // The same scene: its presentation and volume change in place, and it plays on; held
+            // still, it is loaded again and goes on from its picture in the slot.
             scene?.wallpaper = wallpaper
             layOutScene()
             guard current.state != .playing else { return }
@@ -63,6 +71,9 @@ public final class SurfacePlayer: SurfacePlayback {
     }
 
     public func holdStill(poster wallpaper: SurfaceWallpaper) async {
+        if let drawn = wallpaper.scene, scene?.wallpaper.scene == drawn, slotScene == drawn {
+            return await holdStill(drawn, wallpaper)
+        }
         let run = leaveScene()
         await layers.holdStill(poster: wallpaper)
         // The slot goes once the poster is under it, unless a scene has come back meanwhile.
@@ -164,6 +175,23 @@ public final class SurfacePlayer: SurfacePlayback {
         slotScene = drawn
         layers.tree.transaction { layers.tree.showScene(true) }
         logger.notice("\(EngineLog.sceneShown(self.layers.id, drawn.folder, waited: drew), privacy: .public)")
+    }
+
+    /// A still of the scene whose picture is on the slot: the link stops and the scene is let go,
+    /// as on a suspend, and the slot keeps its last picture, the scene's own at the surface's size,
+    /// never the poster stretched over the display. The poster goes under it, for whatever hides
+    /// the slot later. Shown again, the scene goes on from the time it stopped at (`show`).
+    private func holdStill(_ drawn: SurfaceScene, _ wallpaper: SurfaceWallpaper) async {
+        epoch += 1
+        let wasStill = scene?.state == .still
+        scene = (wallpaper, .still)
+        engine.suspend("still")
+        // A new presentation lays the picture out anew; it is scaled until the scene draws again.
+        layOutScene()
+        if !wasStill {
+            logger.notice("\(EngineLog.sceneHeldStill(self.layers.id, drawn.folder, at: self.engine.sceneTime), privacy: .public)")
+        }
+        await layers.holdStill(poster: wallpaper)
     }
 
     /// A scene that cannot be drawn holds its poster, as a video that cannot be played does.

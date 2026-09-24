@@ -118,6 +118,57 @@ struct SteamCmdTests {
         #expect(!steam.hasSavedLogin(for: "someone"))
     }
 
+    @Test func `after signing out, signing in again asks for the password`() async throws {
+        let steam = try FakeSteam()
+        try steam.saveLogin(for: "someone")
+        _ = try await steam.steamcmd().run(.signOut(account: "someone"))
+        let heard = Heard()
+        let outcome = try await steam.steamcmd(["FAKE_PASSWORD": "hunter2"]).run(
+            .signIn(account: "someone"), password: .of("hunter2"), line: heard.line
+        )
+        #expect(outcome == .signedIn)
+        #expect(heard.lines.contains("Cached credentials not found."))
+    }
+
+    @Test func `a saved login Steam refuses is forgotten, and the sign-in asks for the password`() async throws {
+        let steam = try FakeSteam()
+        try steam.saveLogin(for: "someone", revoked: true)
+        let heard = Heard()
+        let outcome = try await steam.steamcmd(["FAKE_PASSWORD": "hunter2"]).run(
+            .signIn(account: "someone"), password: .of("hunter2"), line: heard.line
+        )
+        #expect(outcome == .signedIn)
+        #expect(steam.starts == 2)
+        #expect(heard.lines.contains("Cached credentials not found."))
+    }
+
+    @Test func `a sign-in that meets a refused saved login twice gives up`() async throws {
+        let steam = try FakeSteam()
+        try steam.saveLogin(for: "someone", revoked: true)
+        await #expect(throws: WorkshopError.steamSaid("Access Denied")) {
+            try await steam.steamcmd(["FAKE_PASSWORD": "hunter2", "FAKE_KEEP_LOGIN": "1"]).run(
+                .signIn(account: "someone"), password: .of("hunter2")
+            )
+        }
+        #expect(steam.starts == 2)
+    }
+
+    @Test func `a download whose saved login Steam refuses asks to sign in`() async throws {
+        let steam = try FakeSteam()
+        try steam.saveLogin(for: "someone", revoked: true)
+        await #expect(throws: WorkshopError.signInNeeded) {
+            try await steam.steamcmd().run(.download(Self.lonelyCat, account: "someone"))
+        }
+    }
+
+    @Test func `signing out with a saved login Steam refuses takes it back`() async throws {
+        let steam = try FakeSteam()
+        try steam.saveLogin(for: "someone", revoked: true)
+        let outcome = try await steam.steamcmd().run(.signOut(account: "someone"))
+        #expect(outcome == .signedOut)
+        #expect(!steam.hasSavedLogin(for: "someone"))
+    }
+
     @Test func `a logout that keeps the saved login is not a sign-out`() async throws {
         let steam = try FakeSteam()
         try steam.saveLogin(for: "someone")

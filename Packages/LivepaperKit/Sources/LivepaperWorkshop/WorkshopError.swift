@@ -59,6 +59,14 @@ public enum WorkshopError: Error, Equatable, Sendable {
         }
     }
 
+    /// Steam could not be asked, or asked to be left alone for a while: nothing it said is about the login itself.
+    var isAboutReachingSteam: Bool {
+        switch self {
+        case .noConnection, .timedOut, .rateLimited: true
+        default: false
+        }
+    }
+
     /// A result steamcmd printed for a download: `ERROR! Download item <id> failed (<result>).`
     public init(downloadResult result: String) {
         switch result.lowercased() {

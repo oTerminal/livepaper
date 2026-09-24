@@ -68,10 +68,11 @@ struct FakeSteam {
         ((try? String(contentsOf: home.appending(path: "fake-steam/starts"), encoding: .utf8)) ?? "").split(separator: "\n").count
     }
 
-    /// A saved login for the account, as a sign-in would have left it.
-    func saveLogin(for account: String) throws {
+    /// A saved login for the account, as a sign-in would have left it; `revoked`, one Steam refuses.
+    func saveLogin(for account: String, revoked: Bool = false) throws {
         try FileManager.default.createDirectory(at: home.appending(path: "fake-steam"), withIntermediateDirectories: true)
-        FileManager.default.createFile(atPath: home.appending(path: "fake-steam/login-\(account)").path, contents: Data())
+        let contents = Data((revoked ? "revoked" : "").utf8)
+        FileManager.default.createFile(atPath: home.appending(path: "fake-steam/login-\(account)").path, contents: contents)
     }
 
     func hasSavedLogin(for account: String) -> Bool {

@@ -53,10 +53,12 @@ public struct ImportReport: Equatable, Sendable {
 public enum ImportOutcome: Equatable, Sendable {
     case imported(Wallpaper, ImportReport)
     /// A scene, kept as it is to be drawn live (record 0007): there is no
-    /// optimised copy to report on, only how its preparation went. One that was
-    /// not prepared is imported all the same, and holds its poster until it is.
+    /// optimised copy to report on, only how its preparation went and how its
+    /// poster was made. One that was not prepared is imported all the same, and
+    /// holds its poster until it is; a poster not drawn from the scene is cut
+    /// from the item's preview, and drawn at a later launch (`ScenePoster`).
     /// A GIF scene is `imported`, as the video it became.
-    case importedScene(Wallpaper, preparation: ScenePreparation.Outcome)
+    case importedScene(Wallpaper, preparation: ScenePreparation.Outcome, poster: ScenePoster.Outcome)
     /// The same source file was imported before, as this wallpaper. Nothing was written.
     case duplicate(of: Wallpaper)
 }
@@ -122,6 +124,8 @@ public struct Importer: Sendable {
     /// A scene's import-time work, on its folder in `.staging/` (`ImportStage.prepare`).
     /// Only a cancel throws; a scene it could not prepare is imported all the same.
     let prepareScene: @Sendable (URL) async throws -> ScenePreparation.Outcome
+    /// What draws a scene's poster once it is prepared (`ScenePoster`); with none, it is cut from the item's preview.
+    let sceneDrawing: SceneDrawingType?
     let makeID: @Sendable () -> WallpaperID
     let now: @Sendable () -> Date
 
@@ -132,6 +136,7 @@ public struct Importer: Sendable {
         shaderTools: ShaderTools?,
         validate: (@Sendable (URL) async throws -> LoopSeamReport)? = nil,
         prepareScene: (@Sendable (URL) async throws -> ScenePreparation.Outcome)? = nil,
+        sceneDrawing: (any SceneDrawing.Type)? = nil,
         makeID: @escaping @Sendable () -> WallpaperID = { WallpaperID(uuid: UUID()) },
         now: @escaping @Sendable () -> Date = { Date() }
     ) {
@@ -143,6 +148,7 @@ public struct Importer: Sendable {
         self.validate = validate ?? { try await validateLoopSeam(of: $0) }
         // The shader tools are the default hook's: a hook given in their place needs none.
         self.prepareScene = prepareScene ?? { try await ScenePreparation.prepare($0, tools: shaderTools) }
+        self.sceneDrawing = sceneDrawing.map(SceneDrawingType.init)
         self.makeID = makeID
         self.now = now
     }

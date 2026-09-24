@@ -11,8 +11,18 @@ struct SteamConversationTests {
 
     /// Feeds the lines in order and gathers every effect.
     static func talk(_ job: SteamJob, _ lines: [SteamLine]) -> [Effect] {
+        talk(job, runs: [lines])
+    }
+
+    /// Feeds each run of steamcmd's lines in order, steamcmd going by itself between runs, and gathers every effect.
+    static func talk(_ job: SteamJob, runs: [[SteamLine]]) -> [Effect] {
         var conversation = SteamConversation(job: job)
-        return lines.flatMap { conversation.read($0) }
+        var effects: [Effect] = []
+        for (index, lines) in runs.enumerated() {
+            if index > 0 { effects += conversation.exited(status: 0) }
+            effects += lines.flatMap { conversation.read($0) }
+        }
+        return effects
     }
 
     // MARK: Downloading
@@ -142,67 +152,6 @@ struct SteamConversationTests {
     func `a sign-in Steam refuses says why`(row: Row<String, WorkshopError>) {
         let effects = Self.talk(.signIn(account: "someone"), [.console, .passwordPrompt, .signInFailed(row.input), .console])
         #expect(Array(effects.suffix(2)) == [.finish(.failure(row.expected)), .type("quit")])
-    }
-
-    // MARK: Signing out
-
-    @Test func `signing out signs in with the saved login, logs out, then proves the login is gone`() {
-        let effects = Self.talk(.signOut(account: "someone"), [
-            .console, .savedLogin, .signedIn, .console, .other, .console, .noSavedLogin, .passwordPrompt,
-        ])
-        #expect(effects == [
-            .type("login someone"), .report(.signingOut),
-            .type("logout"),
-            .type("login someone"),
-            .finish(.success(.signedOut)), .stop,
-        ])
-    }
-
-    /// Signed in with the saved login and `logout` typed: what steamcmd says next, and how the sign-out ends.
-    static let afterLogout: [Row<[SteamLine], [Effect]>] = [
-        Row("back at the console is no proof: the login is tried again", [.console], [.type("login someone")]),
-        Row(
-            "the saved login gone: signed out",
-            [.console, .noSavedLogin],
-            [.type("login someone"), .finish(.success(.signedOut)), .stop]
-        ),
-        Row(
-            "asked for the password: signed out",
-            [.console, .passwordPrompt],
-            [.type("login someone"), .finish(.success(.signedOut)), .stop]
-        ),
-        Row(
-            "the saved login still there: not signed out",
-            [.console, .savedLogin, .signedIn, .console],
-            [.type("login someone"), .finish(.failure(.stillSignedIn)), .type("quit")]
-        ),
-        Row(
-            "Steam cannot be reached to try: not known to be signed out",
-            [.console, .signInFailed("No Connection"), .console],
-            [.type("login someone"), .finish(.failure(.noConnection)), .type("quit")]
-        ),
-        Row(
-            "back at the console with neither",
-            [.console, .other, .console],
-            [.type("login someone"), .finish(.failure(.noAnswer)), .type("quit")]
-        ),
-    ]
-
-    @Test(arguments: afterLogout)
-    func `a sign-out succeeds only when the saved login is seen to be gone`(row: Row<[SteamLine], [Effect]>) {
-        let signedIn: [SteamLine] = [.console, .savedLogin, .signedIn, .console]
-        let effects = Self.talk(.signOut(account: "someone"), signedIn + row.input)
-        #expect(effects == [.type("login someone"), .report(.signingOut), .type("logout")] + row.expected)
-    }
-
-    @Test func `signing out with no saved login has nothing to take back`() {
-        let effects = Self.talk(.signOut(account: "someone"), [.console, .noSavedLogin, .passwordPrompt])
-        #expect(effects == [.type("login someone"), .report(.signingOut), .finish(.success(.signedOut)), .stop])
-    }
-
-    @Test func `signing out when Steam cannot be reached says so`() {
-        let effects = Self.talk(.signOut(account: "someone"), [.console, .savedLogin, .signInFailed("No Connection"), .console])
-        #expect(Array(effects.suffix(2)) == [.finish(.failure(.noConnection)), .type("quit")])
     }
 
     // MARK: Setting up, and ending
