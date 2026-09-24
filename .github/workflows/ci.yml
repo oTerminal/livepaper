@@ -104,7 +104,8 @@ jobs:
         env:
           LIVEPAPER_REQUIRE_FFMPEG: "1"
           LIVEPAPER_REQUIRE_SHADER_TOOLS: "1"
-        run: make test
+        # Temporarily one test at a time, to name the test whose process aborts on Swift 6.2.
+        run: swift test --package-path Packages/LivepaperKit --no-parallel
       # A test process that crashes leaves only its signal in the log. Its crash
       # report says why (the abort message) and where (the crashed thread).
       - name: Crash reports
