@@ -6,6 +6,7 @@ import Synchronization
 import Testing
 import LivepaperCore
 import LivepaperImport
+import LivepaperScene
 
 /// A library in a temporary home, and an importer into it whose wallpapers are numbered 1, 2, 3…
 final class ImportBench: Sendable {
@@ -24,10 +25,14 @@ final class ImportBench: Sendable {
         library = try StoredLibrary(store: store)
     }
 
-    func importer(library: (any ImportLibrary)? = nil, ffmpeg: FFmpegTool? = nil, shaderTools: ShaderTools? = nil) -> Importer {
+    /// `sceneDrawing` draws a scene's poster; with none, it is cut from the item's preview.
+    func importer(
+        library: (any ImportLibrary)? = nil, ffmpeg: FFmpegTool? = nil, shaderTools: ShaderTools? = nil,
+        sceneDrawing: (any SceneDrawing.Type)? = nil
+    ) -> Importer {
         Importer(
             location: location, library: library ?? self.library, ffmpeg: ffmpeg, shaderTools: shaderTools,
-            makeID: { self.nextID() }, now: { Self.importedAt }
+            sceneDrawing: sceneDrawing, makeID: { self.nextID() }, now: { Self.importedAt }
         )
     }
 

@@ -108,6 +108,25 @@ enum AppLog {
         }
     }
 
+    static func scenePosterDrawn(_ id: WallpaperID, width: Int, height: Int) -> String {
+        "scene: poster of \(id) drawn from the scene, \(width)x\(height) at \(Int(ScenePoster.time)) s"
+    }
+
+    static func scenePosterNotDrawn(_ id: WallpaperID, reason: String) -> String {
+        "scene: poster of \(id) not drawn from the scene, so it is the preview's: \(reason)"
+    }
+
+    /// How a scene's poster was made, at import or at launch: a notice when it
+    /// was drawn from the scene, an error when it is still the item's preview.
+    static func log(_ poster: ScenePoster.Outcome, of id: WallpaperID) {
+        switch poster {
+        case .drawn(let width, let height):
+            logger.notice("\(scenePosterDrawn(id, width: width, height: height), privacy: .public)")
+        case .notDrawn(let reason):
+            logger.error("\(scenePosterNotDrawn(id, reason: reason), privacy: .public)")
+        }
+    }
+
     static func choosingFiles(asSheet: Bool) -> String {
         "app: choosing files to import, \(asSheet ? "in a sheet on the library window" : "in a panel of its own")"
     }

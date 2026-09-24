@@ -152,34 +152,12 @@ struct SceneRefreshTests {
         bench = try ImportBench()
     }
 
-    /// A scene wallpaper whose folder holds `entries` and, when `translator` is set, a programs file it wrote.
     func sceneWallpaper(_ number: Int, entries: [SyntheticScene.Entry], translator: Int?) throws -> Wallpaper {
-        let id = WallpaperID(uuid: try #require(UUID(uuidString: "BBBBBBBB-0000-0000-0000-\(String(format: "%012d", number))")))
-        let folder = "wallpapers/\(id)"
-        // Where `LibraryLocation(home:)` puts the library.
-        try bench.home.writeSceneItem("Library/Application Support/Livepaper/\(folder)", entries: entries)
-        if let translator {
-            let file = bench.location.root.appending(path: "\(folder)/\(ScenePrograms.fileName)")
-            try ScenePrograms(translator: translator, tools: "the tools of old").write(to: file)
-        }
-        return Wallpaper(
-            id: id, name: "Scene \(number)", importedAt: ImportBench.importedAt,
-            fingerprint: Fingerprint(sha256: String(repeating: "\(number % 10)", count: 64)),
-            optimisedCopy: try LibraryPath("\(folder)/scene.pkg"), poster: try LibraryPath("\(folder)/poster.heic"),
-            details: WallpaperDetails(duration: 0, width: 1920, height: 1080, frameRate: 30, codec: "scene", byteCount: 1),
-            scene: WallpaperScene(project: try LibraryPath("\(folder)/project.json"), width: 1920, height: 1080)
-        )
+        try bench.sceneWallpaper(number, entries: entries, translator: translator)
     }
 
     var video: Wallpaper {
-        get throws {
-            Wallpaper(
-                id: WallpaperID(uuid: UUID()), name: "Waves", importedAt: ImportBench.importedAt,
-                fingerprint: Fingerprint(sha256: String(repeating: "f", count: 64)),
-                optimisedCopy: try LibraryPath("wallpapers/video/wallpaper.mov"), poster: try LibraryPath("wallpapers/video/poster.heic"),
-                details: WallpaperDetails(duration: 4, width: 1920, height: 1080, frameRate: 30, codec: "hevc", byteCount: 1)
-            )
-        }
+        get throws { try bench.video }
     }
 
     func programsFile(of wallpaper: Wallpaper) throws -> URL {
