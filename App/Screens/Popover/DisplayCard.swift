@@ -3,8 +3,8 @@ import LivepaperCore
 import SwiftUI
 
 /// One connected display in the popover: what it shows, why it is not playing,
-/// and its controls. A display showing a wallpaper has its playlist picker and
-/// its transport; one showing nothing has Choose, which opens the library.
+/// and its controls. A display showing a wallpaper has its playlist picker, its
+/// transport and its volume; one showing nothing has Choose, which opens the library.
 struct DisplayCard: View {
     @Environment(AppModel.self) private var model
     @Environment(AppWindows.self) private var windows
@@ -23,7 +23,24 @@ struct DisplayCard: View {
             } else {
                 controls
             }
+        } footer: {
+            if let wallpaper = card.wallpaper {
+                volume(of: wallpaper)
+            }
         }
+    }
+
+    /// The volume of the wallpaper the display shows: the value the inspector's
+    /// slider edits, so a change in one shows in the other, and it reaches the
+    /// display when the edit settles (`editSettles`), not on every step of a drag.
+    /// Mute is the footer's, the app's one: here the speaker only shows the level,
+    /// dimmed with the slider while muted, and moving the slider unmutes.
+    private func volume(of wallpaper: Wallpaper) -> some View {
+        VolumeSlider(
+            volume: Binding { model.volume(of: wallpaper) } set: { model.editVolume($0, of: wallpaper.id) },
+            isMuted: Binding { model.isMuted } set: { model.setMuted($0) },
+            speaker: .indicator
+        )
     }
 
     /// The transport, and the playlist picker under it, which names the playlist
@@ -80,6 +97,10 @@ struct DisplayCard: View {
 
 #Preview("Paused on one display") {
     CardsPreview(model: .preview().previewing { $0.previewPausingFirstDisplay() })
+}
+
+#Preview("Muted") {
+    CardsPreview(model: .preview().previewing { $0.setMuted(true) })
 }
 
 #Preview("Pause All") {
