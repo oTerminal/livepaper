@@ -47,6 +47,11 @@ struct LibraryLocationTests {
         #expect(Self.location.appState.path == Self.root + "/app-state.json")
     }
 
+    @Test func `the kept wallpaper store and the command socket are inside the root`() {
+        #expect(Self.location.keptWallpaperStore.path == Self.root + "/wallpaper-store-before-livepaper.plist")
+        #expect(Self.location.commandSocket.path == Self.root + "/command.sock")
+    }
+
     static let accepted: [Row<String, String>] = [
         Row("a file at the root", "library.json", root + "/library.json"),
         Row(
