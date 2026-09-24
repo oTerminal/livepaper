@@ -19,6 +19,17 @@ public struct OnboardingCardStep: Hashable, Sendable {
     }
 }
 
+/// When a new primary button of an `OnboardingCard` takes the focus.
+public nonisolated enum OnboardingCardFocus {
+    /// A new title within a step takes it at once, and so does a step changed by
+    /// Return, where nothing fades. A step that crossfades gives it when the
+    /// crossfade is over (`Duration.menu`, at the Gallery's motion speed), so no
+    /// ring is drawn over the step still fading out.
+    public static func delay(stepChanged: Bool, crossfades: Bool, motionSpeed: Double) -> TimeInterval {
+        stepChanged && crossfades ? Motion.Duration.menu / motionSpeed : 0
+    }
+}
+
 /// What the last step change's transaction said, read when the focus moves. A
 /// reference, since a transaction is read while the view updates, where state
 /// may not change.

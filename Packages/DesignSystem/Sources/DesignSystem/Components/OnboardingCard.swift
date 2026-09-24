@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 /// One step of first-run onboarding: an illustration, a title, a sentence, a
@@ -32,9 +33,10 @@ public struct OnboardingCard<Illustration: View, Accessory: View>: View {
     @State private var hasEntered = false
     /// The last primary button the card gave the focus to.
     @State private var focusedOpening: Opening?
-    /// The step whose primary button has the focus. By step, because the step
-    /// being left is still on screen, fading out, when the next one opens.
-    @FocusState private var focusedPrimary: Int?
+    /// The primary button that has the focus, by step and title: the step being
+    /// left is still on screen, fading out, when the next one opens, and a new
+    /// title within a step is a new button, which the same value would not move to.
+    @FocusState private var focusedPrimary: Opening?
     @State private var stepChange = OnboardingCardStepChange()
 
     private let step: OnboardingCardStep
@@ -129,14 +131,16 @@ public struct OnboardingCard<Illustration: View, Accessory: View>: View {
         // first sample, or a secondary button laid out before the primary), so the
         // card places it: on each new primary button, once its window is key.
         .onChange(of: activeState, initial: true) { focusNewPrimary() }
-        // A new title within a step takes the focus at once. A new step's primary
-        // takes it when the crossfade is over: placed at once, its ring was drawn
-        // whole round the step still fading out. By Return nothing animates, and the
+        // A new primary button, of a new step or a new title, first lets go of the
+        // focus the old one had, then takes it: at once for a new title, and when
+        // the crossfade is over for a new step. By Return nothing animates, and the
         // focus moves at once. (A transaction's animation completion was tried first,
         // and never came.)
         .onChange(of: Opening(step: stepIndex, primaryTitle: step.primaryTitle)) { old, new in
-            let waits = old.step != new.step && stepChange.crossfades
-            let delay = waits ? Motion.Duration.menu / accessibility.motionSpeed : 0
+            letGoOfFocus()
+            let delay = OnboardingCardFocus.delay(
+                stepChanged: old.step != new.step, crossfades: stepChange.crossfades, motionSpeed: accessibility.motionSpeed
+            )
             Task {
                 if delay > 0 { try? await Task.sleep(for: .seconds(delay)) }
                 focusNewPrimary()
@@ -147,7 +151,7 @@ public struct OnboardingCard<Illustration: View, Accessory: View>: View {
         // in the same change, is placed when its crossfade is over.
         .onChange(of: isEnabled) {
             if !isEnabled {
-                focusedPrimary = nil
+                letGoOfFocus()
             } else if focusedOpening == Opening(step: stepIndex, primaryTitle: step.primaryTitle) {
                 focusedOpening = nil
                 focusNewPrimary()
@@ -157,9 +161,18 @@ public struct OnboardingCard<Illustration: View, Accessory: View>: View {
 
     /// A step's primary button, as the focus sees it: a new step, or a new title
     /// within one, is a new button.
-    private struct Opening: Equatable {
+    private struct Opening: Hashable {
         let step: Int
         let primaryTitle: String
+    }
+
+    /// Takes the focus from the button that had it, in AppKit as well as SwiftUI:
+    /// a fading button left first responder kept its ring, and a replaced one took
+    /// the focus back from its successor as it went (see DECISIONS.md).
+    private func letGoOfFocus() {
+        focusedPrimary = nil
+        guard activeState == .key else { return }
+        NSApp.keyWindow?.makeFirstResponder(nil)
     }
 
     /// Gives the focus to the primary button if it is one the card has not
@@ -170,7 +183,7 @@ public struct OnboardingCard<Illustration: View, Accessory: View>: View {
         guard activeState == .key, isEnabled, focusedOpening != opening else { return }
         focusedOpening = opening
         // On the next turn, when a new step's page, or a new button, is in the window.
-        Task { focusedPrimary = opening.step }
+        Task { focusedPrimary = opening }
     }
 
     /// Everything under the picture: the step showing, as one page, and every
@@ -189,7 +202,7 @@ public struct OnboardingCard<Illustration: View, Accessory: View>: View {
                 Button(step.primaryTitle) { withoutAnimationIfKeyPress(onPrimary) }
                     .buttonStyle(.borderedProminent)
                     .keyboardShortcut(.defaultAction)
-                    .focused($focusedPrimary, equals: stepIndex)
+                    .focused($focusedPrimary, equals: Opening(step: stepIndex, primaryTitle: step.primaryTitle))
                     .id(step.primaryTitle)
             }
             .id(stepIndex)
