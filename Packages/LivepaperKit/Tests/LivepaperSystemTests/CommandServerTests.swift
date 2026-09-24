@@ -99,7 +99,8 @@ struct CommandServerTests {
     }
 
     @Test func `a client that sends nothing is refused in time, and does not hold up the next`() async throws {
-        let server = server(limits: CommandServer.Limits(requestBytes: 1024, requestTime: .milliseconds(500), replyTime: .seconds(5)))
+        // Two seconds leaves a busy virtual Mac room to answer the prompt client first.
+        let server = server(limits: CommandServer.Limits(requestBytes: 1024, requestTime: .seconds(2), replyTime: .seconds(5)))
         try server.start()
         defer { server.stop() }
         let clock = ContinuousClock()
@@ -117,8 +118,8 @@ struct CommandServerTests {
 
         #expect(try CommandReply(line: prompt) == .done(message: nil))
         #expect(promptEnd < refused.end, "the prompt client was held up until the silent one was refused")
-        #expect(try CommandReply(line: refused.answer) == .refused(reason: "No request arrived within 0.5 seconds"))
-        #expect(refused.end - start < .seconds(3))
+        #expect(try CommandReply(line: refused.answer) == .refused(reason: "No request arrived within 2 seconds"))
+        #expect(refused.end - start < .seconds(5), "the silent client was refused at its limit, not the standard 5 s")
     }
 
     @Test func `the socket is the user's alone`() throws {

@@ -71,7 +71,10 @@ struct ExtensionLogLinesTests {
         #expect(log.problem == "log: Must be admin to run 'show' command")
     }
 
-    @Test func `a subsystem nobody logs to gives no lines and no problem`() async {
+    // The look back to the Mac's start reads the whole log since boot: on CI's
+    // virtual Mac that took its few cores for seconds and starved the rest of the suite.
+    @Test(.disabled(if: VirtualMac.isRunning, "log show since boot is too heavy for a virtual Mac's few cores"))
+    func `a subsystem nobody logs to gives no lines and no problem`() async {
         let log = await ExtensionLogLines.fetch(subsystem: "app.livepaper.tests.nobody-logs-here")
 
         #expect(log.problem == nil)
