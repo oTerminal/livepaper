@@ -105,14 +105,20 @@ struct CommandServerTests {
         let clock = ContinuousClock()
         let start = clock.now
 
-        async let silent = SocketClient.exchange(socket, Data(), closingWrites: false)
+        async let silent: (answer: Data, end: ContinuousClock.Instant) = {
+            let answer = try await SocketClient.exchange(socket, Data(), closingWrites: false)
+            return (answer, clock.now)
+        }()
+        // The silent client is connected before the prompt one asks.
+        try await Task.sleep(for: .milliseconds(100))
         let prompt = try await SocketClient.exchange(socket, "livepaper://library\n")
-        let promptTime = clock.now - start
+        let promptEnd = clock.now
+        let refused = try await silent
 
         #expect(try CommandReply(line: prompt) == .done(message: nil))
-        #expect(promptTime < .milliseconds(450))
-        #expect(try CommandReply(line: try await silent) == .refused(reason: "No request arrived within 0.5 seconds"))
-        #expect(clock.now - start < .seconds(3))
+        #expect(promptEnd < refused.end, "the prompt client was held up until the silent one was refused")
+        #expect(try CommandReply(line: refused.answer) == .refused(reason: "No request arrived within 0.5 seconds"))
+        #expect(refused.end - start < .seconds(3))
     }
 
     @Test func `the socket is the user's alone`() throws {
@@ -227,29 +233,37 @@ enum SocketClient {
     }
 
     /// Writes the bytes, closes the writing end unless told not to, and reads
-    /// until the server closes. Off the main actor, where the server's handler runs.
+    /// until the server closes. On a thread of its own: the reads block, and
+    /// blocking the cooperative pool, a thread a core, starved the other tests'
+    /// clients on CI's virtual Mac (a prompt client waited 9 s).
     static func exchange(_ socket: URL, _ bytes: Data, closingWrites: Bool = true) async throws -> Data {
-        try await Task.detached {
-            let fd = try connected(to: socket)
-            defer { close(fd) }
-            try bytes.withUnsafeBytes { buffer in
-                var sent = 0
-                while sent < buffer.count {
-                    let count = write(fd, buffer.baseAddress! + sent, buffer.count - sent)
-                    guard count > 0 else { throw Failure(call: "write", errno: errno) }
-                    sent += count
-                }
+        try await withCheckedThrowingContinuation { continuation in
+            Thread.detachNewThread {
+                continuation.resume(with: Result { try blockingExchange(socket, bytes, closingWrites: closingWrites) })
             }
-            if closingWrites { shutdown(fd, SHUT_WR) }
-            var answer = Data()
-            var chunk = [UInt8](repeating: 0, count: 4096)
-            while true {
-                let count = read(fd, &chunk, chunk.count)
-                guard count > 0 else { break }
-                answer.append(contentsOf: chunk[..<count])
+        }
+    }
+
+    private static func blockingExchange(_ socket: URL, _ bytes: Data, closingWrites: Bool) throws -> Data {
+        let fd = try connected(to: socket)
+        defer { close(fd) }
+        try bytes.withUnsafeBytes { buffer in
+            var sent = 0
+            while sent < buffer.count {
+                let count = write(fd, buffer.baseAddress! + sent, buffer.count - sent)
+                guard count > 0 else { throw Failure(call: "write", errno: errno) }
+                sent += count
             }
-            return answer
-        }.value
+        }
+        if closingWrites { shutdown(fd, SHUT_WR) }
+        var answer = Data()
+        var chunk = [UInt8](repeating: 0, count: 4096)
+        while true {
+            let count = read(fd, &chunk, chunk.count)
+            guard count > 0 else { break }
+            answer.append(contentsOf: chunk[..<count])
+        }
+        return answer
     }
 
     /// A socket file no one listens on, as a crashed app leaves it.
