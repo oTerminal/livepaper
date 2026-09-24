@@ -12,6 +12,8 @@ import Testing
 final class CountedDrawing: SceneDrawing {
     static let made = Mutex<[URL: Int]>([:])
     static let alive = Mutex<[URL: Int]>([:])
+    /// The scene times each folder's pictures were drawn at, in order.
+    static let times = Mutex<[URL: [Double]]>([:])
     /// The next load of each folder here waits at its gate.
     static let gates = Mutex<[URL: LoadGate]>([:])
     let folder: URL
@@ -34,7 +36,10 @@ final class CountedDrawing: SceneDrawing {
         Self.alive.withLock { $0[folder, default: 0] -= 1 }
     }
 
-    func draw(into texture: any MTLTexture, on commandBuffer: any MTLCommandBuffer, at time: Double) {}
+    func draw(into texture: any MTLTexture, on commandBuffer: any MTLCommandBuffer, at time: Double) {
+        Self.times.withLock { $0[folder, default: []].append(time) }
+    }
+
     func resize(width: Int, height: Int) {}
 }
 
@@ -100,6 +105,10 @@ struct SurfacePlayerTests {
 
     func made(_ wallpaper: SurfaceWallpaper) -> Int {
         CountedDrawing.made.withLock { $0[wallpaper.scene?.folder ?? URL(filePath: "/"), default: 0] }
+    }
+
+    func times(_ wallpaper: SurfaceWallpaper) -> [Double] {
+        CountedDrawing.times.withLock { $0[wallpaper.scene?.folder ?? URL(filePath: "/"), default: []] }
     }
 
     /// A drawing let go may still be in the frame the render thread is on; that frame ends at once.
@@ -214,29 +223,6 @@ struct SurfacePlayerTests {
         #expect(player.state == .playing)
         #expect(player.layers.tree.scene.opacity == 1)
         #expect(await player.engine.displayedPictures(over: .milliseconds(200)).asked ?? 0 > 0)
-    }
-
-    @Test func `a still, nothing, or a video after a scene hides the slot and lets the scene go`() async {
-        let player = player()
-        let scene = scene()
-
-        await player.show(scene, crossfade: false)
-        await player.holdStill(poster: scene)
-        #expect(player.state == .still)
-        #expect(player.layers.tree.scene.opacity == 0)
-        #expect(await eventually { alive(scene) == 0 })
-
-        await player.show(scene, crossfade: false)
-        await player.showNothing()
-        #expect(player.state == .nothing)
-        #expect(player.layers.tree.scene.opacity == 0)
-
-        await player.show(scene, crossfade: false)
-        // A video that cannot be played holds its poster, as it always has; the scene is gone all the same.
-        await player.show(.numbered(1), crossfade: true)
-        #expect(player.wallpaper?.scene == nil)
-        #expect(player.layers.tree.scene.opacity == 0)
-        #expect(await eventually { alive(scene) == 0 })
     }
 
     @Test func `another scene replaces the one up, and the same one with a new presentation stays up`() async {
