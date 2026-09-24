@@ -155,14 +155,15 @@ struct SurfacePlayerTests {
         #expect(player.layers.tree.scene.opacity == 1, "the last picture stays up through all of it")
     }
 
-    @Test(.enabled(if: DisplayLinkProbe.fires, "the system calls no Metal display link on this Mac"))
-    func `the watchdog counts a playing scene, and nothing of a paused one`() async throws {
+    @Test func `the watchdog counts a playing scene, and nothing of a paused one`() async throws {
         let player = player()
         await player.show(scene(), crossfade: false)
 
         let count = try #require(await player.displayedPictures(over: .seconds(1)))
         #expect(count.expected == 30)
-        #expect(count.displayed > 0 && count.fed > 0 && (count.asked ?? 0) > 0, "the scene's pictures are drawn and counted: \(count)")
+        await whereTheSystemCallsTheDisplayLink {
+            #expect(count.displayed > 0 && count.fed > 0 && (count.asked ?? 0) > 0, "the scene's pictures are drawn and counted: \(count)")
+        }
         await player.pause()
         #expect(await player.displayedPictures(over: .milliseconds(100)) == nil)
     }
@@ -181,7 +182,9 @@ struct SurfacePlayerTests {
         await showing.value
 
         let count = try #require(await player.displayedPictures(over: .milliseconds(300)))
-        #expect(count.displayed > 0)
+        await whereTheSystemCallsTheDisplayLink {
+            #expect(count.displayed > 0)
+        }
     }
 
     @Test func `a video asked for while a scene loads again leaves nothing loaded or drawing in the hidden slot`() async {
@@ -222,7 +225,9 @@ struct SurfacePlayerTests {
         await player.resume()
         #expect(player.state == .playing)
         #expect(player.layers.tree.scene.opacity == 1)
-        #expect(await player.engine.displayedPictures(over: .milliseconds(200)).asked ?? 0 > 0)
+        await whereTheSystemCallsTheDisplayLink {
+            #expect(await player.engine.displayedPictures(over: .milliseconds(200)).asked ?? 0 > 0)
+        }
     }
 
     @Test func `another scene replaces the one up, and the same one with a new presentation stays up`() async {
