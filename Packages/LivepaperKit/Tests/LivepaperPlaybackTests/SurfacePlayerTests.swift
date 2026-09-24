@@ -146,12 +146,13 @@ struct SurfacePlayerTests {
         #expect(player.layers.tree.scene.opacity == 1, "the last picture stays up through all of it")
     }
 
-    @Test func `the watchdog counts a playing scene, and nothing of a paused one`() async throws {
+    @Test(.enabled(if: DisplayLinkProbe.fires, "the system calls no Metal display link on this Mac"))
+    func `the watchdog counts a playing scene, and nothing of a paused one`() async throws {
         let player = player()
         await player.show(scene(), crossfade: false)
 
-        let count = try #require(await player.displayedPictures(over: .milliseconds(300)))
-        #expect(count.expected == 9)
+        let count = try #require(await player.displayedPictures(over: .seconds(1)))
+        #expect(count.expected == 30)
         #expect(count.displayed > 0 && count.fed > 0 && (count.asked ?? 0) > 0, "the scene's pictures are drawn and counted: \(count)")
         await player.pause()
         #expect(await player.displayedPictures(over: .milliseconds(100)) == nil)
