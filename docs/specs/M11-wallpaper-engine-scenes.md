@@ -39,7 +39,7 @@ A scene wallpaper's folder keeps the following files, and not the item's `shader
 | `project.json` | The item's own |
 | `scene.pkg` | The package, named after the project's `file` with `.pkg` |
 | `preview.jpg` or `preview.gif` | The item's preview file, under its own name |
-| `poster.heic` | The preview's first frame, cut to the scene's shape, since a Workshop preview is square |
+| `poster.heic` | The scene drawn offscreen, 10 s in, at its own size up to 3840 on the longest side ("As built", Stopped scenes and their posters); when it cannot be drawn, the preview's first frame, cut to the scene's shape, since a Workshop preview is square |
 | `hover.mov` | Only when the item has a `preview.gif`. The ffmpeg helper converts it as the importer converts any GIF, and it is then made into a hover preview. Optional, as for video |
 
 ## Wallpaper Engine's formats
@@ -61,7 +61,7 @@ A scene:
 | Fingerprint | SHA-256 of the package. A match in the library ends the import as a duplicate before anything else | The same synthetic package imported twice from folders with different names |
 | Probe | Reads the package's table and its `scene.json`: the size from `general.orthogonalprojection`, and whether the GIF-scene rule holds. A scene with no orthogonal size is refused, with a reason the UI can show | Synthetic packages: with a size, without one, a truncated table, an entry running past the end of the file |
 | Prepare (`ImportStage.prepare`, "Preparing the scene") | Copies the project, the package and the preview into `.staging/<id>/`, then runs `ScenePreparation.prepare(_:tools:)` on the staged folder, which translates every program the scene draws with and writes `scene-programs.json`. A scene that cannot be prepared is still imported, and holds its poster until the app prepares it | The staged files, the hook called once on the staged folder and what it writes committed, a scene whose preparation fails imported without programs |
-| Artefacts | The poster from the preview's first frame, cut to the scene's shape; the hover preview from a `preview.gif` | A square preview and a 16:9 scene give a 16:9 poster; a GIF preview gives `hover.mov` and a JPEG gives none |
+| Artefacts | The poster drawn from the scene, or, when it cannot be drawn, from the preview's first frame, cut to the scene's shape; the hover preview from a `preview.gif` | A scene drawn gives its own picture at its size, capped at 3840; one that cannot be drawn and a square preview give a 16:9 poster from the preview; a GIF preview gives `hover.mov` and a JPEG gives none |
 | Commit | Rename, then the manifest, as for video | A manifest entry with `scene` set, and a folder holding exactly the files above |
 
 A GIF scene:
@@ -161,7 +161,7 @@ public protocol SceneDrawing: AnyObject {
 ### Playback
 
 - `SurfacePlayer` wraps `SurfaceLayers` and leaves it as it was; the extension's `makeSurface` returns it and `HostedSurface` keeps it. The Metal slot is `SurfaceTree.scene`, the tree's last sublayer, laid out by `layerFrame` from the scene's size, drawable at the frame's pixels (at most 16384 a side). Its device is set on the first load, so a surface that only plays video never touches Metal.
-- A scene: the poster held on the layers (their decoders released), the slot hidden, the scene loaded, the link started, and the slot shown once the first picture is drawn (a command buffer completed), at most 1 s later. To a video: the link stopped, the video started on the layers under the slot's last picture, then the slot hidden and the scene released. Pause stops the link; suspend also drops the drawing and resume loads it again; hold-still, nothing and a video release it; the same scene with a new presentation is laid out in place. `.flush` and `.rebuildSurface` make a new link, `.rebuildPipeline` loads the scene again. There is no crossfade into or out of a scene: the poster or the last picture bridges the cut.
+- A scene: the poster held on the layers (their decoders released), the slot hidden, the scene loaded, the link started, and the slot shown once the first picture is drawn (a command buffer completed), at most 1 s later. To a video: the link stopped, the video started on the layers under the slot's last picture, then the slot hidden and the scene released. Pause stops the link; suspend also drops the drawing and resume loads it again; nothing and a video release it; hold-still of the scene up keeps its last picture in the slot (changed on 2026-09-24, "Stopped scenes and their posters" below), and of anything else releases it; the same scene with a new presentation is laid out in place. `.flush` and `.rebuildSurface` make a new link, `.rebuildPipeline` loads the scene again. There is no crossfade into or out of a scene: the poster or the last picture bridges the cut.
 - `SceneEngine` runs every surface's link on one thread with its own run loop (`SceneRenderThread`), one device and one command queue (`SceneGPU`), `preferredFrameRateRange` pinned to 30 and `preferredFrameLatency` 2. Scene time (`SceneClock`) is the link's target time since the run's first frame, carried across pauses. The watchdog's `displayed` is drawables with a presented time, `fed` the frames committed (`SceneTally`).
 
 ### Log lines
@@ -174,9 +174,15 @@ The extension, category `surface`, `.notice` unless marked; `<S>` is the surface
 - `scene: surface <S> drawing at 30 fps from <t> s`
 - `scene: surface <S> first picture drawn <n> ms after the start`
 - `scene: surface <S> shows <W> in the Metal slot`, or `…, with no picture after 1 s`
-- `scene: surface <S> stopped drawing at <t> s (<pause|suspend|stop|restart>)`
+- `scene: surface <S> stopped drawing at <t> s (<pause|suspend|still|stop|restart>)`
+- `scene: surface <S> holds <W> still on its last picture, at <t> s` (a still of the scene up: the slot keeps its picture, the scene let go; since 2026-09-24)
 
 The supervisor's lines are M5's, unchanged: a scene's `now showing`, `decision`, `check count` and `check verdict` read as a video's.
+
+The app, category `app` (since 2026-09-24), at import after `import finished` and at launch after the scenes are prepared:
+
+- `scene: poster of <id> drawn from the scene, <w>x<h> at 10 s`
+- `scene: poster of <id> not drawn from the scene, so it is the preview's: <reason>` (`.error`)
 
 ### The checks, run on one MacBook display (macOS 27.0), 2026-09-23
 
@@ -261,3 +267,22 @@ The rows are in `SceneClockTests` and `WatchdogSchedulingTests` ("a covered scen
 - A scene on a second display, and two displays showing the same scene.
 
 One agent restart was not planned: a `make build` run while the extension ran (to check lint fixes) ended the running extension at 23:15 (inferred from the timing; there is no crash report), and the app's ladder restarted WallpaperAgent 50 s later, 21 minutes after the one before. The memory's rule holds: after a build, unregister the DerivedData copy, and do not build while a check is under way.
+
+### Stopped scenes and their posters
+
+Found and fixed on 2026-09-24. With a scene on the desktop, the user chose Pause All and saw "a really shitty blurry version of this wallpaper": the scene was not paused, it was replaced by its poster. The log showed the path: `app: pause all, render state … stopped`, the supervisor's `decision=still`, `scene: surface … stopped drawing at 98.85 s (stop)`, `holding still`. The stopped render state (record 0003) is a hold-still, and `SurfacePlayer.holdStill` let the scene go, put `poster.heic` up and hid the Metal slot. That poster was the Workshop item's preview cut to the scene's shape: 250×141 for Backstreet Lofi and 1024×576 for Lonely Cat, stretched over a 3600×2338 display. Two changes, both kept to the seams M11 already had.
+
+**A stopped scene keeps its own last picture.** A still of the scene up, when the slot has its picture, stops the display link and lets the scene go as a suspend does (`SceneEngine.suspend("still")`: drawing, textures and sounds released, the scene time kept), but leaves the slot showing its last drawable, the scene at the surface's size. The poster still goes on the layers under it, so whatever hides the slot later (another wallpaper, nothing) shows the poster and never the neutral colour. The player's state is `.still`, so the supervisor's mapping is unchanged: Resume All asks for `show`, which loads the scene again and starts from the scene time it stopped at, the slot up throughout, with no jump to 0 and no flash of the poster. A still of the scene in a new presentation lays the picture out anew (scaled until the scene draws again); a still of the scene before it has a picture, or of another wallpaper, is the old path: the slot hidden, the scene and its time forgotten. A per-display pause already stopped the link and kept the last picture, and a suspend kept it too; `SurfacePlayerTests+Stopping` pins all three, the resume from each (through `surfaceCalls`, as the supervisor makes them) with the slot never hidden, and what may follow a scene, playing or held still. On a layer on no screen the system calls a display link a few times and then withholds it, so the tests read the scene time the engine keeps rather than count pictures.
+
+**A scene's poster is drawn from the scene** (`ScenePoster`, `LivepaperImport`). At import, once `ScenePreparation.prepare` has written the programs, the app draws the scene offscreen with the drawing it is given (`Importer(sceneDrawing:)`, `WallpaperEngineScene` in the app; tests use a drawing that paints one colour, on the GPU, never a Workshop file) and writes `poster.heic`:
+
+- At the scene's own size with its longest side at most 3840 (the video poster has no cap of its own; 3840 is a 4K display's width, and brings Gaze's 6000×3375 to 3840×2160). A smaller scene is drawn at its size, never enlarged.
+- At 10 s of scene time, after a second of pictures at 30 fps (from 9 s, each finished before the next, as the drawing's particle buffers expect). Looked at against renders at 0, 2, 5, 10, 20 and 30 s of the six samples, read from the library into scratch: A Lonely Winter's petals have spread by 5 s, Gaze's fog over the water only by about 10 s, and 10 s looks like 30 s in every scene while simulating a third of the steps (a drawing re-simulates at most the last half minute when time jumps). The lead-in is for effects that carry a picture from frame to frame: Backstreet Lofi's motion-blurred fan is a dark blot in a first picture and itself after a second.
+- As HEIC at quality 0.85, written whole (encoded in memory, then an atomic write), its TIFF `Software` set to `ScenePoster.marker` (`Livepaper scene poster 1`). That marker is how the app knows a poster was drawn: nothing is added to the folder, and it cannot disagree with the file it is in.
+- A scene that cannot be drawn (no programs yet, no GPU, a drawing that throws) gets the preview's poster as before, and the import's outcome says why (`ImportOutcome.importedScene(_, preparation:, poster:)`). A scene with no preview is now imported when it can be drawn.
+
+At launch, after `ScenePreparation.refresh`, `ScenePoster.refresh` draws the poster of every scene whose programs are the current translator's and whose poster does not carry the marker (`needsDrawing`): one scene at a time, off the main actor, each written whole. A drawn poster is never drawn again; one that cannot be drawn is tried again at the next launch; bumping the marker's number redraws every poster once. The app's poster cache reads a poster again when it is rewritten (`WallpaperArt.posterChanged`, a revision in `PosterCache.Request`), keeping the earlier picture up until the new one is decoded, so the library and the popover show it without a relaunch.
+
+Drawn from the library into scratch with this code, the six samples took 0.2 to 0.7 s each, load included, and made posters of 191 KB (Jet Lag, mostly dark) to 1.4 MB (Agamemnon, film grain), against 0.1 MB for Lonely Cat's preview cut. Each was looked at against the item's own preview: the scene itself, sharp, and for Lonely Cat a different picture from the preview, which is another crop of the artwork.
+
+Not checked on screen yet: Pause All and Resume All on a scene with the desktop in view (expected in the log: `decision … still`, `stopped drawing at <t> s (still)`, `holds <W> still on its last picture, at <t> s`, `holding still`; then `now showing`, `loaded … drawn by WallpaperEngineScene`, `drawing at 30 fps from <t> s` with the same `<t>`, and no `shows … in the Metal slot`, since the slot never went); the six posters drawn at the first launch of the build (six `scene: poster of … drawn from the scene` lines, and none at the next launch); Quit, then an extension restart while stopped, holding the drawn poster.
