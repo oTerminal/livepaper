@@ -25,7 +25,12 @@ struct PopoverFooter: View {
                 SymbolButton("Settings", systemImage: "gearshape") { windows.openSettings() }
             }
             StatusLine(status: model.statusLine.statusLineStatus) { model.restartWallpaperService() }
-                .padding(.horizontal, Spacing.small)
+                // Its words start under Mute's speaker, not 1 to 2 pt left of it: LabelToggle
+                // centres the speaker in its 20 pt slot, so the glyph sits 3 to 4 pt inside
+                // the slot's edge. The hairline is the optical step; the waves' speaker then
+                // stands 1 pt out, as a symbol beside words does, and the slashed one lines up.
+                .padding(.leading, Spacing.small + Spacing.hairline)
+                .padding(.trailing, Spacing.small)
         }
     }
 
