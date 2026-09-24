@@ -130,4 +130,94 @@ enum AppLog {
     static func choosingFiles(asSheet: Bool) -> String {
         "app: choosing files to import, \(asSheet ? "in a sheet on the library window" : "in a panel of its own")"
     }
+
+    // MARK: The doors and their commands (M7)
+
+    static func words(for door: EntryPoint) -> String {
+        switch door {
+        case .services: "Services"
+        case .menuBarDrop: "the menu-bar item"
+        case .openWith: "Open With"
+        case .dock: "the Dock"
+        case .urlScheme: "a livepaper:// link"
+        case .commandSocket: "the command socket"
+        }
+    }
+
+    static func handed(_ count: Int, to door: EntryPoint) -> String {
+        "door: \(words(for: door)) handed over \(count) \(count == 1 ? "file" : "files")"
+    }
+
+    static func linkRefused(_ rejection: CommandRejection) -> String {
+        "door: livepaper:// link refused: \(rejection.reason)"
+    }
+
+    static func confirming(_ command: Command) -> String {
+        "door: \(summary(of: command)) from a livepaper:// link, asking first"
+    }
+
+    static func confirmed(_ isConfirmed: Bool) -> String {
+        "door: import from a livepaper:// link \(isConfirmed ? "confirmed" : "cancelled")"
+    }
+
+    static let noLibraryWindow = "door: import from a livepaper:// link not asked: the library window did not open"
+
+    static func command(_ command: Command, from door: EntryPoint) -> String {
+        "command: \(summary(of: command)) from \(words(for: door))"
+    }
+
+    static func commandDone(_ command: Command) -> String {
+        "command: \(command.verb.rawValue) done"
+    }
+
+    static func commandRefused(_ command: Command, reason: String) -> String {
+        "command: \(command.verb.rawValue) refused: \(reason.replacingOccurrences(of: "\n", with: " "))"
+    }
+
+    /// The command without the paths an import names: IDs and counts only.
+    static func summary(of command: Command) -> String {
+        func target(_ target: DisplayTarget) -> String {
+            switch target {
+            case .all: "all displays"
+            case .display(let display): "display \(display)"
+            }
+        }
+        switch command {
+        case .import(let files, let setEverywhere):
+            return "import of \(files.count) \(files.count == 1 ? "file" : "files")\(setEverywhere ? ", set everywhere" : "")"
+        case .set(.wallpaper(let id), let on): return "set wallpaper \(id) on \(target(on))"
+        case .set(.playlist(let id), let on): return "set playlist \(id) on \(target(on))"
+        case .pause(let on), .resume(let on), .next(let on): return "\(command.verb.rawValue) \(target(on))"
+        case .mute, .unmute, .library, .settings, .diagnostics, .status: return command.verb.rawValue
+        }
+    }
+
+    static func socketOpened(at socket: URL) -> String {
+        "socket: listening at \(socket.path)"
+    }
+
+    static func socketNotOpened(_ error: any Error) -> String {
+        "socket: not opened, so the livepaper tool cannot reach this run: \(error)"
+    }
+
+    static let socketClosed = "socket: closed"
+
+    static let diagnosticsCopied = "diagnostics: report copied"
+    static let diagnosticsSaved = "diagnostics: report saved"
+
+    static func diagnosticsNotSaved(_ error: any Error) -> String {
+        "diagnostics: report not saved: \(error)"
+    }
+
+    // MARK: Restart (M7)
+
+    static let restartAsked = "app: Restart clicked, asking the host to restart WallpaperAgent"
+
+    static func restartAnswered(_ phase: ServiceRestart.Phase) -> String {
+        switch phase {
+        case .waitingForAnswer: "app: WallpaperAgent restarted, waiting for the service to answer"
+        case .retryFrom(let date): "app: restart refused, Restart can be tried again from \(date.formatted(.iso8601))"
+        case .idle, .restarting: "app: restart asked for, and the host recorded none"
+        }
+    }
 }

@@ -37,6 +37,8 @@ final class Fakes {
     let lock = FakeLockSensor(false)
     let displaySleep = FakeDisplaySleepSensor([])
     let covered = FakeCoveredDisplaySensor([])
+    /// The Mac's sleep and wake, for the rotation driver: "Sleep and Wake" in the Fakes menu.
+    let sleep = FakeSleepSensor()
     let systemServices = FakeSystemServices()
     private let library: FakeLibrary
     private var isPlaybackMetricsOn = false
@@ -47,6 +49,8 @@ final class Fakes {
         // Connecting, then live after about a second; a set takes long enough to see it working.
         host.liveAfter = .seconds(1)
         host.applyDelay = .milliseconds(600)
+        // Long enough to see Restart working.
+        host.agentRestartTime = .milliseconds(800)
         displays = FakeDisplaySensor(connectedDisplays)
     }
 
@@ -81,7 +85,14 @@ final class Fakes {
             displayName: { Self.names[$0.identity] ?? "Display \($0.displayID)" },
             trash: { _ in },
             isPlaybackMetricsOn: { [weak self] in self?.isPlaybackMetricsOn ?? false },
-            setPlaybackMetrics: { [weak self] in self?.isPlaybackMetricsOn = $0 }
+            setPlaybackMetrics: { [weak self] in self?.isPlaybackMetricsOn = $0 },
+            // No socket: the `livepaper` tool must not reach a fake world. `fakes.sh door socket` stands in.
+            commandSocket: nil,
+            sleep: sleep,
+            // Livepaper selected on a Mac with one Space, the store kept from before it.
+            storeShape: { StoreShape(desktopEntries: 2, namingLivepaper: 2, keptCopyExists: true) },
+            // A subsystem nothing logs to: the report's section reads "No lines", and nothing real is read.
+            extensionLog: { await ExtensionLogLines.fetch(subsystem: "app.livepaper.fakes") }
         )
     }
 

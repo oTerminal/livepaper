@@ -38,6 +38,7 @@ extension Fakes {
         condition("Locked", isOn: isLocked, toggle: toggleLocked)
         condition("Low Power Mode", isOn: isLowPowerMode, toggle: toggleLowPowerMode)
         condition("On Battery", isOn: isOnBattery, toggle: toggleOnBattery)
+        menu.addItem(sleepAndWake)
 
         // What the popover's buttons do, for a run whose popover nothing can click:
         // `Tools/pr-media/fakes.sh menu Pause All`.
@@ -65,6 +66,14 @@ extension Fakes {
             menu.addItem(item)
         }
         return menu
+    }
+
+    /// The rotation driver moves each playlist on at a wake.
+    private var sleepAndWake: NSMenuItem {
+        NSMenuItem("Sleep and Wake") { [sleep] in
+            sleep.send(.willSleep)
+            sleep.send(.didWake)
+        }
     }
 
     private static let statuses: [(String, RenderHostStatus)] = [

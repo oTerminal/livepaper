@@ -70,7 +70,7 @@ final class AppModel: ImportLibrary {
     @ObservationIgnored private(set) var isQuitting = false
     /// Displays are known once the sensor has spoken. Until then no render state
     /// is made: it would show nothing on every display.
-    @ObservationIgnored private var areDisplaysKnown = false
+    @ObservationIgnored private(set) var areDisplaysKnown = false
     @ObservationIgnored private(set) var sensing: ConditionsSensing?
     /// Made once the launch has swept: observed, so Import is offered then.
     private(set) var importer: (any ImportRunning)?
@@ -94,6 +94,13 @@ final class AppModel: ImportLibrary {
     @ObservationIgnored var settling: [WallpaperID: Task<Void, Never>] = [:]
     /// Moves on with each set, so that only the latest one's apply says done.
     @ObservationIgnored var feedbackTokens: [Assignment: Int] = [:]
+    /// Moves each display's playlist on (AppModel+Rotation.swift).
+    @ObservationIgnored var rotationDriver: RotationDriver?
+    /// What came of the status line's Restart, and the clock that ends its waits.
+    var serviceRestart = ServiceRestart()
+    @ObservationIgnored var serviceRestartTick: Task<Void, Never>?
+    /// Commands' imports, waiting for their rows to be done (AppModel+Commands.swift).
+    @ObservationIgnored var importWaiters: [ImportWaiter] = []
 
     init(services: AppServices) {
         self.services = services
@@ -146,6 +153,7 @@ extension AppModel {
     private func start() async {
         AppLog.logger.notice("\(AppLog.launched(fakes: self.services.isFakes), privacy: .public)")
         load()
+        makeRotationDriver()
         prepareScenes()
         watchHostStatus()
         do {
@@ -201,6 +209,7 @@ extension AppModel {
         watches.append(Task { [weak self] in
             for await status in statuses {
                 self?.hostStatus = status
+                self?.serviceRestart.hostChanged(to: status)
             }
         })
     }
@@ -216,8 +225,10 @@ extension AppModel {
 
     private func displaysChanged(_ connected: [ConnectedDisplay]) {
         displays = connected.map { Display(identity: $0.identity, name: services.displayName($0), pixelSize: $0.pixelSize) }
+        let isFirst = !areDisplaysKnown
         areDisplaysKnown = true
         resolveSection()
+        rotationFollowsDisplays(isFirst: isFirst)
         applyRenderState()
     }
 
@@ -243,6 +254,7 @@ extension AppModel {
     func pauseAll() {
         guard isLaunched, !isPausedAll, !isQuitting else { return }
         isPausedAll = true
+        updateRotation()
         // What the host writes: the last state, stopped, at the next generation. The cards read it as paused.
         renderState = renderState?.next { $0.isStopped = true }
         enqueue { await $0.deactivate() }
@@ -253,6 +265,7 @@ extension AppModel {
     func resumeAll() {
         guard isPausedAll, !isQuitting else { return }
         isPausedAll = false
+        updateRotation()
         enqueue { host in
             do {
                 try await host.activate()
@@ -262,10 +275,6 @@ extension AppModel {
         }
         applyRenderState()
         AppLog.logger.notice("\(AppLog.resumedAll, privacy: .public)")
-    }
-
-    func togglePauseAll() {
-        if isPausedAll { resumeAll() } else { pauseAll() }
     }
 
     // MARK: Quit
@@ -283,6 +292,7 @@ extension AppModel {
 
     private func stop() async {
         await launching?.value
+        stopRotationAndCommands()
         // Edits in progress are kept; the displays have them at the next launch.
         settleDrafts()
         runningImport?.task.cancel()
@@ -334,6 +344,7 @@ extension AppModel {
                 AppLog.logger.error("\(AppLog.stateSaveFailed(error), privacy: .public)")
             }
             histories.forget(changedFrom: before, to: newState)
+            updateRotation()
         }
         resolveSection()
         gridDidChange()
@@ -375,19 +386,6 @@ extension AppModel {
         }
         applying = task
         return task
-    }
-
-    /// The grid changed (section, search, sort, library): the selection stays while the grid shows it.
-    func gridDidChange() {
-        selection.gridChanged(grid.map(\.id))
-    }
-
-    /// The sidebar leaves a display that was unplugged, or a playlist that was deleted, for All.
-    private func resolveSection() {
-        let resolved = section.resolved(displays: displays.map(\.identity), playlists: state.playlists)
-        if resolved != section {
-            section = resolved
-        }
     }
 
     /// A delete's toast ended without its undo: expired, dismissed, replaced, or

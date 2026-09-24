@@ -68,6 +68,18 @@ nonisolated public struct StoreShape: Equatable, Sendable {
     }
 }
 
+extension StoreShape {
+    /// The shape `WallpaperStore.shape()` read: its counts when it could be read and was the shape expected.
+    nonisolated public init(_ shape: WallpaperStoreShape) {
+        switch shape.store {
+        case .read(let entries, let naming):
+            self.init(desktopEntries: entries, namingLivepaper: naming, keptCopyExists: shape.keptCopyExists)
+        case .unreadable, .unknownShape:
+            self.init(desktopEntries: nil, namingLivepaper: nil, keptCopyExists: shape.keptCopyExists)
+        }
+    }
+}
+
 /// What "Copy diagnostics", "Save…" and `livepaper diagnostics` give: the
 /// app's and the extension's versions, the Mac, the wallpaper service, each
 /// display and its assignment, the pauses and mute, the login item, the
@@ -138,6 +150,17 @@ nonisolated public struct DiagnosticsReport: Equatable, Sendable {
             ([section.title] + section.lines.map { "  " + $0 }).joined(separator: "\n")
         }
         return ([heading] + body).joined(separator: "\n\n") + "\n"
+    }
+
+    /// What "Save…" names a report made then: plain text, dated in `timeZone`,
+    /// with the seconds, so that two saved a minute apart keep apart.
+    public static func fileName(madeAt date: Date, timeZone: TimeZone = .current) -> String {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = timeZone
+        let parts = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: date)
+        func two(_ value: Int?) -> String { String(format: "%02d", value ?? 0) }
+        let day = "\(parts.year ?? 0)-\(two(parts.month))-\(two(parts.day))"
+        return "Livepaper Diagnostics \(day) at \(two(parts.hour)).\(two(parts.minute)).\(two(parts.second)).txt"
     }
 
     // MARK: Sections

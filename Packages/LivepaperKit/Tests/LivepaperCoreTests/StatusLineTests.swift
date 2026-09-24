@@ -42,4 +42,58 @@ struct StatusLineTests {
 
         #expect(line == row.expected)
     }
+
+    struct Restarting: Sendable {
+        var host = RenderHostStatus.recovering(.restartAgent)
+        var restart: ServiceRestart.Phase
+        var importing: (position: Int, count: Int)?
+    }
+
+    static let retry = Moment.after(600)
+
+    static let restartRows: [Row<Restarting, StatusLineContent>] = [
+        Row("nothing clicked: the service not responding", Restarting(restart: .idle), .serviceNotResponding),
+        Row("Restart clicked", Restarting(restart: .restarting), .working("Restarting the wallpaper service")),
+        Row(
+            "restarted, and waiting for the service to answer",
+            Restarting(restart: .waitingForAnswer(until: Moment.after(20), retryFrom: retry)),
+            .working("Waiting for the wallpaper service")
+        ),
+        Row(
+            "refused, or no answer: when Restart can next be tried",
+            Restarting(restart: .retryFrom(retry)),
+            .idle("Restarted recently; try again at 10:10")
+        ),
+        Row(
+            "the restart's words before an import's",
+            Restarting(restart: .retryFrom(retry), importing: (1, 2)),
+            .idle("Restarted recently; try again at 10:10")
+        ),
+        Row(
+            "the service answered: its status again",
+            Restarting(host: .live, restart: .waitingForAnswer(until: Moment.after(20), retryFrom: retry)),
+            .idle("Live on 2 displays")
+        ),
+        Row(
+            "a refusal no longer matters once the service answers",
+            Restarting(host: .live, restart: .retryFrom(retry)),
+            .idle("Live on 2 displays")
+        ),
+        Row(
+            "restarting is said whatever the host reports meanwhile",
+            Restarting(host: .live, restart: .restarting),
+            .working("Restarting the wallpaper service")
+        ),
+    ]
+
+    @Test(arguments: restartRows)
+    func `the line says Restart is working, waits for an answer, or when it can be tried again`(row: Row<Restarting, StatusLineContent>) {
+        let line = statusLine(
+            host: row.input.host, showing: 2, isPausedAll: false, importing: row.input.importing, restart: row.input.restart
+        ) { date in
+            date == Self.retry ? "10:10" : "another time"
+        }
+
+        #expect(line == row.expected)
+    }
 }

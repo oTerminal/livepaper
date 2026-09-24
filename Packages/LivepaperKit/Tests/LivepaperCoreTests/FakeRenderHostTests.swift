@@ -62,6 +62,49 @@ struct FakeRenderHostTests {
         #expect([connecting, live, recovering, liveAgain] == [.connecting, .live, .recovering(.restartAgent), .live])
     }
 
+    @Test func `restarts the agent once in the gap at most, as the real host does, and remembers when`() async {
+        let clock = ManualClock(start: Moment.launch)
+        let host = FakeRenderHost(clock: clock)
+        host.now = { clock.date }
+        var statuses = host.status.makeAsyncIterator()
+
+        let before = host.lastAgentRestart
+        await host.recover(.restartAgent)
+        let first = host.lastAgentRestart
+        let recovering = await statuses.next()
+        clock.advance(by: agentRestartGap - .seconds(1))
+        await host.recover(.restartAgent)
+        let refused = host.lastAgentRestart
+        clock.advance(by: .seconds(1))
+        await host.recover(.restartAgent)
+        host.report(.live)
+        let reported = [await statuses.next(), await statuses.next()]
+
+        #expect(before == nil)
+        #expect(first == Moment.launch)
+        #expect(refused == Moment.launch)
+        #expect(host.lastAgentRestart == Moment.after(agentRestartGap / .seconds(1)))
+        #expect(host.recoveries == [.restartAgent, .restartAgent, .restartAgent])
+        // The refused one said nothing: the host still reported the one before it.
+        #expect(recovering == .recovering(.restartAgent))
+        #expect(reported == [.recovering(.restartAgent), .live])
+    }
+
+    @Test func `can take a while to restart the agent, so a fakes run shows Restart working`() async {
+        let clock = ManualClock(start: Moment.launch)
+        let host = FakeRenderHost(clock: clock)
+        host.agentRestartTime = .seconds(1)
+
+        let restarting = Task { await host.recover(.restartAgent) }
+        while clock.sleeperCount == 0 { await Task.yield() }
+        let whileRestarting = host.recoveries
+        clock.advance(by: .seconds(1))
+        await restarting.value
+
+        #expect(whileRestarting.isEmpty)
+        #expect(host.recoveries == [.restartAgent])
+    }
+
     @Test func `stopped before it goes live, it stays stopped`() async throws {
         let clock = ManualClock(start: Moment.launch)
         let host = FakeRenderHost(clock: clock)

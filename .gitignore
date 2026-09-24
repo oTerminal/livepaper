@@ -1,5 +1,6 @@
-# Xcode / XcodeGen (the project is generated from project.yml)
+# Xcode / XcodeGen (the project, and the app's Info.plist, are generated from project.yml)
 *.xcodeproj
+App/Info.plist
 *.xcworkspace
 xcuserdata/
 DerivedData/
