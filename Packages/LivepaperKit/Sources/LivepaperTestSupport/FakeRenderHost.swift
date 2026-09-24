@@ -1,3 +1,4 @@
+import Foundation
 import LivepaperCore
 import LivepaperSystem
 
@@ -22,11 +23,18 @@ public final class FakeRenderHost: RenderHost, HostStatusSource {
     /// `desktopSurfaceAcquired` flag says: a heartbeat reports `.live` when it
     /// is, `.notSelected` when it is not.
     public var isSelected = true
+    /// How long `recover(.restartAgent)` takes, on the host's clock, as the real
+    /// host waits for WallpaperAgent to come back. Nil restarts at once.
+    public var agentRestartTime: Duration?
+    /// The time of day, for the gap between two restarts of the agent.
+    public var now: () -> Date = Date.init
 
     public private(set) var isActive = false
     public private(set) var appliedStates: [RenderState] = []
     public private(set) var recoveries: [RecoveryLevel] = []
     public private(set) var currentStatus = RenderHostStatus.stopped
+    /// As the real host keeps it: a restart is made only `agentRestartGap` after the last one.
+    public private(set) var lastAgentRestart: Date?
 
     private let statuses = Broadcast<RenderHostStatus>(bufferingPolicy: .unbounded)
     private let clock: any Clock<Duration>
@@ -72,8 +80,17 @@ public final class FakeRenderHost: RenderHost, HostStatusSource {
         appliedStates.append(state)
     }
 
+    /// `.restartAgent` goes through `allowAgentRestart`, as the real host's does:
+    /// refused, it reports nothing.
     public func recover(_ level: RecoveryLevel) async {
+        if level == .restartAgent, let agentRestartTime {
+            try? await clock.sleep(for: agentRestartTime)
+        }
         recoveries.append(level)
+        if level == .restartAgent {
+            guard allowAgentRestart(last: lastAgentRestart, now: now()) else { return }
+            lastAgentRestart = now()
+        }
         report(.recovering(level))
         goLiveLater()
     }

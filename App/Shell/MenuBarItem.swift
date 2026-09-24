@@ -3,7 +3,8 @@ import DesignSystem
 import SwiftUI
 
 /// The menu-bar item: a click toggles the glass popover, a secondary click (or a
-/// Control-click) shows a short menu of what the popover does not hold.
+/// Control-click) shows a short menu of what the popover does not hold, and
+/// files dropped on it are imported and set on every display (M7).
 final class MenuBarItem: NSObject, NSMenuDelegate {
     /// The secondary-click menu's items, answered by whoever runs the app.
     struct Menu {
@@ -18,10 +19,15 @@ final class MenuBarItem: NSObject, NSMenuDelegate {
     private let popover: MenuBarPopover
     private let menu: Menu
     private let appearance: NSAppearance?
+    private let dropTarget: DropTarget
 
     /// `content` is the popover's: it sits on the glass, so nothing in it is glass.
     /// `contentPadding` is `GlassPopover`'s: `Spacing.tight` for cards of `Radius.card`.
-    init(options: LaunchOptions, menu: Menu, contentPadding: CGFloat = Spacing.medium, content: some View) {
+    /// `onDrop` takes the files dropped on the item.
+    init(
+        options: LaunchOptions, menu: Menu, contentPadding: CGFloat = Spacing.medium, content: some View,
+        onDrop: @escaping ([URL]) -> Void
+    ) {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         guard let button = statusItem.button else { preconditionFailure("A status item made by the status bar has a button") }
         button.image = NSImage(systemSymbolName: "play.rectangle.on.rectangle", accessibilityDescription: "Livepaper")
@@ -29,7 +35,15 @@ final class MenuBarItem: NSObject, NSMenuDelegate {
         popover = MenuBarPopover(anchor: button, options: options, contentPadding: contentPadding, content: content)
         self.menu = menu
         appearance = options.nsAppearance
+        dropTarget = DropTarget(frame: button.bounds)
         super.init()
+        dropTarget.autoresizingMask = [.width, .height]
+        dropTarget.onDrop = onDrop
+        // While files are over it the item is highlighted, as a click highlights it; after, it is as the popover leaves it.
+        dropTarget.highlight = { [weak self, weak button] isOver in
+            button?.highlight(isOver || self?.popover.isShown == true)
+        }
+        button.addSubview(dropTarget)
         button.target = self
         button.action = #selector(clicked)
         button.sendAction(on: [.leftMouseDown, .rightMouseDown])
@@ -116,6 +130,52 @@ final class MenuBarItem: NSObject, NSMenuDelegate {
     private static func isPointerEvent(_ event: NSEvent?) -> Bool {
         guard let type = event?.type else { return false }
         return [.leftMouseDown, .leftMouseUp, .rightMouseDown, .rightMouseUp, .otherMouseDown, .otherMouseUp].contains(type)
+    }
+}
+
+/// Takes files dropped on the menu-bar item's button, which it covers. Clicks
+/// pass through it to the button: AppKit finds a drop's destination by the
+/// types a view registered, not by `hitTest(_:)`.
+private final class DropTarget: NSView {
+    var onDrop: (([URL]) -> Void)?
+    /// Whether files that can be dropped are over the item.
+    var highlight: ((Bool) -> Void)?
+
+    override init(frame: NSRect) {
+        super.init(frame: frame)
+        registerForDraggedTypes([.fileURL])
+        setAccessibilityElement(false)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("not made from a nib")
+    }
+
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        nil
+    }
+
+    override func draggingEntered(_ sender: any NSDraggingInfo) -> NSDragOperation {
+        guard !files(in: sender).isEmpty else { return [] }
+        highlight?(true)
+        return .copy
+    }
+
+    override func draggingExited(_ sender: (any NSDraggingInfo)?) {
+        highlight?(false)
+    }
+
+    override func performDragOperation(_ sender: any NSDraggingInfo) -> Bool {
+        highlight?(false)
+        let files = files(in: sender)
+        guard !files.isEmpty else { return false }
+        onDrop?(files)
+        return true
+    }
+
+    private func files(in info: any NSDraggingInfo) -> [URL] {
+        info.draggingPasteboard.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL] ?? []
     }
 }
 

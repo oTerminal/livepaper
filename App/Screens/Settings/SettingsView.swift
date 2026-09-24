@@ -4,9 +4,10 @@ import LivepaperTestSupport
 import SwiftUI
 
 /// Settings, in two panes: General (opening at login, the pause rules, the Steam
-/// account the Workshop uses, leaving Livepaper) and Shortcuts. The pause rules
-/// are the app state's; the Steam account is the Workshop model's; the rest talk
-/// to `SystemServices` through the model.
+/// account the Workshop uses, the diagnostics report, leaving Livepaper) and
+/// Shortcuts. The pause rules are the app state's; the Steam account is the
+/// Workshop model's; the report is the model's; the rest talk to
+/// `SystemServices` through the model.
 struct SettingsView: View {
     enum Pane: String {
         case general
@@ -45,6 +46,7 @@ private struct GeneralPane: View {
             }
             PauseRulesSection()
             SteamAccountSection()
+            DiagnosticsSection()
             Section {
                 Button("Stop Using Livepaper as Wallpaper…", role: .destructive) {
                     isConfirmingLeave = true
@@ -59,7 +61,10 @@ private struct GeneralPane: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("The wallpaper you had before Livepaper is put back, and Livepaper quits. Your library stays where it is.")
+            Text("""
+            The wallpaper you had before Livepaper is put back, Livepaper stops opening at login, and it quits. \
+            Your library stays where it is.
+            """)
         }
     }
 }
@@ -127,6 +132,89 @@ private struct PauseRulesSection: View {
             model.pauseRules[keyPath: rule]
         } set: { isOn in
             withoutAnimationIfKeyPress { model.setPauseRule(rule, isOn) }
+        }
+    }
+}
+
+/// The diagnostics report (M7), copied or saved as a text file for a bug report.
+/// Making it reads the extension's log, which takes a second or two.
+private struct DiagnosticsSection: View {
+    enum Phase: Equatable {
+        case idle, making, copied, saved, notSaved
+    }
+
+    /// How long "Copied" or "Saved" stays: a toast's lifetime.
+    static let doneLifetime: Duration = .seconds(5)
+
+    @Environment(AppModel.self) private var model
+    @Environment(WorkshopModel.self) private var workshop
+    @State private var phase = Phase.idle
+
+    var body: some View {
+        Section {
+            LabeledContent("Diagnostics report") {
+                HStack(spacing: Spacing.small) {
+                    status
+                    Button("Copy Diagnostics") { copy() }
+                    Button("Save…") { save() }
+                }
+                .disabled(phase == .making)
+            }
+        } header: {
+            Text("Diagnostics")
+        } footer: {
+            Text(
+                """
+                For a bug report: the versions, the Mac, the wallpaper service, the displays and the wallpaper extension’s \
+                recent log. Names, paths and wallpapers are left out, and nothing is sent anywhere.
+                """
+            )
+        }
+        .task(id: phase) {
+            guard [.copied, .saved, .notSaved].contains(phase) else { return }
+            try? await Task.sleep(for: Self.doneLifetime)
+            phase = .idle
+        }
+    }
+
+    @ViewBuilder private var status: some View {
+        switch phase {
+        case .idle:
+            EmptyView()
+        case .making:
+            ProgressView()
+                .controlSize(.small)
+                .accessibilityLabel("Making the report")
+        case .copied:
+            Label("Copied", systemImage: "checkmark")
+                .foregroundStyle(.secondary)
+        case .saved:
+            Label("Saved", systemImage: "checkmark")
+                .foregroundStyle(.secondary)
+        case .notSaved:
+            Label("Not saved", systemImage: "exclamationmark.triangle.fill")
+                .foregroundStyle(.red)
+        }
+    }
+
+    private func copy() {
+        phase = .making
+        Task {
+            await model.copyDiagnostics(steamAccount: workshop.account)
+            phase = .copied
+        }
+    }
+
+    private func save() {
+        Task {
+            guard let file = await model.chooseDiagnosticsFile() else { return }
+            phase = .making
+            do {
+                try await model.saveDiagnostics(to: file, steamAccount: workshop.account)
+                phase = .saved
+            } catch {
+                phase = .notSaved
+            }
         }
     }
 }

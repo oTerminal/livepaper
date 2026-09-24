@@ -60,7 +60,8 @@ extension AppModel {
             host: hostStatus,
             showing: renderState?.displays.count ?? 0,
             isPausedAll: isPausedAll,
-            importing: importList.progress
+            importing: importList.progress,
+            restart: serviceRestart.phase
         )
     }
 

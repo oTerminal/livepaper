@@ -5,7 +5,7 @@ extension AppDelegate {
     /// Runs each hotkey's action as it is pressed, for the app's life: the
     /// model's, or the library window's, which the app's windows own.
     func watchHotkeys() {
-        let presses = model.services.hotkeyPresses
+        let presses = model.services.system.hotkeyPresses
         Task { [weak self] in
             for await action in presses {
                 self?.hotkeyPressed(action)

@@ -3,9 +3,8 @@ import Foundation
 import LivepaperCore
 
 // What the displays show: Set on Display, the playlist pickers, the transport,
-// mute, and the wallpaper service. Pause All and Resume All are in
-// AppModel.swift, with the rest of the host's life; the button that toggles
-// them is here.
+// mute, and the wallpaper service. Pause All itself is in AppModel.swift, with
+// the rest of the host's life.
 
 extension AppModel {
     // MARK: Set on display
@@ -70,6 +69,10 @@ extension AppModel {
 
     // MARK: The transport
 
+    func togglePauseAll() {
+        if isPausedAll { resumeAll() } else { pauseAll() }
+    }
+
     /// One display's pause: its decoder is kept, so resuming is instant.
     func togglePause(on display: DisplayIdentity) {
         commit(state: state.settingPaused(!state.pausedDisplays.contains(display), for: display))
@@ -87,11 +90,6 @@ extension AppModel {
         commit(state: histories.previous(on: display, in: state, library: library))
     }
 
-    /// The popover's Pause All or Resume All, and its hotkey.
-    func togglePauseAll() {
-        if isPausedAll { resumeAll() } else { pauseAll() }
-    }
-
     // MARK: Mute
 
     /// Every display at volume 0, whatever its wallpaper's volume.
@@ -107,10 +105,34 @@ extension AppModel {
 
     // MARK: The wallpaper service
 
-    /// The status line's Restart, when the service is not responding.
+    /// The status line's Restart, when the service is not responding: the host
+    /// restarts WallpaperAgent unless it did less than `agentRestartGap` ago.
+    /// The line says it is restarting, then waits for the service to answer,
+    /// or says when Restart can next be tried (`ServiceRestart`).
     func restartWallpaperService() {
+        guard serviceRestart.started() else { return }
         let host = services.host
-        Task { await host.recover(.restartAgent) }
+        let before = host.lastAgentRestart
+        AppLog.logger.notice("\(AppLog.restartAsked, privacy: .public)")
+        Task {
+            await host.recover(.restartAgent)
+            serviceRestart.finished(lastRestartBefore: before, after: host.lastAgentRestart, at: Date())
+            AppLog.logger.notice("\(AppLog.restartAnswered(self.serviceRestart.phase), privacy: .public)")
+            scheduleServiceRestartTick()
+        }
+    }
+
+    /// The wait for the service, and when Restart can next be tried, end on the clock.
+    private func scheduleServiceRestartTick() {
+        serviceRestartTick?.cancel()
+        serviceRestartTick = nil
+        guard let next = serviceRestart.nextTick else { return }
+        serviceRestartTick = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(max(next.timeIntervalSinceNow, 0)))
+            guard !Task.isCancelled, let self else { return }
+            serviceRestart.tick(at: Date())
+            scheduleServiceRestartTick()
+        }
     }
 
     /// "Log Playback Metrics": the extension's probe. Never kept.

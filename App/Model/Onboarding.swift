@@ -48,13 +48,11 @@ final class Onboarding {
     /// Decides the plan now, before this launch writes anything: whether a
     /// library is on disk tells an update from a Livepaper before onboarding
     /// from a fresh install.
-    init(model: AppModel, plan forced: OnboardingPlan? = nil) {
+    init(model: AppModel) {
         self.model = model
         services = model.services.onboarding
         samples = services.samples
-        plan = forced ?? onboardingPlan(
-            record: services.record.record, ranBefore: services.ranBefore, isTranslocated: services.isTranslocated
-        )
+        plan = onboardingPlan(record: services.record.record, ranBefore: services.ranBefore, isTranslocated: services.isTranslocated)
         OnboardingLog.logger.notice("\(OnboardingLog.planned(self.plan), privacy: .public)")
     }
 
@@ -64,7 +62,7 @@ final class Onboarding {
         if case .steps(let steps) = plan { steps } else { [] }
     }
 
-    /// Nil on the move card, and once the cards have ended.
+    /// Nil on the move card.
     var step: OnboardingStep? {
         steps.indices.contains(stepIndex) ? steps[stepIndex] : nil
     }
@@ -167,7 +165,7 @@ final class Onboarding {
     /// says so; when the store cannot be used, or no heartbeat says so in 30 s,
     /// System Settings opens at Wallpaper, and the user's click there finishes it.
     func selectLivepaper() {
-        let selecting = model.services.selection
+        let selecting = model.services.system.selection
         watchSelection(selecting)
         Task { await selecting.select() }
     }

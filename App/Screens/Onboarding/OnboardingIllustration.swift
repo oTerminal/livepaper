@@ -31,15 +31,18 @@ struct OnboardingIllustration: View {
     }
 }
 
-/// A dashed well with the import symbol in it, where the drop overlay's border
-/// and plate would appear.
+/// An empty desktop, its menu bar and Dock in outline, with a dashed well and
+/// the import symbol where the wallpaper goes: the last card shows the same
+/// desktop with the wallpaper on it.
 private struct DropWell: View {
     var body: some View {
         ZStack {
             Rectangle().fill(.quinary)
             RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
                 .strokeBorder(.tertiary, style: StrokeStyle(lineWidth: 2, lineCap: .round, dash: [10, 8]))
-                .padding(Spacing.extraLarge)
+                .padding(.horizontal, Spacing.extraLarge)
+                .padding(.top, Spacing.extraLarge + Spacing.small)
+                .padding(.bottom, Spacing.section + Spacing.extraLarge)
             VStack(spacing: Spacing.small) {
                 Image(systemName: "square.and.arrow.down")
                     .font(.largeTitle.weight(.semibold))
@@ -47,7 +50,10 @@ private struct DropWell: View {
                     .font(.callout)
             }
             .foregroundStyle(.secondary)
+            .padding(.bottom, Spacing.large)
         }
+        .overlay(alignment: .top) { MenuBar(fill: .quaternary) }
+        .overlay(alignment: .bottom) { Dock(fill: .quaternary, tiles: .quaternary) }
     }
 }
 
@@ -81,23 +87,38 @@ private struct Desktop: View {
 
     var body: some View {
         Poster(wallpaper: wallpaper)
-            .overlay(alignment: .top) {
-                Rectangle()
-                    .fill(.white.opacity(0.3))
-                    .frame(height: 12)
+            .overlay(alignment: .top) { MenuBar(fill: .white.opacity(0.3)) }
+            .overlay(alignment: .bottom) { Dock(fill: .white.opacity(0.3), tiles: .white.opacity(0.7)) }
+    }
+}
+
+/// A desktop's menu bar, drawn as a strip.
+private struct MenuBar<Fill: ShapeStyle>: View {
+    let fill: Fill
+
+    var body: some View {
+        Rectangle()
+            .fill(fill)
+            .frame(height: 12)
+    }
+}
+
+/// A desktop's Dock, drawn as a plate of six tiles.
+private struct Dock<Fill: ShapeStyle, Tiles: ShapeStyle>: View {
+    let fill: Fill
+    let tiles: Tiles
+
+    var body: some View {
+        HStack(spacing: Spacing.tight) {
+            ForEach(0..<6, id: \.self) { _ in
+                RoundedRectangle(cornerRadius: Radius.control / 2, style: .continuous)
+                    .fill(tiles)
+                    .frame(width: 18, height: 18)
             }
-            .overlay(alignment: .bottom) {
-                HStack(spacing: Spacing.tight) {
-                    ForEach(0..<6, id: \.self) { _ in
-                        RoundedRectangle(cornerRadius: Radius.control / 2, style: .continuous)
-                            .fill(.white.opacity(0.7))
-                            .frame(width: 18, height: 18)
-                    }
-                }
-                .padding(Spacing.tight + Spacing.hairline)
-                .background(.white.opacity(0.3), in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
-                .padding(.bottom, Spacing.small)
-            }
+        }
+        .padding(Spacing.tight + Spacing.hairline)
+        .background(fill, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+        .padding(.bottom, Spacing.small)
     }
 }
 

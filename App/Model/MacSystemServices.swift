@@ -3,6 +3,35 @@ import LivepaperCore
 import LivepaperSystem
 import Observation
 
+/// The system services and what the app needs of them beyond Settings'
+/// protocol (M7): the real ones, or the fakes'.
+struct SystemWiring {
+    /// What Settings' login, hotkey and leave rows talk to.
+    var services: any SystemServices
+    /// At launch, once `app-state.json` has been read: the real ones register
+    /// its hotkeys and square the login item with its intent.
+    var start: (AppState, any SystemServicesOwner) -> Void
+    /// Each hotkey pressed, in whatever app is in front; one reader, the app delegate.
+    var hotkeyPresses: AsyncStream<HotkeyAction>
+    /// Making Livepaper the system wallpaper: onboarding's last card.
+    var selection: Selection
+    /// System Settings at Wallpaper, where the user chooses Livepaper by hand.
+    var wallpaperPane: any WallpaperPaneOpening
+
+    /// `SMAppService`'s login item, Carbon's hotkeys, and `Selection` over
+    /// WallpaperAgent's store (record 0003), which the host's heartbeat says worked.
+    static func mac(host: ExtensionHostClient) -> SystemWiring {
+        let system = MacSystemServices(selection: Selection(host: host))
+        return SystemWiring(
+            services: system,
+            start: { state, owner in system.start(kept: state, owner: owner) },
+            hotkeyPresses: system.presses,
+            selection: system.selection,
+            wallpaperPane: WallpaperPane()
+        )
+    }
+}
+
 /// The app model, as the system services see it: the one writer of
 /// `app-state.json`, where the hotkeys and the login item's intent are kept.
 protocol SystemServicesOwner: AnyObject {

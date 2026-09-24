@@ -13,17 +13,9 @@ struct AppServices {
     var libraryStore: any LibraryStore
     var appStateStore: any AppStateStore
     var art: WallpaperArt.Source
-    /// The login item, the hotkeys and leaving: `MacSystemServices` wired, `FakeSystemServices` on fakes.
-    var systemServices: any SystemServices
-    /// Hands the system services what `app-state.json` kept, at launch: the real
-    /// ones register its hotkeys and square the login item with its intent.
-    var startSystemServices: (AppState, any SystemServicesOwner) -> Void
-    /// Each hotkey pressed, in whatever app is in front; one reader, the app delegate.
-    var hotkeyPresses: AsyncStream<HotkeyAction>
-    /// Making Livepaper the system wallpaper (M7): onboarding's last card.
-    var selection: Selection
-    /// System Settings at Wallpaper, where the user chooses Livepaper by hand.
-    var wallpaperPane: any WallpaperPaneOpening
+    /// The login item, the hotkeys, selecting and leaving (M7): `SystemWiring.mac`
+    /// wired, `FakeSystemServices` and a fake store on fakes.
+    var system: SystemWiring
     /// Onboarding's record, where this copy runs, and the samples.
     var onboarding: OnboardingServices
     /// Clears what an import that was killed left behind; runs at launch, before any import.
@@ -53,6 +45,16 @@ struct AppServices {
     /// "Log Playback Metrics", the extension's probe: never kept, so every launch starts with it off.
     var isPlaybackMetricsOn: () -> Bool
     var setPlaybackMetrics: (Bool) -> Void
+    // M7: the doors, rotation and diagnostics.
+    /// Where the command socket the `livepaper` tool talks to is opened; nil in
+    /// the fakes run, whose world is fake.
+    var commandSocket: URL?
+    /// The Mac's sleep and wake: a wake moves each playlist on (`RotationDriver`).
+    var sleep: any SleepSensor
+    /// The wallpaper store's shape, for the diagnostics report: counts only, read and never written.
+    var storeShape: () -> StoreShape
+    /// The wallpaper extension's recent log lines, for the diagnostics report.
+    var extensionLog: () async -> ExtensionLogLines
 }
 
 extension AppServices {
@@ -69,19 +71,13 @@ extension AppServices {
         let shaderTools = ShaderTools.locate(
             bundled: Bundle.main.url(forAuxiliaryExecutable: "glslang"), Bundle.main.url(forAuxiliaryExecutable: "spirv-cross")
         )
-        // Selecting and leaving edit WallpaperAgent's store (record 0003); the heartbeat says it worked.
-        let system = MacSystemServices(selection: Selection(host: host))
         return AppServices(
             isFakes: false,
             host: host,
             libraryStore: FileLibraryStore(manifest: location.manifest),
             appStateStore: FileAppStateStore(file: location.appState),
             art: .library(location),
-            systemServices: system,
-            startSystemServices: { state, owner in system.start(kept: state, owner: owner) },
-            hotkeyPresses: system.presses,
-            selection: system.selection,
-            wallpaperPane: WallpaperPane(),
+            system: .mac(host: host),
             // Looked for now, before this launch writes anything.
             onboarding: .wired(location: location),
             sweep: { try sweepInterruptedImports(in: location) },
@@ -112,9 +108,16 @@ extension AppServices {
                 try FileManager.default.trashItem(at: folder, resultingItemURL: nil)
             },
             isPlaybackMetricsOn: { host.isPlaybackMetricsOn },
-            setPlaybackMetrics: { host.setPlaybackMetrics($0) }
+            setPlaybackMetrics: { host.setPlaybackMetrics($0) },
+            commandSocket: location.commandSocket(fallback: .temporaryDirectory),
+            sleep: SystemSleepSensor(),
+            storeShape: { StoreShape(WallpaperStore(home: .homeDirectory).shape()) },
+            extensionLog: { await ExtensionLogLines.fetch() }
         )
     }
+
+    /// What Settings' login, hotkey and leave rows talk to.
+    var systemServices: any SystemServices { system.services }
 
     /// The render state in `file`; nil when there is none.
     private static func lastRenderState(at file: URL) throws -> RenderState? {

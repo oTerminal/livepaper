@@ -79,6 +79,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let model: AppModel
     /// The Workshop (record 0009): Valve's steamcmd, or the fakes' stand-in.
     let workshop: WorkshopModel
+    /// Open With, the Dock, links, Services, the menu-bar drop and the socket (M7).
+    let doors: Doors
     /// First-run onboarding (M7), decided as the app starts.
     let onboarding: Onboarding
     /// The fakes run's world, which its Fakes menu drives. Nil when wired: then
@@ -99,6 +101,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             model = AppModel(services: .wired())
         }
         workshop = WorkshopModel(services: options.isFakes ? .fakes() : .wired(), library: model)
+        doors = Doors(model: model, windows: windows, workshop: workshop)
         onboarding = Onboarding(model: model)
         super.init()
     }
@@ -110,7 +113,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .environment(windows)
             .background(SceneActionsReader(windows: windows))
         // The popover holds cards of `Radius.card`: 4 pt keeps them concentric with its 20 pt corners.
-        let item = MenuBarItem(options: options, menu: menu, contentPadding: Spacing.tight, content: popover)
+        let item = MenuBarItem(options: options, menu: menu, contentPadding: Spacing.tight, content: popover) { [doors] files in
+            doors.hand(files, to: .menuBarDrop)
+        }
         windows.willOpenWindow = { [weak item] in item?.closePopover() }
         windows.didCloseLibrary = { [model] in model.libraryWindowDidClose() }
         workshop.showWorkshop = { [windows] in windows.openWorkshop() }
@@ -124,6 +129,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // A turn later, once SwiftUI has its scenes up.
             Task { [windows] in windows.openOnboarding() }
         }
+        NSApp.servicesProvider = doors
+        NSUpdateDynamicServices()
+        if let socket = model.services.commandSocket {
+            doors.openSocket(at: socket)
+        }
+    }
+
+    /// Open With, a drop on the Dock icon, and `livepaper://` links. Files
+    /// opened with the app arrive before `applicationDidFinishLaunching`; the
+    /// model runs them once the launch has read the library.
+    func application(_ application: NSApplication, open urls: [URL]) {
+        doors.open(urls)
     }
 
     /// A command from `Tools/pr-media/fakes.sh`. The popover opens and closes with
@@ -140,8 +157,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if !menu.performItem(titled: title) { AppLog.logger.notice("fakes: no menu item \(title, privacy: .public)") }
         case ("quit", _): NSApp.terminate(nil)
         default:
+            let commands = FakesCommands(model: model, doors: doors) { (try? fakes.writeSampleFiles()) ?? [] }
             let system = FakesSystemCommands(onboarding: onboarding, fakes: fakes, windows: windows)
-            guard !FakesCommands(model: model).perform(verb, rest), !system.perform(verb, rest) else { return }
+            guard !commands.perform(verb, rest), !system.perform(verb, rest) else { return }
             AppLog.logger.notice("fakes: unknown command \(verb, privacy: .public) \(rest, privacy: .public)")
         }
     }
@@ -168,6 +186,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         // steamcmd runs in a session of its own, and would outlive the app.
         workshop.stopAll()
+        doors.closeSocket()
         Task {
             await model.quit()
             sender.reply(toApplicationShouldTerminate: true)

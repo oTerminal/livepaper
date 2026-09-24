@@ -24,10 +24,10 @@ extension AppModel {
         guard canImport else {
             return .failed(libraryProblem == nil ? "Livepaper is still starting. Try again in a moment." : Self.unwritable)
         }
-        let found = await Discovering.run(urls)
+        let enqueued = await enqueueImport(urls)
         guard canImport else { return .failed(Self.unwritable) }
-        guard !found.candidates.isEmpty else { return .failed(Self.nothingToImport(found)) }
-        let rows = enqueueImports(found.candidates)
+        guard let first = enqueued.rows.first else { return .failed(Self.nothingToImport(enqueued.notListed)) }
+        let rows = enqueued.rows.map(\.id)
         for await batch in Observations({ self.importList.batch(rows) }) {
             switch batch {
             case .importing:
@@ -36,11 +36,10 @@ extension AppModel {
                 setOnAllDisplays(.wallpaper(wallpaper.id))
                 return .set(wallpaper)
             case .failed(let reason):
-                let name = found.candidates.first?.name ?? ""
-                return .failed(reason.map { "“\(name)” was not imported. \($0)." } ?? "“\(name)” was not imported.")
+                return .failed(Self.notImported(first.name, reason))
             }
         }
-        return .failed("“\(found.candidates.first?.name ?? "")” was not imported.")
+        return .failed(Self.notImported(first.name, nil))
     }
 
     /// Leaving Livepaper as the wallpaper, recorded before the app quits: the
@@ -53,9 +52,12 @@ extension AppModel {
     private static let unwritable = "The library could not be read, so nothing can be imported."
 
     /// Nothing to import where the user pointed: why, as the library's toast says it.
-    private static func nothingToImport(_ found: Discovering.Found) -> String {
-        if let skipped = found.skipped.first { return ImportToast.skipped(skipped).words }
-        if let failure = found.failures.first { return ImportToast.failed(name: failure.name, error: failure.error).words }
-        return "There is nothing there that Livepaper can import."
+    private static func nothingToImport(_ notListed: [ImportedSource]) -> String {
+        guard case .notImported(let name, let reason) = notListed.first else { return "There is nothing there that Livepaper can import." }
+        return notImported(name, reason)
+    }
+
+    private static func notImported(_ name: String, _ reason: String?) -> String {
+        "“\(name)” was not imported." + (reason.map { " \($0)." } ?? "")
     }
 }

@@ -36,13 +36,13 @@ extension AppModel: SystemServicesOwner {
     /// Whether the popover's status line says Livepaper is not the wallpaper, and
     /// offers the pane: an import running takes the line first.
     var offersWallpaperPane: Bool {
-        hostStatus == .notSelected && importList.progress == nil
+        statusLineOffersWallpaperPane(host: hostStatus, importing: importList.progress, restart: serviceRestart.phase)
     }
 
     /// System Settings at Wallpaper, for the user to choose "Livepaper": the
     /// popover's line when another wallpaper was picked by hand, and onboarding's
     /// last card once it has sent the user there. Nothing in the store is touched.
     func openWallpaperPane() {
-        _ = services.wallpaperPane.openWallpaperPane()
+        _ = services.system.wallpaperPane.openWallpaperPane()
     }
 }
