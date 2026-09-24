@@ -29,9 +29,15 @@ struct RenderStateMakeTests {
     }
 
     static func make(
-        _ state: AppState, connected: [DisplayIdentity] = [first], conditions: SensedConditions? = nil, previous: RenderState? = nil
+        _ state: AppState,
+        connected: [DisplayIdentity] = [first],
+        conditions: SensedConditions? = nil,
+        isPausedAll: Bool = false,
+        previous: RenderState? = nil
     ) throws -> RenderState? {
-        RenderState.make(library: try library(), state: state, connected: connected, conditions: conditions, previous: previous)
+        RenderState.make(
+            library: try library(), state: state, connected: connected, conditions: conditions, isPausedAll: isPausedAll, previous: previous
+        )
     }
 
     static func display(_ identity: DisplayIdentity, _ wallpaper: Wallpaper) -> RenderState.Display {
@@ -228,5 +234,64 @@ struct RenderStateMakeTests {
         #expect(!resumed.isStopped)
         #expect(resumed.generation == stopped.generation + 1)
         #expect(resumed.displays == live.displays)
+    }
+
+    // MARK: Pause All
+
+    /// Wallpaper 2 on both displays, the second paused on its own.
+    static let secondPaused = state {
+        $0.applyToAll = .wallpaper(.numbered(2))
+        $0.pausedDisplays = [second]
+    }
+
+    static let both = [first, second]
+
+    @Test func `under Pause All every display is paused in place, as its own pause does, and nothing is stopped`() throws {
+        let live = try #require(try Self.make(Self.secondPaused, connected: Self.both))
+
+        let paused = try #require(try Self.make(Self.secondPaused, connected: Self.both, isPausedAll: true, previous: live))
+
+        #expect(paused.displays.map(\.userPaused) == [true, true])
+        #expect(!paused.isStopped, "the stopped state is Quit's alone (record 0003)")
+        #expect(paused.generation == live.generation + 1)
+        #expect(paused.displays.map(\.wallpaper) == live.displays.map(\.wallpaper))
+    }
+
+    @Test func `after Resume All each display plays again, and a display's own pause is kept`() throws {
+        let paused = try #require(try Self.make(Self.secondPaused, connected: Self.both, isPausedAll: true))
+
+        let resumed = try #require(try Self.make(Self.secondPaused, connected: Self.both, previous: paused))
+
+        #expect(resumed.displays.map(\.userPaused) == [false, true])
+        #expect(!resumed.isStopped)
+        #expect(resumed.generation == paused.generation + 1)
+    }
+
+    @Test func `under Pause All, nothing new gives nothing`() throws {
+        let paused = try #require(try Self.make(Self.showingTwo, isPausedAll: true))
+
+        #expect(try Self.make(Self.showingTwo, isPausedAll: true, previous: paused) == nil)
+    }
+
+    @Test func `a change under Pause All reaches the displays, paused`() throws {
+        let paused = try #require(try Self.make(Self.showingTwo, isPausedAll: true))
+        let showingThree = Self.state { $0.assignments[Self.first] = .wallpaper(.numbered(3)) }
+
+        let next = try #require(try Self.make(showingThree, isPausedAll: true, previous: paused))
+
+        #expect(next.displays.map(\.wallpaper) == [.numbered(3)])
+        #expect(next.displays.map(\.userPaused) == [true])
+    }
+
+    @Test func `a quit stops what Pause All left, and the next launch plays, since Pause All is not remembered`() throws {
+        let paused = try #require(try Self.make(Self.secondPaused, connected: Self.both, isPausedAll: true))
+        // What the host writes at quit (`RenderHost.deactivate()`): the last state, stopped.
+        let quit = paused.next { $0.isStopped = true }
+
+        let relaunched = try #require(try Self.make(Self.secondPaused, connected: Self.both, previous: quit))
+
+        #expect(!relaunched.isStopped)
+        #expect(relaunched.displays.map(\.userPaused) == [false, true])
+        #expect(relaunched.generation == quit.generation + 1)
     }
 }

@@ -121,6 +121,21 @@ struct PlaybackSupervisorTests {
         #expect(bench.supervisor.heartbeat == Heartbeat(generation: 2, flags: [.desktopSurfaceAcquired, .holdingStill]))
     }
 
+    @Test func `under Pause All each display pauses in place, and Resume All plays it on, a display's own pause kept`() async {
+        let bench = SupervisorBench()
+        await bench.apply(Self.state(.numbered(1), .numbered(2)))
+        await bench.acquire(1, display: 1)
+        await bench.acquire(2, display: 2)
+
+        await bench.apply(Self.state(.numbered(1, userPaused: true), .numbered(2, userPaused: true), generation: 2))
+        let whilePaused = bench.supervisor.heartbeat
+        await bench.apply(Self.state(.numbered(1), .numbered(2, userPaused: true), generation: 3))
+
+        #expect(bench.surface(1).playbackCalls == [.show(.numbered(1), crossfade: false), .pause, .resume])
+        #expect(bench.surface(2).playbackCalls == [.show(.numbered(2), crossfade: false), .pause])
+        #expect(whilePaused == Heartbeat(generation: 2, flags: [.desktopSurfaceAcquired]), "paused, not holding a still")
+    }
+
     @Test func `an unreadable state keeps what is shown`() async {
         let bench = SupervisorBench()
         await bench.apply(Self.state(.numbered(1), generation: 5))

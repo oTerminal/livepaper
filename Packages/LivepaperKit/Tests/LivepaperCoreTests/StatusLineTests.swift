@@ -14,9 +14,14 @@ struct StatusLineTests {
         Row("live on two displays", Line(host: .live), .idle("Live on 2 displays")),
         Row("live on one display", Line(host: .live, showing: 1), .idle("Live on 1 display")),
         Row("live, with nothing to show", Line(host: .live, showing: 0), .idle("No wallpaper set")),
-        Row("stopped by Pause All", Line(host: .stopped, isPausedAll: true), .idle("Paused")),
+        Row("stopped under Pause All", Line(host: .stopped, isPausedAll: true), .idle("Paused")),
         Row("stopped otherwise", Line(host: .stopped), .idle("Stopped")),
-        Row("Pause All reads paused before the host has stopped", Line(host: .live, isPausedAll: true), .idle("Paused")),
+        Row("Pause All: the host stays live, every display paused in place", Line(host: .live, isPausedAll: true), .idle("Paused")),
+        Row(
+            "Pause All leaves the host's own trouble on the line",
+            Line(host: .recovering(.flush), isPausedAll: true),
+            .working("Recovering the wallpaper")
+        ),
         Row("connecting", Line(host: .connecting), .working("Connecting to the wallpaper service")),
         Row("not selected, short for the pane's button beside it", Line(host: .notSelected), .idle("Livepaper is not your wallpaper")),
         Row("unavailable", Line(host: .unavailable), .idle("Not available on this version of macOS")),
@@ -30,7 +35,7 @@ struct StatusLineTests {
         Row("importing one alone", Line(host: .live, importing: (1, 1)), .working("Importing")),
         Row("an import before connecting", Line(host: .connecting, importing: (1, 3)), .working("Importing 1 of 3")),
         Row("an import before not selected", Line(host: .notSelected, importing: (1, 3)), .working("Importing 1 of 3")),
-        Row("an import during Pause All", Line(host: .stopped, isPausedAll: true, importing: (1, 3)), .working("Importing 1 of 3")),
+        Row("an import during Pause All", Line(host: .live, isPausedAll: true, importing: (1, 3)), .working("Importing 1 of 3")),
         Row("a service not responding before an import", Line(host: .recovering(.restartAgent), importing: (1, 3)), .serviceNotResponding),
     ]
 

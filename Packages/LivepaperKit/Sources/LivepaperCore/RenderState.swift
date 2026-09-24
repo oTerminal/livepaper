@@ -82,8 +82,8 @@ public struct RenderState: Codable, Equatable, Sendable {
 
     /// Counts every state the app writes. It only increases: `next` is the only way to change it.
     public private(set) var generation: UInt64
-    /// The stopped form (record 0003): the extension holds each display's
-    /// poster as a still and releases its decoders.
+    /// The stopped form, which Quit leaves (record 0003): the extension holds
+    /// each display's poster as a still and releases its decoders.
     public var isStopped: Bool
     public var displays: [Display]
     public var pauseRules: PauseRules

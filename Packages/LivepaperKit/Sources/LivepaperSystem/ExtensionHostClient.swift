@@ -25,7 +25,7 @@ public final class ExtensionHostClient: RenderHost {
     /// Whether the extension's probe is on now: what the menu's checkmark shows.
     public private(set) var isPlaybackMetricsOn = false
     /// What the user last asked for this session, which an activation puts back:
-    /// a deactivate switches the probe off with the decoders, and Resume All must not lose it.
+    /// a deactivate switches the probe off with the decoders, and activating again must not lose it.
     private var wantsPlaybackMetrics = false
 
     public var currentStatus: RenderHostStatus { reducer.status }
@@ -82,7 +82,7 @@ public final class ExtensionHostClient: RenderHost {
 
     /// Records the launch time, listens for the heartbeat and reports `.connecting`.
     /// The playback-metrics probe starts each launch off and lasts the session: an
-    /// activation after a deactivate (Resume All) puts it back as the user left it.
+    /// activation after a deactivate puts it back as the user left it.
     /// The ten-minute gap runs from the last restart that any launch made.
     public func activate() async throws {
         let observing = notifier.observe(HostNotification.heartbeat) { [weak self] state in

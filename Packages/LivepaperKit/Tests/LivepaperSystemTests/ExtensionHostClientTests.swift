@@ -297,7 +297,7 @@ struct ExtensionHostClientTests {
         #expect(!client.isPlaybackMetricsOn)
     }
 
-    @Test func `the probe lasts the session: activating again after Pause All switches it back on`() async throws {
+    @Test func `the probe lasts the session: activating again after a deactivate switches it back on`() async throws {
         try await client.activate()
         client.setPlaybackMetrics(true)
 
@@ -310,7 +310,7 @@ struct ExtensionHostClientTests {
         #expect(notifier.posts(of: HostNotification.playbackMetrics).last?.state == 1)
     }
 
-    @Test func `a probe switched off before Pause All stays off after it`() async throws {
+    @Test func `a probe switched off before a deactivate stays off after it`() async throws {
         try await client.activate()
         client.setPlaybackMetrics(true)
         client.setPlaybackMetrics(false)

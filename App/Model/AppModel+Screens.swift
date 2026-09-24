@@ -16,6 +16,7 @@ extension AppModel {
             state: state,
             connected: displays.map(\.identity),
             render: renderState,
+            isPausedAll: isPausedAll,
             host: services.host.capabilities,
             now: Date()
         )

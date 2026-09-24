@@ -44,8 +44,8 @@ extension AppModel {
         commit(state: state.choosingPlaylist(id, for: display, in: library, now: Date(), rng: &rng))
     }
 
-    /// Working until the displays have it, or at once when it is saved for Resume
-    /// All; back to idle when it was refused. Only the latest set of an assignment speaks.
+    /// Working until the displays have it, paused there under Pause All; back to
+    /// idle when it was refused. Only the latest set of an assignment speaks.
     private func setWithFeedback(_ assignment: Assignment, _ next: AppState) {
         let token = feedbackTokens[assignment, default: 0] + 1
         feedbackTokens[assignment] = token

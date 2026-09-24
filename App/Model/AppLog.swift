@@ -65,7 +65,7 @@ enum AppLog {
     }
 
     static func pausedAll(generation: UInt64?) -> String {
-        "app: pause all, render state \(generation.map(String.init) ?? "none") stopped"
+        "app: pause all, render state \(generation.map(String.init) ?? "none") pauses every display"
     }
 
     static let resumedAll = "app: resume all"

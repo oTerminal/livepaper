@@ -38,9 +38,10 @@ final class AppModel: ImportLibrary {
     /// In the order the display sensor lists them.
     private(set) var displays: [Display] = []
     private(set) var hostStatus: RenderHostStatus = .stopped
-    /// Pause All: the stopped state (record 0003). Not remembered: the next launch is live.
+    /// Pause All: every display paused in place, as its own pause does. Not
+    /// remembered: the next launch is live.
     private(set) var isPausedAll = false
-    /// The render state made last, stopped while paused all.
+    /// The render state made last.
     private(set) var renderState: RenderState?
     private(set) var conditions: SensedConditions?
 
@@ -250,30 +251,22 @@ extension AppModel {
 
     // MARK: Pause All
 
-    /// Every display holds its poster as a still and gives its decoder up: the
-    /// stopped state (record 0003), not remembered, so the next launch is live.
+    /// Every display pauses in place, as its own pause does: its picture held
+    /// and its decoder kept, so Resume All is instant. Not remembered, so the
+    /// next launch is live; stopping is Quit's alone (record 0003).
     func pauseAll() {
-        guard isLaunched, !isPausedAll, !isQuitting else { return }
+        guard isLaunched, !isPausedAll, !isQuitting, libraryProblem == nil else { return }
         isPausedAll = true
         updateRotation()
-        // What the host writes: the last state, stopped, at the next generation. The cards read it as paused.
-        renderState = renderState?.next { $0.isStopped = true }
-        enqueue { await $0.deactivate() }
+        applyRenderState()
         AppLog.logger.notice("\(AppLog.pausedAll(generation: self.renderState?.generation), privacy: .public)")
     }
 
-    /// At once: the host is activated again and a live state follows the stopped one.
+    /// At once: each display plays again, or stays paused on its own.
     func resumeAll() {
         guard isPausedAll, !isQuitting else { return }
         isPausedAll = false
         updateRotation()
-        enqueue { host in
-            do {
-                try await host.activate()
-            } catch {
-                AppLog.logger.error("\(AppLog.activationFailed(error), privacy: .public)")
-            }
-        }
         applyRenderState()
         AppLog.logger.notice("\(AppLog.resumedAll, privacy: .public)")
     }
@@ -323,7 +316,7 @@ extension AppModel {
 
     /// `commit`, for what must hear that a change was refused (an import's insert, a delete,
     /// Set on Display's feedback). Answers the apply that carries it to the displays; nil
-    /// when it is saved and they have it later (paused all, or before the launch has read them).
+    /// when it is saved and they have it later (before the launch has read them).
     @discardableResult
     func change(library newLibrary: Library? = nil, state newState: AppState? = nil) throws -> Task<Void, Never>? {
         if let libraryProblem { throw libraryProblem }
@@ -354,17 +347,22 @@ extension AppModel {
     }
 
     /// Makes the render state for what is kept now and hands it to the host,
-    /// after the one before it. Nothing is made before the launch has read the
-    /// displays, while paused all, while quitting, or while the library could
-    /// not be read.
+    /// after the one before it, every display paused while paused all. Nothing
+    /// is made before the launch has read the displays, while quitting, or while
+    /// the library could not be read.
     ///
     /// Answers the apply that carries what is kept now: a new one, or the one
     /// still running when nothing has changed; nil when nothing is applied now.
     @discardableResult
     func applyRenderState() -> Task<Void, Never>? {
-        guard isLaunched, areDisplaysKnown, !isPausedAll, !isQuitting, libraryProblem == nil else { return nil }
+        guard isLaunched, areDisplaysKnown, !isQuitting, libraryProblem == nil else { return nil }
         guard let next = RenderState.make(
-            library: library, state: state, connected: displays.map(\.identity), conditions: conditions, previous: renderState
+            library: library,
+            state: state,
+            connected: displays.map(\.identity),
+            conditions: conditions,
+            isPausedAll: isPausedAll,
+            previous: renderState
         ) else { return applying }
         renderState = next
         madeLast = next

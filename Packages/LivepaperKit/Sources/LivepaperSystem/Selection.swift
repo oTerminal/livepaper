@@ -25,8 +25,8 @@ extension ExtensionHostClient: HostStatusSource {}
 /// is one signal and a wait, never a burst (`docs/research/wallper.md`). It is recorded in the
 /// `AgentRestartStore` before the signal, as the host's own restarts are. The host reads that
 /// record when it activates and again before each automatic restart, so it counts its ten
-/// minutes from this one whether it is running or activates later (Resume All, a relaunch after
-/// leaving): a select that has not yet brought a heartbeat is not followed by a second restart.
+/// minutes from this one whether it is running or activates later (a relaunch after leaving):
+/// a select that has not yet brought a heartbeat is not followed by a second restart.
 public final class Selection {
     private var reducer = SelectionReducer()
     private let host: any HostStatusSource

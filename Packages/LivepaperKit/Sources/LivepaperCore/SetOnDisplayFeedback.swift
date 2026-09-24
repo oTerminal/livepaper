@@ -23,7 +23,7 @@ public struct SetOnDisplayFeedback: Equatable, Sendable {
         idleAt = nil
     }
 
-    /// The set is saved and on the displays, or saved to show at Resume All.
+    /// The set is saved and on the displays, paused there under Pause All.
     /// Only a set that is working can be done.
     public mutating func applied(at now: Date) {
         guard phase == .working else { return }
