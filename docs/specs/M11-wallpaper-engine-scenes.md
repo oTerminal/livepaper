@@ -289,7 +289,7 @@ Which scenes need their programs or their poster is read from their files on a t
 
 **On screen, 2026-09-24,** with the branch's build installed on the user's MacBook (macOS 27, one 3600×2338 display), driven by Accessibility presses, under the user's windows with "Desktop fully covered" switched off for the check and on again after:
 
-- The first launch drew the six posters within 4.1 s: `scene: poster of … drawn from the scene, 3840x2160 at 10 s` for five, and `1920x1080` for Backstreet Lofi, whose poster had been 250×141.
+- The first launch drew the six posters within 4.1 s: `scene: poster of … drawn from the scene, 3840x2160 at 10 s` for five, and `1920x1080` for Backstreet Lofi, whose poster had been 250×141. The final build, whose marker names the translator, drew them once more at its first launch (2.6 s), and none at the launch after.
 - Pause All over Agamemnon: `decision … still`, `stopped drawing at 805.73 s (still)`, `holds … still on its last picture, at 805.73 s`, `holding still`. Resume All: `loaded … in 384 ms`, `drawing at 30 fps from 805.73 s`, and no `shows … in the Metal slot`. The card's own pause: `stopped drawing at 76.81 s (pause)`, then `drawing at 30 fps from 76.81 s`.
 - Captures of the desktop's wallpaper window (by window id; not kept, being Workshop artwork): playing, two frames a second apart differed in 20.2 % of their pixels; after Pause All, two frames two seconds apart in 0.00 %; after Resume All, 20.4 % again. The variance of the Laplacian, a measure of sharpness, was 133.4 playing and 134.1 paused: the paused picture is the scene's own frame at the display's resolution, looked at side by side with a playing one.
 
