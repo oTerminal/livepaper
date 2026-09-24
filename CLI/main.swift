@@ -15,8 +15,10 @@ import LivepaperCore
 // It uses the socket, not the URL scheme: LaunchServices reports only that the
 // app took a URL, so there would be no reply and no exit code, and an XPC Mach
 // service needs a launchd job the app lacks. When no one answers on the socket
-// it opens Livepaper by bundle identifier, without bringing it forward, and
-// tries again for a while; with LIVEPAPER_NO_LAUNCH set it leaves it closed.
+// it opens the Livepaper it ships inside (else, run from outside an app, the
+// one LaunchServices names for the bundle identifier), without bringing it
+// forward, and tries again for a while; with LIVEPAPER_NO_LAUNCH set it leaves
+// it closed.
 // Exit status: 0 done, 1 refused, 2 usage, 3 unreachable (`CommandLineExit`).
 //
 // It ships inside the app, at Livepaper.app/Contents/Helpers/livepaper (in
@@ -28,6 +30,14 @@ struct App {
     /// How long the app has to start answering once it has been opened.
     static let launchWait: Duration = .seconds(20)
     static let bundleIdentifier = "app.livepaper.Livepaper"
+
+    /// The Livepaper this tool ships inside, through any link to the tool; nil
+    /// when it runs from anywhere else.
+    static var ownApp: URL? {
+        guard let tool = Bundle.main.executableURL?.resolvingSymlinksInPath(), let app = enclosingApp(ofTool: tool),
+              Bundle(url: app)?.bundleIdentifier == bundleIdentifier else { return nil }
+        return app
+    }
 
     /// Found as the app finds it.
     let socket = LibraryLocation(home: .homeDirectory).commandSocket(fallback: .temporaryDirectory)
@@ -59,7 +69,7 @@ struct App {
         guard !opened else { return }
         opened = true
         guard ProcessInfo.processInfo.environment["LIVEPAPER_NO_LAUNCH"] == nil else { unreachable("Livepaper is not running") }
-        guard let app = NSWorkspace.shared.urlForApplication(withBundleIdentifier: Self.bundleIdentifier) else {
+        guard let app = Self.ownApp ?? NSWorkspace.shared.urlForApplication(withBundleIdentifier: Self.bundleIdentifier) else {
             unreachable("Livepaper is not running, and it could not be found to open")
         }
         let configuration = NSWorkspace.OpenConfiguration()
