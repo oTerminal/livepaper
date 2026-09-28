@@ -5,7 +5,8 @@ import Foundation
 public struct EnergyReport: Sendable {
     public enum Kind: Sendable {
         case video
-        /// First measured here: recorded, held to nothing but the return to paused levels.
+        /// First measured here: recorded, held to nothing but the return to paused levels
+        /// and the display link stopping. A scene has no decoder, so nothing is said of one.
         case scene
     }
 
@@ -13,9 +14,8 @@ public struct EnergyReport: Sendable {
     public let markdown: String
 
     public init(measurement: EnergyMeasurement, kind: Kind, unreadRows: Int = 0, budget: EnergyBudget = .s2) {
-        let ceilings: [EnergyBudget.Check] = [.extensionCPU, .extensionPower, .decoderCPU, .decoderPower, .windowServerOverPaused]
-        lines = budget.judge(measurement).map { line in
-            guard kind == .scene, ceilings.contains(line.check), line.outcome != .notMeasured else { return line }
+        lines = budget.judge(measurement, kind: kind).map { line in
+            guard kind == .scene, line.check.isCeiling, line.outcome != .notMeasured else { return line }
             var baseline = line
             baseline.limit = "baseline"
             baseline.outcome = .recorded
@@ -24,17 +24,24 @@ public struct EnergyReport: Sendable {
 
         var text = "# Energy, \(kind == .video ? "a video" : "a scene")\n\n"
         text += "top's CPU and power score (unitless energy impact), six 5 s samples after a 15 s warm-up; "
-        text += "one-second samples after covering and display sleep (Spikes/results/S2.md, M8-hardening.md).\n\n"
-        text += "| Measurement | Measured | Limit | Outcome |\n|---|---|---|---|\n"
+        text += "one-second samples after covering and display sleep (Spikes/results/S2.md, M8-hardening.md)."
+        if kind == .scene {
+            text += " The GPU is powermetrics', the link's stop the extension's first `stopped drawing at` line after each (link.csv)."
+        }
+        text += "\n\n| Measurement | Measured | Limit | Outcome |\n|---|---|---|---|\n"
         for line in lines {
             text += "| \(line.name) | \(line.measured) | \(line.limit) | \(Self.words(line.outcome)) |\n"
         }
-        text += "\n## Means by phase\n\nCPU / power score, each process's instances summed.\n\n"
-        let processes = [EnergyBudget.extensionProcess, EnergyBudget.decoderProcess, EnergyBudget.windowServer, EnergyBudget.appProcess]
+        text += "\n## Means by phase\n\nCPU / power score, each process's instances summed. "
+        text += "\(EnergyBudget.decoderProcess) is the extension's own, \(EnergyBudget.otherDecodersProcess) every other client's.\n\n"
+        let processes = [
+            EnergyBudget.extensionProcess, EnergyBudget.decoderProcess, EnergyBudget.otherDecodersProcess,
+            EnergyBudget.windowServer, EnergyBudget.appProcess,
+        ]
         text += "| Phase | " + processes.joined(separator: " | ") + " |\n|---|" + processes.map { _ in "---|" }.joined() + "\n"
         for phase in measurement.phases {
             let means = processes.map { process in
-                measurement.readings(process, in: phase).isEmpty ? ""
+                measurement.loads(process, in: phase).isEmpty ? ""
                     : measurement.mean(process, in: phase).map { String(format: "%.1f %% / %.1f", $0.cpu, $0.power) } ?? ""
             }
             text += "| \(phase) | " + means.joined(separator: " | ") + " |\n"

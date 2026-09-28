@@ -109,7 +109,16 @@ public enum LadderLevel: String, CaseIterable, Comparable, Sendable {
     case restartAgent
 
     public static func < (lhs: Self, rhs: Self) -> Bool {
-        allCases.firstIndex(of: lhs)! < allCases.firstIndex(of: rhs)!
+        lhs.rung < rhs.rung
+    }
+
+    private var rung: Int {
+        switch self {
+        case .flush: 0
+        case .rebuildSurface: 1
+        case .rebuildPipeline: 2
+        case .restartAgent: 3
+        }
     }
 }
 

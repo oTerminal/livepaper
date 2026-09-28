@@ -1,7 +1,7 @@
 #!/bin/bash
 # usage: soak.sh start [--dir DIR]                    begins a soak, or carries on one not stopped
 #        soak.sh mark <kind> [note]                   a person's row, just before the act:
-#                                                     lid, replug, fus, lock or note
+#                                                     lid, replug, fus, drill, lock or note
 #        soak.sh night [--from HH:MM] [--to HH:MM]    sleeps every 20 minutes (sudo once, for the wakes)
 #        soak.sh displaysleep [count]                 display sleep, woken 30 s later (default 10)
 #        soak.sh lock [count] | lock --person         the lock screen (default 8; the person's 2)
@@ -10,7 +10,7 @@
 #
 # Drives M8's 24-hour soak (docs/specs/M8-hardening.md, The soak) and keeps its record in a run
 # folder, ~/Library/Logs/Livepaper soak/<YYYY-MM-DD-HHMM>/ unless --dir names another:
-#   events.csv   time,kind,note; start, sleep, displaysleep, lock, lid, replug, fus, note, end
+#   events.csv   time,kind,note; start, sleep, displaysleep, lock, lid, replug, fus, drill, note, end
 #   samples.csv  time,process,pid,cpu,rss_kb; Livepaper, WallpaperExtension and WallpaperAgent,
 #                every 5 minutes
 #   log.txt      `log show --info` of both Livepaper subsystems in the default style, exported every
@@ -285,8 +285,8 @@ cmd_start() {
 cmd_mark() {
   local kind=${1:-} n
   case $kind in
-    lid | replug | fus | lock | note) shift ;;
-    *) fail "mark takes lid, replug, fus, lock or note" ;;
+    lid | replug | fus | drill | lock | note) shift ;;
+    *) fail "mark takes lid, replug, fus, drill, lock or note" ;;
   esac
   open_run
   event "$kind" "$*"
@@ -299,6 +299,7 @@ cmd_mark() {
       if ((n % 2)); then say "cable $n of 20: pull it, count 5 seconds, plug it back"
       else say "cable $n of 20: pull it for 30 seconds, then plug it back"; fi ;;
     fus) say "fast user switching: to the second account, 5 minutes there, then back" ;;
+    drill) say "drill: ${*:-(unnamed)}. Its episodes are listed apart, for its row in the PR" ;;
     *) say "marked $kind" ;;
   esac
 }

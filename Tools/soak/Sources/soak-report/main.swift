@@ -4,13 +4,13 @@ import LivepaperSoak
 // Reads a soak's files and prints its report as Markdown (M8-hardening.md):
 //
 //   soak-report soak --log log.txt --samples samples.csv --events events.csv
-//   soak-report energy --samples energy.csv [--watts watts.csv] [--scene]
+//   soak-report energy --samples energy.csv [--watts watts.csv] [--scene [--link link.csv]]
 //
 // Exit status: 0 printed, 2 usage, 3 a file could not be read.
 
 let usage = """
     usage: soak-report soak --log FILE --samples FILE --events FILE
-           soak-report energy --samples FILE [--watts FILE] [--scene]
+           soak-report energy --samples FILE [--watts FILE] [--scene [--link FILE]]
     """
 
 func fail(_ message: String, status: Int32) -> Never {
@@ -68,8 +68,9 @@ case "energy":
     let options = Options(arguments.dropFirst(), flags: ["scene"])
     let samples = EnergySample.read(csv: contents(of: options.required("samples")))
     let watts = options.values["watts"].map { WattSample.read(csv: contents(of: $0)).samples }
+    let links = options.values["link"].map { LinkStop.read(csv: contents(of: $0)).stops }
     let report = EnergyReport(
-        measurement: EnergyMeasurement(samples: samples.samples, watts: watts),
+        measurement: EnergyMeasurement(samples: samples.samples, watts: watts, links: links),
         kind: options.flags.contains("scene") ? .scene : .video, unreadRows: samples.unreadRows
     )
     print(report.markdown, terminator: "")

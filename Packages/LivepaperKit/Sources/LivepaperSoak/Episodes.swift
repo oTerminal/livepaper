@@ -45,15 +45,21 @@ public struct Episode: Equatable, Sendable {
 public struct Trigger: Equatable, Sendable {
     public var kind: TriggerKind
     public var time: Date
+    /// The display a replug, or a lid cycle the Mac stayed awake through, brought back.
+    public var display: String?
+    /// A marker's note: which drill.
+    public var note: String?
 
-    public init(kind: TriggerKind, time: Date) {
+    public init(kind: TriggerKind, time: Date, display: String? = nil, note: String? = nil) {
         self.kind = kind
         self.time = time
+        self.display = display
+        self.note = note
     }
 }
 
-/// The report's triggers (M8-hardening.md, "The soak"), and the two it adds so
-/// no episode is charged to something else: a restart, and a fast user switch.
+/// The report's triggers (M8-hardening.md, "The soak"), and the three it adds so
+/// no episode is charged to something else: a restart, a fast user switch and a drill.
 public enum TriggerKind: String, CaseIterable, Sendable {
     /// The Mac woke, from `soak.sh night` or anything but a marked lid.
     case wake
@@ -72,6 +78,12 @@ public enum TriggerKind: String, CaseIterable, Sendable {
     case restart
     /// A marked fast user switch (`soak.sh mark fus`).
     case userSwitch
+    /// A marked recovery drill (`soak.sh mark drill <which>`). Its episodes are the
+    /// drill's own, judged by its row in "Recovery drills", not by the soak's.
+    case drill
+
+    /// The Mac's wake and its displays': one wake may log both.
+    var isWake: Bool { [.wake, .lid, .lidOnExternal, .displayWake].contains(self) }
 }
 
 /// A soak's episodes and triggers, reduced from its log in time order.
@@ -118,6 +130,8 @@ private struct Reducer {
     private var host: Tracked?
     private var hostPhase: HostPhase?
     private var decisions: [String: DisplayDecision] = [:]
+    /// Surfaces on the lock screen, where covering does not count (M5-engine.md).
+    private var lockedSurfaces: Set<String> = []
     private var opened = 0
 
     /// A person marked a lid cycle that no wake or replug has answered yet.
@@ -138,6 +152,7 @@ private struct Reducer {
         case .lid: isLidPending = true
         case .sleep, .displaySleep: isLidPending = false
         case .fastUserSwitch: triggers.append(Trigger(kind: .userSwitch, time: marker.time))
+        case .drill: triggers.append(Trigger(kind: .drill, time: marker.time, note: marker.note.isEmpty ? nil : marker.note))
         default: break
         }
     }
@@ -176,7 +191,7 @@ private struct Reducer {
     private mutating func readVerdict(_ verdict: CheckVerdict, on tag: SurfaceTag, entry: SoakLog.Entry) {
         let time = entry.line.time
         switch verdict {
-        case .recover where decisions[tag.display]?.isCovered == true:
+        case .recover where decisions[tag.display]?.isCovered == true && !lockedSurfaces.contains(tag.surface):
             judgedWhileCovered.append(entry)
         case .recover(let level):
             if open[tag.surface] == nil { open[tag.surface] = opening(.surface(tag), at: time, level: level) }
@@ -207,10 +222,8 @@ private struct Reducer {
 
     private mutating func readTrigger(_ event: SoakEvent, at time: Date) {
         switch event {
-        case .woke(.system):
-            trigger(isLidPending ? .lid : .wake, at: time)
-        case .woke(.displays):
-            trigger(isLidPending ? .lidOnExternal : .displayWake, at: time)
+        case .woke(let source):
+            woke(source, at: time)
         case .unlocked:
             trigger(.unlock, at: time)
         case .rotated(.tick, let displays) where !displays.isEmpty:
@@ -230,6 +243,8 @@ private struct Reducer {
         switch event {
         case .decision(let display, let decision):
             decisions[display] = decision
+        case .mode(let tag, let isLocked):
+            if isLocked { lockedSurfaces.insert(tag.surface) } else { lockedSurfaces.remove(tag.surface) }
         case .invalidated(let tag), .tornDown(let tag):
             if !tag.isPreview { displaysGone.insert(tag.display) }
         case .acquired(let tag, reused: false) where !tag.isPreview && displaysGone.contains(tag.display):
@@ -248,7 +263,22 @@ private struct Reducer {
         if let restartWindowEnd, time <= restartWindowEnd { return }
         if let last = lastReplug[display], time.timeIntervalSince(last) <= Self.settling { return }
         lastReplug[display] = time
-        trigger(isLidPending ? .lidOnExternal : .replug, at: time)
+        trigger(isLidPending ? .lidOnExternal : .replug, at: time, display: display)
+    }
+
+    /// The Mac's wake and its displays' within `settling` of each other are one wake,
+    /// the Mac's deciding its kind: the displays woke because the Mac did.
+    private mutating func woke(_ source: WakeSource, at time: Date) {
+        if let last = triggers.last, last.kind.isWake, last.display == nil, time.timeIntervalSince(last.time) <= Self.settling {
+            if source == .system, last.kind == .displayWake || last.kind == .lidOnExternal {
+                triggers[triggers.count - 1].kind = last.kind == .lidOnExternal ? .lid : .wake
+            }
+            return
+        }
+        switch source {
+        case .system: trigger(isLidPending ? .lid : .wake, at: time)
+        case .displays: trigger(isLidPending ? .lidOnExternal : .displayWake, at: time)
+        }
     }
 
     private mutating func restart(at time: Date) {
@@ -256,9 +286,9 @@ private struct Reducer {
         trigger(.restart, at: time)
     }
 
-    private mutating func trigger(_ kind: TriggerKind, at time: Date) {
+    private mutating func trigger(_ kind: TriggerKind, at time: Date, display: String? = nil) {
         if [.lid, .lidOnExternal].contains(kind) { isLidPending = false }
-        triggers.append(Trigger(kind: kind, time: time))
+        triggers.append(Trigger(kind: kind, time: time, display: display))
     }
 
     /// The soak ended: what is still open stays open.

@@ -130,6 +130,20 @@ struct EpisodesTests {
     }
 
     @Test
+    func `on the lock screen covering does not count`() {
+        let covered = Logged.supervisor(
+            SupervisorLog.decision(display: .numbered(2), target: .playback(.numbered(3), .pause(.desktopCovered)), generation: 42),
+            at: .soak(5)
+        )
+        let locked = Logged.supervisor(SupervisorLog.updated(Self.one, mode: .locked), at: .soak(6))
+
+        let episodes = Self.episodes([Self.playing(2), covered, locked, Self.verdict(Self.one, .recover(.flush), attempt: 0, at: 10)])
+
+        #expect(episodes.all.map(\.opened) == [.soak(10)])
+        #expect(episodes.judgedWhileCovered.isEmpty)
+    }
+
+    @Test
     func `two surfaces stalling at one wake are two episodes`() {
         let episodes = Self.episodes([
             Self.playing(2),
@@ -208,8 +222,8 @@ struct TriggerTests {
         ), reused: false), at: .soak(100)),
     ]
 
-    static func at(_ kind: TriggerKind, _ seconds: TimeInterval = 100) -> Trigger {
-        Trigger(kind: kind, time: .soak(seconds))
+    static func at(_ kind: TriggerKind, _ seconds: TimeInterval = 100, display: Int? = nil) -> Trigger {
+        Trigger(kind: kind, time: .soak(seconds), display: display.map(Named.display))
     }
 
     static let triggers: [Row<Before, Trigger?>] = [
@@ -239,11 +253,11 @@ struct TriggerTests {
             Before(lines: [woke, Logged.rotation(RotationLog.rotated(.wake, [.numbered(2)]), at: .soak(101))]),
             at(.wake)
         ),
-        Row("a display came back as a new surface", Before(lines: replugged), at(.replug)),
+        Row("a display came back as a new surface", Before(lines: replugged), at(.replug, display: 2)),
         Row(
             "a display came back after a marked lid",
             Before(lines: replugged, markers: [SoakMarker(time: .soak(80), kind: .lid)]),
-            at(.lidOnExternal)
+            at(.lidOnExternal, display: 2)
         ),
         Row(
             "a display changed mode",
@@ -252,7 +266,7 @@ struct TriggerTests {
                     "extension: display reconfigured display=\(Named.display(2)) from=1920x1080@1.0 to=1280x1024@1.0", at: .soak(100)
                 ),
             ]),
-            at(.replug)
+            at(.replug, display: 2)
         ),
         Row(
             "a display's first surface",
@@ -285,6 +299,26 @@ struct TriggerTests {
             Before(lines: [], markers: [SoakMarker(time: .soak(100), kind: .fastUserSwitch)]),
             at(.userSwitch)
         ),
+        Row("a marked recovery drill", Before(lines: [], markers: [SoakMarker(time: .soak(100), kind: .drill)]), at(.drill)),
+        // SystemEvents: "Both wakes may come for one lid cycle".
+        Row(
+            "the Mac's wake and its displays' are one wake",
+            Before(lines: [woke, Logged.extensionLine("extension: woke source=displays", at: .soak(101))]),
+            at(.wake)
+        ),
+        Row(
+            "the displays' wake and then the Mac's are one wake",
+            Before(lines: [displaysWoke, Logged.extensionLine("extension: woke source=system", at: .soak(101))]),
+            at(.wake)
+        ),
+        Row(
+            "the displays' wake and then the Mac's after a marked lid are a lid slept through",
+            Before(
+                lines: [displaysWoke, Logged.extensionLine("extension: woke source=system", at: .soak(101))],
+                markers: [SoakMarker(time: .soak(50), kind: .lid)]
+            ),
+            at(.lid)
+        ),
     ]
 
     @Test(arguments: triggers)
@@ -296,6 +330,13 @@ struct TriggerTests {
     }
 
     @Test
+    func `one wake's two lines are one event`() {
+        let episodes = EpisodesTests.episodes([Self.woke, Logged.extensionLine("extension: woke source=displays", at: .soak(101))])
+
+        #expect(episodes.triggers == [Self.at(.wake)])
+    }
+
+    @Test
     func `a replug's lines within 10 s are one event`() {
         let episodes = EpisodesTests.episodes(Self.replugged + [
             Logged.extensionLine("extension: display reconfigured display=\(Named.display(2)) from=none to=1920x1080@1.0", at: .soak(101)),
@@ -304,6 +345,6 @@ struct TriggerTests {
             ),
         ])
 
-        #expect(episodes.triggers == [Trigger(kind: .replug, time: .soak(100)), Trigger(kind: .replug, time: .soak(200))])
+        #expect(episodes.triggers == [Self.at(.replug, display: 2), Self.at(.replug, 200, display: 2)])
     }
 }

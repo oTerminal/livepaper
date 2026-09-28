@@ -8,16 +8,20 @@
 # otherwise idle; System Settings is quit, and caffeinate -dis keeps the Mac and its display awake
 # while this runs. Each run's folder is ~/Library/Logs/Livepaper energy/<YYYY-MM-DD-HHMM>/:
 #   energy.csv  phase,second,process,pid,cpu,power,mem_kb: a row per process per top sample, for
-#               WallpaperExtension, its VTDecoderXPCService, WindowServer and Livepaper; `power`
-#               is top's energy impact score and `mem_kb` its memory footprint, which shows the
-#               decoder's session going (the service itself never exits, M5-engine.md); `second`
-#               is counted from the phase's start, or for
-#               covered and displayAsleep from the moment TextEdit is fullscreen or the display sleeps
+#               WallpaperExtension, its own VTDecoderXPCService, every other client's as
+#               VTDecoderXPCService.others, WindowServer and Livepaper; `power` is top's energy
+#               impact score and `mem_kb` its memory footprint, which shows the decoder's session
+#               going (the service itself never exits, M5-engine.md); `second` is counted from the
+#               phase's start, or for covered and displayAsleep from the moment TextEdit is
+#               fullscreen or the display sleeps
 #   watts.csv   phase,second,combined_mw,gpu_mw, with --watts: powermetrics "must be invoked as the
 #               superuser", so sudo asks once
+#   link.csv    phase,seconds, for a scene: after covering and after display sleep, the seconds to
+#               the extension's first "stopped drawing at" line in the log; no row when it has none
 # and the end prints Tools/soak/soak-report's reading. LIVEPAPER=<path> picks the livepaper tool, by
 # default the running Livepaper's own. The covered phase drives TextEdit through System Events, which
-# needs Accessibility for the terminal. Run it as yourself, not with sudo.
+# needs Accessibility for the terminal. Run it as yourself, not with sudo. However it ends, it stops
+# the top and powermetrics it started, closes its TextEdit document and wakes the display it slept.
 set -euo pipefail
 here=$(cd "$(dirname "$0")" && pwd)
 runs="$HOME/Library/Logs/Livepaper energy"
@@ -27,8 +31,9 @@ watts=0
 known=""
 top_pid=""
 watts_pid=""
-textedit_ran=0
+textedit_launched=0
 document=""
+asleep=0
 
 say() { printf '%s  %s\n' "$(date +%H:%M:%S)" "$*"; }
 
@@ -94,8 +99,10 @@ close_settings() {
 # "pid name" pairs, on one line, for the processes measured. The app and its extension are known by
 # their paths, so another app's WallpaperExtension is not counted. VideoToolbox runs a
 # VTDecoderXPCService for each client, in the client's launchd domain, which `launchctl print
-# pid/<pid>` lists without root: only the extension's are the wallpaper's, where the other clients'
-# copies would stay in every sample and hide the decoder leaving.
+# pid/<pid>` lists without root. S2 summed them all, so every one is listed as
+# VTDecoderXPCService.others, then the extension's own again as VTDecoderXPCService, the name
+# finish_top keeps: only the extension's are the wallpaper's, where the other clients' copies would
+# stay in every sample and hide the decoder leaving.
 known_processes() {
   local pairs extension service
   pairs=$(ps -axo pid=,comm= | awk '
@@ -104,7 +111,8 @@ known_processes() {
     /\/Livepaper\.app\/Contents\/Extensions\/WallpaperExtension\.appex\/Contents\/MacOS\/WallpaperExtension$/ {
       printf "%s WallpaperExtension ", pid
     }
-    /\/WindowServer$/ { printf "%s WindowServer ", pid }')
+    /\/WindowServer$/ { printf "%s WindowServer ", pid }
+    /\/VTDecoderXPCService$/ { printf "%s VTDecoderXPCService.others ", pid }')
   while read -r extension; do
     while read -r service; do
       if [[ $(ps -o comm= -p "$service" 2>/dev/null || true) == */VTDecoderXPCService ]]; then
@@ -126,9 +134,11 @@ start_top() { # count every
 
 # Waits for top and appends its samples from `first` to `last` seconds after t0 to energy.csv, each
 # timed by the clock line top prints with it. The processes are read again once top is done, so a
-# decoder the extension started during the phase is counted too.
+# decoder the extension started during the phase is counted too, and a service once found in the
+# extension's domain stays its own.
 finish_top() { # phase t0 first last
   wait "$top_pid" || say "top failed during $1"
+  top_pid=""
   known+=" $(known_processes)"
   awk -v phase="$1" -v t0="$(date -r "$2" +%H:%M:%S)" -v first="$3" -v last="$4" -v known="$known" '
     function clock(hms, part) { split(hms, part, ":"); return part[1] * 3600 + part[2] * 60 + part[3] }
@@ -144,7 +154,7 @@ finish_top() { # phase t0 first last
     }
     BEGIN {
       n = split(known, pair, " ")
-      for (i = 1; i < n; i += 2) name[pair[i]] = pair[i + 1]
+      for (i = 1; i < n; i += 2) if (name[pair[i]] != "VTDecoderXPCService") name[pair[i]] = pair[i + 1]
       start = clock(t0)
     }
     /^Processes:/ { sample++; next }
@@ -175,6 +185,7 @@ start_watts() { # count
 finish_watts() { # phase t0 first last
   ((watts)) || return 0
   wait "$watts_pid" || say "powermetrics failed during $1"
+  watts_pid=""
   awk -v phase="$1" -v t0="$(date -r "$2" +%H:%M:%S)" -v first="$3" -v last="$4" '
     function clock(hms, part) { split(hms, part, ":"); return part[1] * 3600 + part[2] * 60 + part[3] }
     function flush() {
@@ -212,11 +223,11 @@ steady() { # phase livepaper-command
 # MARK: Covering
 
 # A new TextEdit document, made fullscreen and back through System Events. TextEdit is launched
-# without its open panel, and quit afterwards only if it was not running before, so the person's
-# own documents are left alone.
+# without its open panel, and quit afterwards only if this script launched it, so the person's own
+# documents are left alone.
 open_document() {
-  textedit_ran=0
-  if pgrep -x TextEdit > /dev/null; then textedit_ran=1; fi
+  textedit_launched=1
+  if pgrep -x TextEdit > /dev/null; then textedit_launched=0; fi
   document=$(osascript -e 'tell application "TextEdit"' -e 'launch' -e 'set d to make new document' \
     -e 'activate' -e 'return name of d' -e 'end tell') || fail "TextEdit would not make a document"
   sleep 3
@@ -227,9 +238,14 @@ fullscreen() { # true|false
     > /dev/null || fail "System Events could not change fullscreen: Privacy & Security, Accessibility, allow this terminal"
 }
 
+# Closes open_document's document unsaved, and quits TextEdit if open_document launched it.
 close_document() {
-  osascript -e "tell application \"TextEdit\" to close document \"$document\" saving no" > /dev/null || true
-  if ((!textedit_ran)); then osascript -e 'tell application "TextEdit" to quit saving no' > /dev/null || true; fi
+  if [[ -n $document ]]; then
+    osascript -e "tell application \"TextEdit\" to close document \"$document\" saving no" > /dev/null || true
+  fi
+  if ((textedit_launched)); then osascript -e 'tell application "TextEdit" to quit saving no' > /dev/null || true; fi
+  document=""
+  textedit_launched=0
 }
 
 # The desktop covered: second 0 is the moment TextEdit is fullscreen, and 1 s samples run to second 10.
@@ -245,6 +261,7 @@ covered() {
   t0=$(date +%s)
   finish_top covered "$t0" 0 10
   finish_watts covered "$t0" 0 10
+  read_link covered "$t0"
   fullscreen false
   sleep 2
   close_document
@@ -258,12 +275,48 @@ display_asleep() {
   start_top 14 1
   start_watts 14
   sleep 2
+  asleep=1
   pmset displaysleepnow > /dev/null
   t0=$(date +%s)
   finish_top displayAsleep "$t0" 0 10
   finish_watts displayAsleep "$t0" 0 10
+  read_link displayAsleep "$t0"
   caffeinate -u -t 5
+  asleep=0
   say "the display is awake: unlock if the lock screen shows"
+}
+
+# MARK: A scene's link
+
+# A scene's display link: the seconds from t0 to the extension's first "stopped drawing at" line
+# since, appended to link.csv, or no row when the log has none. The line is EngineLog.sceneStopped's,
+# "scene: surface <id> stopped drawing at <t> s (<reason>)"; log show's default style opens each
+# line with its date and its time to the microsecond, with the offset from UTC.
+read_link() { # phase t0
+  [[ $mode == scene ]] || return 0
+  /usr/bin/log show --start "$(date -r "$2" '+%Y-%m-%d %H:%M:%S')" \
+    --predicate 'subsystem == "app.livepaper.extension" AND category == "surface"' 2> /dev/null |
+    awk -v phase="$1" -v t0="$(date -r "$2" +%H:%M:%S)" '
+      function clock(hms, part) { split(hms, part, ":"); return part[1] * 3600 + part[2] * 60 + part[3] }
+      !found && $1 ~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/ && index($0, " stopped drawing at ") {
+        time = $2
+        sub(/[+-][0-9][0-9][0-9][0-9]$/, "", time)
+        second = clock(time) - clock(t0)
+        if (second < -43200) second += 86400
+        printf "%s,%.1f\n", phase, second
+        found = 1
+      }' >> "$dir/link.csv" || say "warning: the extension's log could not be read after $1"
+}
+
+# MARK: Ending
+
+# However the script ends: top and powermetrics stopped, TextEdit's document closed, and the display
+# woken if it ended asleep. powermetrics runs under sudo, which passes the signal on.
+clean_up() {
+  if [[ -n $top_pid ]]; then kill "$top_pid" 2> /dev/null || true; fi
+  if [[ -n $watts_pid ]]; then kill "$watts_pid" 2> /dev/null || true; fi
+  if [[ -n $document ]] || ((textedit_launched)); then close_document; fi
+  if ((asleep)); then caffeinate -u -t 1 || true; fi
 }
 
 # MARK: Runs
@@ -302,11 +355,12 @@ idle_run() {
   finish_top idleExtension "$t0" 0 999
 }
 
-# A scene's numbers are a baseline, held to no budget (M8-hardening.md), so the report is told.
+# A scene's numbers are a baseline, held to no budget (M8-hardening.md), so the report is told, and
+# given link.csv, which it holds to the 5 s.
 report() {
   local args=(energy --samples "$dir/energy.csv")
   if ((watts)); then args+=(--watts "$dir/watts.csv"); fi
-  if [[ $mode == scene ]]; then args+=(--scene); fi
+  if [[ $mode == scene ]]; then args+=(--scene --link "$dir/link.csv"); fi
   say "the run: $dir"
   if [[ -x $here/soak-report ]]; then
     "$here/soak-report" "${args[@]}" | tee "$dir/report.md"
@@ -344,6 +398,12 @@ dir=$runs/$(date +%Y-%m-%d-%H%M)
 mkdir -p "$dir"
 echo 'phase,second,process,pid,cpu,power,mem_kb' > "$dir/energy.csv"
 if ((watts)); then echo 'phase,second,combined_mw,gpu_mw' > "$dir/watts.csv"; fi
+if [[ $mode == scene ]]; then echo 'phase,seconds' > "$dir/link.csv"; fi
+trap clean_up EXIT
+# A signal ends the script through exit, so that clean_up runs however it ends.
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
 caffeinate -dis -w $$ &
 close_settings
 case $mode in

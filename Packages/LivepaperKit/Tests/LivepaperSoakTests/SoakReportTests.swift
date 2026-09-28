@@ -12,8 +12,18 @@ struct SoakReportTests {
         surface: .numbered(1), display: .numbered(2), isPreview: false, wallpaper: .numbered(3), generation: 42
     )
 
+    /// The engine's metrics line for wallpaper 3 on surface 1, clean.
+    static let metrics = Logged.surface(
+        PlaybackMetrics(
+            video: "\(WallpaperID.numbered(3))/wallpaper.mov", loops: 20, seamsWatched: 19,
+            largestPresentedGap: 1.1, largestPresentedGapAtSeam: 1.1
+        ).logLine(for: .surface(.numbered(1))),
+        at: .soak(3_600)
+    )
+
     /// Twenty-four hours from the first `.live`, a wake at hour 3 that one flush cures.
     static let day: [LogLine] = [
+        metrics,
         Logged.host(HostLog.status(.connecting), at: .soak(-5)),
         Logged.host(HostLog.status(.live), at: .soak(0)),
         Logged.supervisor(
@@ -59,6 +69,49 @@ struct SoakReportTests {
         #expect(report.markdown.contains("| wake | 1 | flush: 1 recovered |"))
         #expect(report.markdown.contains("| lid, asleep | 0 | none |"))
         #expect(report.markdown.contains("host: status live"))
+    }
+
+    @Test
+    func `no metrics lines leaves the soak incomplete`() {
+        let report = Self.report(Self.day.filter { $0 != Self.metrics })
+
+        #expect(report.verdict == .incomplete(["no metrics lines: the playback-metrics probe was off"]))
+    }
+
+    @Test
+    func `a drill's episode is listed apart and judged by the drill's own row, not the soak's`() {
+        let drill = [SoakMarker(time: .soak(40_000), kind: .drill, note: "killall the extension")] + Self.end
+        let report = Self.report(
+            Self.day + [
+                Logged.host(HostLog.status(.recovering(.flush)), at: .soak(40_020)),
+                Logged.host(HostLog.status(.recovering(.restartAgent)), at: .soak(40_050)),
+                Logged.host(HostLog.status(.live), at: .soak(40_060)),
+            ],
+            markers: drill
+        )
+
+        #expect(report.verdict == .pass)
+        #expect(report.markdown.contains("| drill | 1 | restartAgent: 1 reached the restart |"))
+        #expect(report.markdown.contains("Charged to drill (killall the extension)"))
+    }
+
+    static let replug: [LogLine] = [
+        Logged.supervisor(SupervisorLog.invalidated(surface), at: .soak(20_000)),
+        Logged.supervisor(SupervisorLog.acquired(replugged, reused: false), at: .soak(20_030)),
+        Logged.supervisor(SupervisorLog.nowShowing(replugged, crossfade: false), at: .soak(20_030.8)),
+        Logged.supervisor(SupervisorLog.verdict(replugged, .healthy, attempt: 0), at: .soak(20_033)),
+    ]
+    static let replugged = SupervisorLog.Surface(
+        surface: .numbered(7), display: .numbered(2), isPreview: false, wallpaper: .numbered(3), generation: 42
+    )
+
+    @Test
+    func `each replug says how soon its display showed its wallpaper, and the first verdict after it`() {
+        let report = Self.report(Self.day + Self.replug)
+
+        #expect(report.markdown.contains(
+            "| 2026-09-21 19:47:10 | \(Named.display(2)) | \(Named.wallpaper(3)) in 0.8 s | healthy, attempt 0 | none |"
+        ))
     }
 
     @Test

@@ -20,17 +20,11 @@ public struct ResourceSample: Equatable, Sendable {
 
     /// Every row after the header; a row that does not read is counted, not guessed at.
     public static func read(csv: String) -> (samples: [ResourceSample], unreadRows: Int) {
-        var samples: [ResourceSample] = []
-        var unread = 0
-        for row in CSV.rows(csv, header: "time,process,pid,cpu,rss_kb") {
+        CSV.read(csv, header: "time,process,pid,cpu,rss_kb") { row in
             guard row.count == 5, let time = Timestamp.date(row[0]), !row[1].isEmpty, let pid = Int(row[2]),
-                  let cpu = Double(row[3]), let rss = Int(row[4]) else {
-                unread += 1
-                continue
-            }
-            samples.append(ResourceSample(time: time, process: String(row[1]), pid: pid, cpu: cpu, rssKilobytes: rss))
+                  let cpu = Double(row[3]), let rss = Int(row[4]) else { return nil }
+            return ResourceSample(time: time, process: String(row[1]), pid: pid, cpu: cpu, rssKilobytes: rss)
         }
-        return (samples, unread)
     }
 }
 
@@ -73,15 +67,5 @@ public struct MemoryTrend: Equatable, Sendable {
         } else {
             verdict = .inconclusive("no samples in hour \(hourlyMeans[Self.firstHour] == nil ? Self.firstHour : Self.lastHour)")
         }
-    }
-}
-
-/// The soak's CSVs: plain comma-separated fields, no quoting (`soak.sh` writes none).
-enum CSV {
-    /// The rows after `header`, each split into its fields; blank lines skipped.
-    static func rows(_ text: String, header: String) -> [[Substring]] {
-        text.split(whereSeparator: \.isNewline)
-            .filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty && $0 != header }
-            .map { $0.split(separator: ",", omittingEmptySubsequences: false) }
     }
 }

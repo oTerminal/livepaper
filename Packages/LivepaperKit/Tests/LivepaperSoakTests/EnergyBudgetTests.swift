@@ -48,8 +48,13 @@ struct EnergyBudgetTests {
             .extensionPower
         ),
         Row(
-            "two decoders summed over 5 %",
+            "two of the extension's decoders summed over 5 %",
             s2Run + steady("playing", "VTDecoderXPCService", cpu: 2.0, power: 1.0, pid: 2),
+            .decoderCPU
+        ),
+        Row(
+            "another client's decoder summed in over 5 %, as S2 summed them all",
+            s2Run + steady("playing", "VTDecoderXPCService.others", cpu: 2.0, power: 1.0, pid: 9),
             .decoderCPU
         ),
         Row(
@@ -94,6 +99,11 @@ struct EnergyBudgetTests {
         }
     }
 
+    /// Another client's decoder, busy every second of the phase: `energy.sh` names it `VTDecoderXPCService.others`.
+    static func otherClient(_ phase: String) -> [EnergySample] {
+        (0...10).map { EnergySample(phase: phase, second: $0, process: "VTDecoderXPCService.others", pid: 9, cpu: 3.5, power: 3.6) }
+    }
+
     static let returns: [Row<[EnergySample], [EnergyBudget.Check: EnergyBudget.Outcome]>] = [
         Row(
             "covered, back in 3 s with the decoder kept",
@@ -123,6 +133,16 @@ struct EnergyBudgetTests {
             [.decoderGoneWhenAsleep: .fail]
         ),
         Row("no covered or asleep phase", s2Run, [.backWhenCovered: .notMeasured, .backWhenAsleep: .notMeasured]),
+        Row(
+            "covered, the extension's decoder released while another client's runs on",
+            s2Run + returning("covered", back: 2, decoderGoneFrom: 2) + otherClient("covered"),
+            [.backWhenCovered: .pass, .decoderKeptWhenCovered: .fail]
+        ),
+        Row(
+            "display asleep, the extension's decoder gone while another client's decodes on",
+            s2Run + returning("displayAsleep", back: 4, decoderGoneFrom: 4) + otherClient("displayAsleep"),
+            [.backWhenAsleep: .pass, .decoderGoneWhenAsleep: .pass]
+        ),
     ]
 
     @Test(arguments: returns)
@@ -150,7 +170,26 @@ struct EnergyBudgetTests {
             EnergySample(phase: "playing", second: 0, process: "VTDecoderXPCService", pid: 5, cpu: 1, power: 1),
         ], watts: nil)
 
-        #expect(measurement.readings("VTDecoderXPCService", in: "playing")[0] == EnergyMeasurement.Reading(cpu: 4, power: 4))
+        #expect(measurement.loads("VTDecoderXPCService", in: "playing")[0] == EnergyMeasurement.Load(cpu: 4, power: 4))
+    }
+
+    static let ceilings: [Row<EnergyBudget.Check, Bool>] = [
+        Row("the extension's CPU", .extensionCPU, true),
+        Row("the extension's power score", .extensionPower, true),
+        Row("the decoders' CPU", .decoderCPU, true),
+        Row("the decoders' power score", .decoderPower, true),
+        Row("WindowServer over its paused score", .windowServerOverPaused, true),
+        Row("the return after covering", .backWhenCovered, false),
+        Row("the decoder kept while covered", .decoderKeptWhenCovered, false),
+        Row("the scene's link after display sleep", .linkStoppedWhenAsleep, false),
+        Row("the GPU after covering", .gpuBackWhenCovered, false),
+        Row("idle", .idleApp, false),
+        Row("watts", .watts, false),
+    ]
+
+    @Test(arguments: ceilings)
+    func `the five S2 ceilings are the budget's playing lines`(row: Row<EnergyBudget.Check, Bool>) {
+        #expect(row.input.isCeiling == row.expected)
     }
 
     static func idle(_ phase: String, _ process: String, cpu: (Int) -> Double, count: Int = 60) -> [EnergySample] {
@@ -200,11 +239,18 @@ struct EnergyBudgetTests {
         phase,second,combined_mw,gpu_mw
         playing,1,1800,400
         """
+        let link = """
+        phase,seconds
+        covered,0.8
+        displayAsleep,
+        """
 
         #expect(EnergySample.read(csv: csv).samples.map(\.memoryKilobytes) == [53_248, 31_744])
         #expect(EnergySample.read(csv: csv).unreadRows == 1)
         #expect(
             WattSample.read(csv: watts).samples == [WattSample(phase: "playing", second: 1, combinedMilliwatts: 1_800, gpuMilliwatts: 400)]
         )
+        #expect(LinkStop.read(csv: link).stops == [LinkStop(phase: "covered", seconds: 0.8)])
+        #expect(LinkStop.read(csv: link).unreadRows == 1)
     }
 }

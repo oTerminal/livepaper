@@ -2,6 +2,7 @@ import Foundation
 import LivepaperCore
 import LivepaperPlayback
 import LivepaperSoak
+import LivepaperSystem
 
 // Readable, fixed identifiers: surface 1 is always the same surface.
 private func numberedUUID(_ prefix: String, _ number: Int) -> UUID {
@@ -55,6 +56,7 @@ enum Named {
 /// Lines as `log show` would give them, from the subsystem and category that log them.
 enum Logged {
     static let extensionSubsystem = WallpaperExtensionIdentity.logSubsystem
+    /// `LivepaperSystem.logSubsystem`, which is the main actor's: `ReadingTests` pins the two equal.
     static let appSubsystem = "app.livepaper.Livepaper"
 
     static func supervisor(_ message: String, at time: Date = .soakStart) -> LogLine {
@@ -74,15 +76,15 @@ enum Logged {
     }
 
     static func host(_ message: String, at time: Date = .soakStart) -> LogLine {
-        line(appSubsystem, "host", message, time: time, process: "Livepaper")
+        line(appSubsystem, HostLog.category, message, time: time, process: "Livepaper")
     }
 
     static func rotation(_ message: String, at time: Date = .soakStart) -> LogLine {
-        line(appSubsystem, "rotation", message, time: time, process: "Livepaper")
+        line(appSubsystem, RotationLog.category, message, time: time, process: "Livepaper")
     }
 
     static func sensing(_ message: String, at time: Date = .soakStart) -> LogLine {
-        line(appSubsystem, "sensing", message, time: time, process: "Livepaper")
+        line(appSubsystem, SensingLog.category, message, time: time, process: "Livepaper")
     }
 
     static func line(_ subsystem: String, _ category: String, _ message: String, time: Date, process: String) -> LogLine {

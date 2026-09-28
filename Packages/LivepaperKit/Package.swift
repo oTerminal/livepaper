@@ -93,7 +93,7 @@ let package = Package(
         // Its rows build lines with the product's own wording, so a rename fails here instead of counting zero.
         .testTarget(
             name: "LivepaperSoakTests",
-            dependencies: ["LivepaperSoak", "LivepaperPlayback", "LivepaperSystem", "LivepaperCore"],
+            dependencies: ["LivepaperSoak", "LivepaperPlayback", "LivepaperSystem", "LivepaperCore", "WallpaperAgentBridge"],
             resources: [.copy("Fixtures")],
             swiftSettings: approachableConcurrency
         ),

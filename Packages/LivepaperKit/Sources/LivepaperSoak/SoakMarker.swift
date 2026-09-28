@@ -1,7 +1,7 @@
 import Foundation
 
 /// A row of the soak's `events.csv`: what `soak.sh` did (`sleep`, `displaysleep`,
-/// `lock`) or what a person marked before doing it (`lid`, `replug`, `fus`).
+/// `lock`) or what a person marked before doing it (`lid`, `replug`, `fus`, `drill`).
 /// Times in the report come from the log; a marker only says what caused the next event.
 public struct SoakMarker: Equatable, Sendable {
     public enum Kind: String, Sendable {
@@ -12,6 +12,7 @@ public struct SoakMarker: Equatable, Sendable {
         case lid
         case replug
         case fastUserSwitch = "fus"
+        case drill
         case note
         case end
     }
@@ -28,14 +29,9 @@ public struct SoakMarker: Equatable, Sendable {
 
     /// `events.csv`, `time,kind,note`, in time order; a row that does not read is counted.
     public static func read(csv: String) -> (markers: [SoakMarker], unreadRows: Int) {
-        var markers: [SoakMarker] = []
-        var unread = 0
-        for row in CSV.rows(csv, header: "time,kind,note") {
-            guard row.count >= 2, let time = Timestamp.date(row[0]), let kind = Kind(rawValue: String(row[1])) else {
-                unread += 1
-                continue
-            }
-            markers.append(SoakMarker(time: time, kind: kind, note: row.dropFirst(2).joined(separator: ",")))
+        let (markers, unread) = CSV.read(csv, header: "time,kind,note") { row -> SoakMarker? in
+            guard row.count >= 2, let time = Timestamp.date(row[0]), let kind = Kind(rawValue: String(row[1])) else { return nil }
+            return SoakMarker(time: time, kind: kind, note: row.dropFirst(2).joined(separator: ","))
         }
         return (markers.sorted { $0.time < $1.time }, unread)
     }

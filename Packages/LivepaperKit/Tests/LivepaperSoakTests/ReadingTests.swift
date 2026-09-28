@@ -4,6 +4,7 @@ import LivepaperPlayback
 import LivepaperSoak
 import LivepaperSystem
 import Testing
+@testable import WallpaperAgentBridge
 
 /// Each line the soak counts, built with the product's own wording where the
 /// package has it (`SupervisorLog`, `HostLog`, `RotationLog`, `PlaybackMetrics`),
@@ -135,8 +136,9 @@ struct SupervisorReadingTests {
     }
 }
 
-/// `ExtensionLog` and `BridgeLog` live in the extension, out of this package's
-/// reach: their rows are M5-engine.md's "As built" wording, word for word.
+/// `ExtensionLog` lives in the extension, out of this package's reach: its rows
+/// are its wording, word for word. The bridge's are built with `BridgeLog` and
+/// `BridgeSelfCheck`, which the package has.
 struct ExtensionReadingTests {
     static let extensionLines: [Row<LogLine, Reading>] = [
         Row(
@@ -171,24 +173,25 @@ struct ExtensionReadingTests {
         Row("check received", Logged.extensionLine("extension: check received"), .known),
         Row("metrics probe", Logged.extensionLine("extension: playback metrics probe on"), .known),
         Row("a woke line reworded", Logged.extensionLine("extension: woken source=system"), .unparsed),
-        Row("self-check, all present", Logged.bridge("bridge self-check: all present"), .event(.selfCheck(isUsable: true, missing: []))),
+        Row(
+            "self-check, all present",
+            Logged.bridge(BridgeSelfCheck(missing: []).logLine),
+            .event(.selfCheck(isUsable: true, missing: []))
+        ),
         Row(
             "self-check, usable",
-            Logged.bridge("bridge self-check: usable, missing: -[AVSampleBufferDisplayLayer _setDisallowsVideoLayerDisplayCompositing:]"),
+            Logged.bridge(BridgeSelfCheck(missing: [.videoCompositingSelector]).logLine),
             .event(.selfCheck(isUsable: true, missing: ["-[AVSampleBufferDisplayLayer _setDisallowsVideoLayerDisplayCompositing:]"]))
         ),
         Row(
             "self-check, failed",
-            Logged.bridge("bridge self-check: failed, missing: WallpaperExtensionKit, +[CAContext remoteContextWithOptions:]"),
+            Logged.bridge(BridgeSelfCheck(missing: [.framework, .remoteContextFactory]).logLine),
             .event(.selfCheck(isUsable: false, missing: ["WallpaperExtensionKit", "+[CAContext remoteContextWithOptions:]"]))
         ),
-        Row(
-            "spiral",
-            Logged.bridge("bridge: spiral detected, 5 empty connections in a row; the app is asked to restart WallpaperAgent"),
-            .event(.spiral(emptyConnections: 5))
-        ),
-        Row("connection accepted", Logged.bridge("bridge: connection from pid 668 accepted"), .event(.agentConnected(pid: 668))),
-        Row("connection ended", Logged.bridge("bridge: connection from pid 668 ended, served"), .known),
+        Row("spiral", Logged.bridge(BridgeLog.spiral(emptyInARow: 5)), .event(.spiral(emptyConnections: 5))),
+        Row("connection accepted", Logged.bridge(BridgeLog.accepted(pid: 668)), .event(.agentConnected(pid: 668))),
+        Row("connection served", Logged.bridge(BridgeLog.ended(pid: 668, served: true, emptyInARow: 0)), .known),
+        Row("connection empty", Logged.bridge(BridgeLog.ended(pid: 668, served: false, emptyInARow: 2)), .known),
         Row(
             "the agent's acquire",
             Logged.bridge(
@@ -202,6 +205,14 @@ struct ExtensionReadingTests {
     @Test(arguments: extensionLines)
     func `reads the extension's and the bridge's lines`(row: Row<LogLine, Reading>) {
         #expect(Reading(row.input) == row.expected)
+    }
+
+    /// The categories are the `Logger`s' in `ExtensionLog.swift` and `BridgeLog.swift`, out of reach as strings.
+    @MainActor @Test
+    func `reads the subsystems the product logs under`() {
+        #expect(Reading.extensionSubsystem == WallpaperExtensionIdentity.logSubsystem)
+        #expect(Reading.appSubsystem == LivepaperSystem.logSubsystem)
+        #expect(Logged.appSubsystem == LivepaperSystem.logSubsystem)
     }
 }
 

@@ -32,15 +32,14 @@ public struct WallpaperGaps: Equatable, Sendable {
     /// An engine's numbers run from its start on a video, so each run's last line
     /// holds its counts; a line with no more loops than the one before is a new run.
     public init(_ lines: [MetricsLine]) {
-        var runs: [String: [MetricsLine]] = [:]
+        var latest: [String: MetricsLine] = [:]
         var finals: [MetricsLine] = []
         for line in lines {
             let engine = "\(line.surface ?? "preview") \(line.folder)"
-            if let last = runs[engine]?.last, line.loops <= last.loops { finals.append(last) }
-            runs[engine, default: []].append(line)
-            if let last = runs[engine]?.last, last.loops < line.loops { runs[engine] = [line] }
+            if let last = latest[engine], line.loops <= last.loops { finals.append(last) }
+            latest[engine] = line
         }
-        finals += runs.values.compactMap(\.last)
+        finals += latest.values
 
         var byFolder: [String: Wallpaper] = [:]
         for line in finals {

@@ -40,13 +40,13 @@ public enum Reading: Equatable, Sendable {
         if message.hasPrefix("extension: display reconfigured ") {
             return event(fields["display"].map { .displayReconfigured(display: $0) })
         }
-        let known = [
+        let phrases = [
             "no home folder ", "the settings tile is missing", "cannot observe ", "pointer read ", "context made ", "no context ",
             "no display ", "display unknown ", "acquire not done ", "context invalidated ", "surface resized ",
             "snapshot of unknown ", "snapshot not done ", "cannot watch display reconfiguration", "recover received ",
             "recover ignored ", "check received", "playback metrics probe ",
         ]
-        return known.contains { message.hasPrefix("extension: " + $0) } ? .known : .unparsed
+        return known(message, after: "extension: ", startsWithOneOf: phrases)
     }
 
     private static func bridge(_ message: Substring) -> Reading {
@@ -64,11 +64,11 @@ public enum Reading: Equatable, Sendable {
             let count = message.dropFirst("bridge: spiral detected, ".count).prefix(while: \.isNumber)
             return event(Int(count).map { .spiral(emptyConnections: $0) })
         }
-        let known = [
+        let phrases = [
             "connection from pid ", "acquire surface ", "update surface ", "invalidate surface ", "snapshot surface ",
             "could not build ", "a second reply ", "notification ", "settings view models ", "the payload classes ",
         ]
-        return known.contains { message.hasPrefix("bridge: " + $0) } ? .known : .unparsed
+        return known(message, after: "bridge: ", startsWithOneOf: phrases)
     }
 
     // MARK: The engine
@@ -93,12 +93,12 @@ public enum Reading: Equatable, Sendable {
             guard pids.count == 2, let previous = Int(pids[0]), let current = Int(pids[1]) else { return .unparsed }
             return .event(.agentRestarted(previous: previous, current: current))
         }
-        let known = [
+        let phrases = [
             "activated, ", "no heartbeat, asking ", "no heartbeat since activation, ", "asking the extension to ",
             "WallpaperAgent pid ", "WallpaperAgent is not running", "could not signal WallpaperAgent ",
             "not restarting WallpaperAgent ", "render state ", "no render state to stop", "playback metrics ", "check requested",
         ]
-        return known.contains { message.hasPrefix("host: " + $0) } ? .known : .unparsed
+        return known(message, after: "host: ", startsWithOneOf: phrases)
     }
 
     private static func rotation(_ message: Substring) -> Reading {
@@ -107,8 +107,8 @@ public enum Reading: Equatable, Sendable {
             let displays = list == "nothing" ? [] : list.split(separator: ", ").map(String.init)
             return .event(.rotated(cause, displays: displays))
         }
-        let known = ["session started ", "next tick at ", "no tick due", "a tick moved nothing"]
-        if known.contains(where: { message.hasPrefix("rotation: " + $0) }) { return .known }
+        let phrases = ["session started ", "next tick at ", "no tick due", "a tick moved nothing"]
+        if known(message, after: "rotation: ", startsWithOneOf: phrases) == .known { return .known }
         return message.contains(" counts from ") || message.contains(" count from ") ? .known : .unparsed
     }
 
@@ -168,6 +168,11 @@ public enum Reading: Equatable, Sendable {
     private static func supervisor(_ message: Substring) -> Reading {
         guard let match = supervisorPhrases.first(where: { message.hasPrefix($0.phrase) }) else { return .unparsed }
         return match.read.map { event($0(Fields(message))) } ?? .known
+    }
+
+    /// A line the soak knows and does not count, when it is `lead` then one of `phrases`; otherwise unparsed.
+    private static func known(_ message: Substring, after lead: String, startsWithOneOf phrases: [String]) -> Reading {
+        phrases.contains { message.hasPrefix(lead + $0) } ? .known : .unparsed
     }
 
     private static func event(_ event: SoakEvent?) -> Reading {
