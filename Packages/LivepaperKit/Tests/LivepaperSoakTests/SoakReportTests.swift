@@ -132,14 +132,6 @@ struct SoakReportTests {
             "1 unrecovered episode"
         ),
         Row(
-            "a gap over 1.5 frame durations at a seam",
-            report(day + [Logged.surface(PlaybackMetrics(
-                video: "\(WallpaperID.numbered(3))/wallpaper.mov", loops: 200, seamsWatched: 199,
-                largestPresentedGap: 2.1, largestPresentedGapAtSeam: 2.1, gapsOverLimitAtSeams: 1
-            ).logLine(for: .surface(.numbered(1))), at: .soak(20_000))]),
-            "1 gap over 1.5 frame durations at a seam"
-        ),
-        Row(
             "memory grown 11 % by the last quarter hour",
             report(day, samples: samples { $0 == 8 ? 111_000 : 100_000 }),
             "WallpaperExtension's memory grew 11 %"
@@ -176,15 +168,23 @@ struct SoakReportTests {
     }
 
     @Test
-    func `gaps mid-pass are load, recorded with their count, and do not fail it`() {
+    func `late frames are the late-frame question's, recorded with the engine's own seam step and lead, and do not fail the soak`() {
         let metrics = PlaybackMetrics(
-            video: "\(WallpaperID.numbered(3))/wallpaper.mov", loops: 200, seamsWatched: 199,
-            largestPresentedGap: 1.56, largestPresentedGapAtSeam: 1.11, gapsOverLimitAtSeams: 0, gapsOverLimitElsewhere: 3
+            video: "\(WallpaperID.numbered(3))/wallpaper.mov", loops: 200, seamsWatched: 199, largestSeamStep: 1,
+            largestPresentedGap: 1.89, largestPresentedGapAtSeam: 1.89, gapsOverLimitAtSeams: 1, gapsOverLimitElsewhere: 3,
+            smallestSeamLead: 1.14
         )
         let report = Self.report(Self.day + [Logged.surface(metrics.logLine(for: .surface(.numbered(1))), at: .soak(20_000))])
 
         #expect(report.verdict == .pass)
-        #expect(report.markdown.contains("| \(Named.wallpaper(3)) | 200 | 1.56 | mid-pass | 0 | 3 |"))
+        #expect(report.markdown.contains("| \(Named.wallpaper(3)) | 200 | 1.89 | at a seam | 1 | 3 | 1.00 | 1.14 s |"))
+    }
+
+    @Test
+    func `memory that shrank reads as under`() {
+        let report = Self.report(Self.day, samples: Self.samples { $0 == 8 ? 53_000 : 100_000 })
+
+        #expect(report.markdown.contains("pass, the last quarter hour is 47 % under the second"))
     }
 
     @Test

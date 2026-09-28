@@ -16,14 +16,23 @@ public struct WallpaperGaps: Equatable, Sendable {
         public var isLargestAtSeam: Bool
         public var overLimitAtSeams: Int
         public var overLimitMidPass: Int
+        /// The engine's own stamps: its largest seam step (1 is gapless) and its smallest lead at a seam.
+        /// A late picture with a step of 1 and a lead to spare was queued on time and shown late.
+        public var largestSeamStep: Double?
+        public var smallestSeamLead: Double?
 
-        public init(folder: String, loops: Int, largest: Double?, isLargestAtSeam: Bool, overLimitAtSeams: Int, overLimitMidPass: Int) {
+        public init(
+            folder: String, loops: Int, largest: Double?, isLargestAtSeam: Bool, overLimitAtSeams: Int, overLimitMidPass: Int,
+            largestSeamStep: Double? = nil, smallestSeamLead: Double? = nil
+        ) {
             self.folder = folder
             self.loops = loops
             self.largest = largest
             self.isLargestAtSeam = isLargestAtSeam
             self.overLimitAtSeams = overLimitAtSeams
             self.overLimitMidPass = overLimitMidPass
+            self.largestSeamStep = largestSeamStep
+            self.smallestSeamLead = smallestSeamLead
         }
     }
 
@@ -50,7 +59,13 @@ public struct WallpaperGaps: Equatable, Sendable {
             wallpaper.overLimitMidPass += line.gapsOverLimitElsewhere
             byFolder[line.folder] = wallpaper
         }
-        // The largest gap is the largest any line saw, whichever run it was in.
+        // The largest gap and step, and the smallest lead, are the extremes any line saw, whichever run it was in.
+        for line in lines {
+            guard var wallpaper = byFolder[line.folder] else { continue }
+            if let step = line.largestSeamStep { wallpaper.largestSeamStep = max(step, wallpaper.largestSeamStep ?? step) }
+            if let lead = line.smallestSeamLead { wallpaper.smallestSeamLead = min(lead, wallpaper.smallestSeamLead ?? lead) }
+            byFolder[line.folder] = wallpaper
+        }
         for line in lines {
             guard let gap = line.largestPresentedGap, gap > byFolder[line.folder]?.largest ?? -1 else { continue }
             byFolder[line.folder]?.largest = gap

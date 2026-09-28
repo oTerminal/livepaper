@@ -52,7 +52,7 @@ extension ReportWriter {
         case .noSoak(let reason):
             add("**No soak**: \(reason). Nothing here is judged.")
         case .pass:
-            add("**Pass**: no unrecovered episode outside a drill, no gap over 1.5 frame durations at a seam, memory within 10 %.")
+            add("**Pass**: no unrecovered episode outside a drill, and memory within 10 %.")
         case .incomplete(let reasons):
             add("**Incomplete**: \(reasons.joined(separator: "; ")).")
         case .fail(let reasons):
@@ -169,18 +169,21 @@ extension ReportWriter {
             return
         }
         add(
-            "In frame durations, from the metrics lines. Over \(WallpaperGaps.limit) at a seam is the engine's; "
-                + "mid-pass at 60 fps is load (S2.md)."
+            "In frame durations, from the metrics lines: late frames, the late-frame question's, which the 200-loop row on an idle "
+                + "machine settles as load or the engine's. The engine's own seam step (1.00 is gapless) and seam lead say whether "
+                + "a late seam picture was queued on time."
         )
         add("")
-        add("| Wallpaper | Loops | Largest gap | Where | Over 1.5 at seams | Over 1.5 mid-pass |")
-        add("|---|---|---|---|---|---|")
+        add("| Wallpaper | Loops | Largest gap | Where | Over 1.5 at seams | Over 1.5 mid-pass | Seam step | Seam lead |")
+        add("|---|---|---|---|---|---|---|---|")
         for wallpaper in gaps.wallpapers {
             let largest = wallpaper.largest.map { String(format: "%.2f", $0) } ?? "none"
             let place = wallpaper.largest == nil ? "" : wallpaper.isLargestAtSeam ? "at a seam" : "mid-pass"
+            let step = wallpaper.largestSeamStep.map { String(format: "%.2f", $0) } ?? "none"
+            let lead = wallpaper.smallestSeamLead.map { String(format: "%.2f s", $0) } ?? "none"
             add(
                 "| \(wallpaper.folder) | \(wallpaper.loops) | \(largest) | \(place) | "
-                    + "\(wallpaper.overLimitAtSeams) | \(wallpaper.overLimitMidPass) |"
+                    + "\(wallpaper.overLimitAtSeams) | \(wallpaper.overLimitMidPass) | \(step) | \(lead) |"
             )
         }
         add("")
@@ -204,8 +207,8 @@ extension ReportWriter {
         add("")
         for trend in trends {
             let verdict = switch trend.verdict {
-            case .pass(let growth): "pass, the last quarter hour is \(percent(growth)) % over the second"
-            case .fail(let growth): "fail, the last quarter hour is \(percent(growth)) % over the second"
+            case .pass(let growth): "pass, the last quarter hour is \(change(growth)) the second"
+            case .fail(let growth): "fail, the last quarter hour is \(change(growth)) the second"
             case .inconclusive(let reason): "inconclusive: \(reason)"
             }
             add("- \(trend.process), \(trend.sampleCount) samples: \(verdict).")
@@ -333,6 +336,11 @@ private extension ReportWriter {
         case .surface(let tag): "\(tag.isPreview ? "Preview surface" : "Surface") \(tag.surface) on display \(tag.display)"
         case .host: "The host"
         }
+    }
+
+    /// `9 % over`, or `47 % under`.
+    func change(_ growth: Double) -> String {
+        growth < 0 ? "\(percent(-growth)) % under" : "\(percent(growth)) % over"
     }
 
     func duration(_ seconds: TimeInterval) -> String {

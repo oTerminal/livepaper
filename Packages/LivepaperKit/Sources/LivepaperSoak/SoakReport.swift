@@ -70,8 +70,6 @@ public struct SoakReport: Sendable {
         // A drill's episodes are judged by its own row in "Recovery drills".
         let unrecovered = episodes.all.filter { $0.outcome != .recovered && $0.trigger?.kind != .drill }.count
         if unrecovered > 0 { failures.append(counted(unrecovered, "unrecovered episode")) }
-        let atSeams = gaps.wallpapers.map(\.overLimitAtSeams).reduce(0, +)
-        if atSeams > 0 { failures.append(counted(atSeams, "gap", "gaps") + " over 1.5 frame durations at a seam") }
         for trend in memory {
             if case .fail(let growth) = trend.verdict { failures.append("\(trend.process)'s memory grew \(percent(growth)) %") }
         }

@@ -29,6 +29,44 @@ struct SoakLogTests {
         #expect(events.last == .shows(surface, .still))
     }
 
+    /// Real lines from the 2026-09-28 soak: the kill-the-extension drill, the render-state drill, a check, and late seams.
+    static func firstSoak() throws -> SoakLog {
+        let url = try #require(Bundle.module.url(forResource: "soak-2026-09-28", withExtension: "log", subdirectory: "Fixtures"))
+        return SoakLog(text: try String(contentsOf: url, encoding: .utf8))
+    }
+
+    @Test
+    func `reads the first soak's ladder, verdict and metrics lines`() throws {
+        let log = try Self.firstSoak()
+        let events = log.entries.map(\.event)
+
+        #expect(log.unparsed.isEmpty)
+        let phases = events.compactMap { event -> HostPhase? in if case .hostStatus(let phase) = event { phase } else { nil } }
+        #expect(phases == [
+            .connecting, .live, .recovering(.flush), .recovering(.rebuildSurface), .recovering(.rebuildPipeline),
+            .recovering(.restartAgent), .notSelected, .live,
+        ])
+        let tallies = events.compactMap { event -> PictureTally? in if case .counted(_, let tally) = event { tally } else { nil } }
+        #expect(tallies.map { [$0.displayed, $0.expected] } == [[120, 120]])
+        let verdicts = events.compactMap { event -> CheckVerdict? in if case .verdict(_, let verdict, 0) = event { verdict } else { nil } }
+        #expect(verdicts == [.healthy])
+        let metrics = events.compactMap { event -> MetricsLine? in if case .metrics(let line) = event { line } else { nil } }
+        #expect(metrics.map(\.gapsOverLimitAtSeams) == [1, 1])
+        #expect(metrics.map(\.largestSeamStep) == [1, 1])
+    }
+
+    @Test
+    func `the first soak's drill is one episode, charged to the drill, that reached the restart`() throws {
+        // 2026-09-28 13:10:21 +0100, as events.csv has it.
+        let drill = SoakMarker(time: Date(timeIntervalSince1970: 1_790_597_421), kind: .drill, note: "killall the extension")
+
+        let episodes = Episodes(log: try Self.firstSoak(), markers: [drill])
+
+        #expect(episodes.all.map(\.outcome) == [.unrecovered(.reachedRestart)])
+        #expect(episodes.all.map(\.trigger?.kind) == [.drill])
+        #expect(episodes.all.map(\.subject) == [.host])
+    }
+
     static let head = "2026-09-28 10:00:00.000000+0100 0x1     Default     0x0                  711    0    "
         + "WallpaperExtension: (WallpaperExtension.debug.dylib) "
 
