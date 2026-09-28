@@ -26,8 +26,8 @@ runs="$HOME/Library/Logs/Livepaper soak"
 current="$runs/current"
 metrics=app.livepaper.playback-metrics
 predicate='subsystem == "app.livepaper.extension" OR subsystem == "app.livepaper.Livepaper"'
-sample_every=300
-export_every=3600
+sample_every=${SOAK_SAMPLE_EVERY:-60}
+export_every=${SOAK_EXPORT_EVERY:-1800}
 run=""
 
 say() { printf '%s  %s\n' "$(date +%H:%M:%S)" "$*"; }

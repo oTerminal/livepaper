@@ -189,20 +189,23 @@ extension ReportWriter {
     mutating func memory(_ trends: [MemoryTrend]) {
         add("## Memory")
         add("")
-        add("Mean RSS by hour from the soak's start. Hour 24's mean may be at most 10 % over hour 2's; hour 1 is warm-up.")
+        add(
+            "Mean RSS by quarter hour from the soak's start. The last quarter hour's mean may be at most 10 % over the second's; "
+                + "the first is warm-up."
+        )
         add("")
-        add("| Hour | " + trends.map(\.process).joined(separator: " | ") + " |")
+        add("| Minutes | " + trends.map(\.process).joined(separator: " | ") + " |")
         add("|---|" + trends.map { _ in "---|" }.joined())
-        let hours = Set(trends.flatMap(\.hourlyMeans.keys)).sorted()
-        for hour in hours {
-            let means = trends.map { $0.hourlyMeans[hour].map { String(format: "%.1f MB", $0 / 1_024) } ?? "" }
-            add("| \(hour) | " + means.joined(separator: " | ") + " |")
+        let windows = Set(trends.flatMap(\.windowMeans.keys)).sorted()
+        for window in windows {
+            let means = trends.map { $0.windowMeans[window].map { String(format: "%.1f MB", $0 / 1_024) } ?? "" }
+            add("| \(MemoryTrend.minutes(of: window)) | " + means.joined(separator: " | ") + " |")
         }
         add("")
         for trend in trends {
             let verdict = switch trend.verdict {
-            case .pass(let growth): "pass, hour 24 is \(percent(growth)) % over hour 2"
-            case .fail(let growth): "fail, hour 24 is \(percent(growth)) % over hour 2"
+            case .pass(let growth): "pass, the last quarter hour is \(percent(growth)) % over the second"
+            case .fail(let growth): "fail, the last quarter hour is \(percent(growth)) % over the second"
             case .inconclusive(let reason): "inconclusive: \(reason)"
             }
             add("- \(trend.process), \(trend.sampleCount) samples: \(verdict).")

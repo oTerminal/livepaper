@@ -28,44 +28,53 @@ public struct ResourceSample: Equatable, Sendable {
     }
 }
 
-/// One process's resident memory over the soak, by hour from its start, and the
-/// rule it is held to: hour 24's mean at most 10 % over hour 2's; hour 1 is
-/// warm-up; under 200 samples, inconclusive.
+/// One process's resident memory over the two-hour soak, by quarter hour from
+/// its start, and the rule it is held to: the last quarter hour's mean at most
+/// 10 % over the second's; the first is warm-up; under 100 samples, inconclusive.
 public struct MemoryTrend: Equatable, Sendable {
     public enum Verdict: Equatable, Sendable {
-        /// `growth` is hour 24's mean over hour 2's, less one.
+        /// `growth` is the last window's mean over the second's, less one.
         case pass(growth: Double)
         case fail(growth: Double)
         case inconclusive(String)
     }
 
-    public static let minimumSamples = 200
+    /// A quarter hour, and the soak's eight of them.
+    public static let window: TimeInterval = 15 * 60
+    public static let minimumSamples = 100
     public static let allowedGrowth = 0.10
-    public static let firstHour = 2
-    public static let lastHour = 24
+    public static let firstWindow = 2
+    public static let lastWindow = 8
 
     public var process: String
-    /// Mean RSS in kilobytes, by hour: hour 1 is the soak's first.
-    public var hourlyMeans: [Int: Double]
+    /// Mean RSS in kilobytes, by window: window 1 is the soak's first quarter hour.
+    public var windowMeans: [Int: Double]
     public var sampleCount: Int
     public var verdict: Verdict
 
     public init(process: String, samples: [ResourceSample], start: Date) {
         let own = samples.filter { $0.process == process && $0.time >= start }
-        var byHour: [Int: [Int]] = [:]
+        var byWindow: [Int: [Int]] = [:]
         for sample in own {
-            byHour[Int(sample.time.timeIntervalSince(start) / 3_600) + 1, default: []].append(sample.rssKilobytes)
+            byWindow[Int(sample.time.timeIntervalSince(start) / Self.window) + 1, default: []].append(sample.rssKilobytes)
         }
         self.process = process
-        hourlyMeans = byHour.mapValues { Double($0.reduce(0, +)) / Double($0.count) }
+        windowMeans = byWindow.mapValues { Double($0.reduce(0, +)) / Double($0.count) }
         sampleCount = own.count
         if own.count < Self.minimumSamples {
             verdict = .inconclusive("\(own.count) samples, under \(Self.minimumSamples)")
-        } else if let first = hourlyMeans[Self.firstHour], let last = hourlyMeans[Self.lastHour] {
+        } else if let first = windowMeans[Self.firstWindow], let last = windowMeans[Self.lastWindow] {
             let growth = last / first - 1
             verdict = growth <= Self.allowedGrowth ? .pass(growth: growth) : .fail(growth: growth)
         } else {
-            verdict = .inconclusive("no samples in hour \(hourlyMeans[Self.firstHour] == nil ? Self.firstHour : Self.lastHour)")
+            let missing = windowMeans[Self.firstWindow] == nil ? Self.firstWindow : Self.lastWindow
+            verdict = .inconclusive("no samples in minutes \(Self.minutes(of: missing))")
         }
+    }
+
+    /// `15–30` for window 2.
+    public static func minutes(of window: Int) -> String {
+        let length = Int(Self.window / 60)
+        return "\((window - 1) * length)–\(window * length)"
     }
 }

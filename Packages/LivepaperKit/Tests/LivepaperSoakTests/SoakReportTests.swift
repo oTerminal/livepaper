@@ -21,7 +21,7 @@ struct SoakReportTests {
         at: .soak(3_600)
     )
 
-    /// Twenty-four hours from the first `.live`, a wake at hour 3 that one flush cures.
+    /// Two hours from the first `.live`, a wake at minute 50 that one flush cures.
     static let day: [LogLine] = [
         metrics,
         Logged.host(HostLog.status(.connecting), at: .soak(-5)),
@@ -29,22 +29,22 @@ struct SoakReportTests {
         Logged.supervisor(
             SupervisorLog.decision(display: .numbered(2), target: .playback(.numbered(3), .play), generation: 42), at: .soak(1)
         ),
-        Logged.extensionLine("extension: woke source=system", at: .soak(10_800)),
-        Logged.supervisor(SupervisorLog.verdict(surface, .recover(.flush), attempt: 0), at: .soak(10_802)),
-        Logged.supervisor(SupervisorLog.verdict(surface, .healthy, attempt: 1), at: .soak(10_804)),
-        Logged.host(HostLog.status(.live), at: .soak(86_400)),
+        Logged.extensionLine("extension: woke source=system", at: .soak(3_000)),
+        Logged.supervisor(SupervisorLog.verdict(surface, .recover(.flush), attempt: 0), at: .soak(3_002)),
+        Logged.supervisor(SupervisorLog.verdict(surface, .healthy, attempt: 1), at: .soak(3_004)),
+        Logged.host(HostLog.status(.live), at: .soak(7_200)),
     ]
 
     static func samples(rss: (Int) -> Int = { _ in 100_000 }) -> [ResourceSample] {
         ["Livepaper", "WallpaperExtension"].flatMap { process in
-            (0..<288).map { index in
-                let seconds = TimeInterval(index * 300 + 60)
-                return ResourceSample(time: .soak(seconds), process: process, pid: 1, cpu: 0.5, rssKilobytes: rss(Int(seconds) / 3_600 + 1))
+            (0..<120).map { index in
+                let seconds = TimeInterval(index * 60 + 30)
+                return ResourceSample(time: .soak(seconds), process: process, pid: 1, cpu: 0.5, rssKilobytes: rss(Int(seconds) / 900 + 1))
             }
         }
     }
 
-    static let end = [SoakMarker(time: .soak(86_500), kind: .end)]
+    static let end = [SoakMarker(time: .soak(7_300), kind: .end)]
 
     static func report(_ lines: [LogLine], samples: [ResourceSample] = samples(), markers: [SoakMarker] = end) -> SoakReport {
         SoakReport(log: SoakLog(lines: lines), samples: samples, markers: markers, timeZone: utc)
@@ -140,8 +140,8 @@ struct SoakReportTests {
             "1 gap over 1.5 frame durations at a seam"
         ),
         Row(
-            "memory grown 11 % by hour 24",
-            report(day, samples: samples { $0 == 24 ? 111_000 : 100_000 }),
+            "memory grown 11 % by the last quarter hour",
+            report(day, samples: samples { $0 == 8 ? 111_000 : 100_000 }),
             "WallpaperExtension's memory grew 11 %"
         ),
         Row(
@@ -189,19 +189,19 @@ struct SoakReportTests {
 
     @Test
     func `too few samples leaves the soak incomplete`() {
-        let report = Self.report(Self.day, samples: Array(Self.samples().prefix(150)))
+        let report = Self.report(Self.day, samples: Array(Self.samples().prefix(60)))
 
         #expect(report.verdict == .incomplete([
-            "Livepaper's memory: 150 samples, under 200", "WallpaperExtension's memory: 0 samples, under 200",
+            "Livepaper's memory: 60 samples, under 100", "WallpaperExtension's memory: 0 samples, under 100",
         ]))
     }
 
     @Test
-    func `hourly RSS means for the app and the extension`() {
+    func `quarter-hour RSS means for the app and the extension`() {
         let report = Self.report(Self.day, samples: Self.samples { $0 * 1_024 })
 
-        #expect(report.markdown.contains("| 2 | 2.0 MB | 2.0 MB |"))
-        #expect(report.markdown.contains("| 24 | 24.0 MB | 24.0 MB |"))
+        #expect(report.markdown.contains("| 15–30 | 2.0 MB | 2.0 MB |"))
+        #expect(report.markdown.contains("| 105–120 | 8.0 MB | 8.0 MB |"))
     }
 
     @Test

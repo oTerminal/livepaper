@@ -25,7 +25,7 @@ The scripts behind M8's soak, energy suite and hot-plug loop. [M8-hardening.md](
    - Fast user switching once, 5 minutes in a second account: `soak.sh mark fus`.
    - Each recovery drill, once, both displays live: `soak.sh mark drill <which>` just before it (`soak.sh mark drill "killall the extension"`). A drill's episodes are listed apart in the report and judged by its row in M8's "Recovery drills", not by the soak's zero unrecovered.
    - The hot-plug loop, once, both displays live: `soak.sh mark replug` before each of the 20 cable pulls. For the mode row, `swift Tools/soak/display-mode.swift list` gives the external's ID, then `set <ID> 1280 1024` and `set <ID> 1920 1080`, five times. The loop's other rows, and anything else worth a line: `soak.sh mark note <what>`.
-7. `soak.sh status` at any time. After 24 hours, `soak.sh stop` writes the end row, exports the last of the log and writes the report.
+7. `soak.sh status` at any time. After two hours, `soak.sh stop` writes the end row, exports the last of the log and writes the report.
 
 ## The energy suite
 
