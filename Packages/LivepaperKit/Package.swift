@@ -22,6 +22,8 @@ let package = Package(
         .library(name: "LivepaperScene", targets: ["LivepaperScene"]),
         .library(name: "LivepaperTestSupport", targets: ["LivepaperTestSupport"]),
         .library(name: "LivepaperWorkshop", targets: ["LivepaperWorkshop"]),
+        // M8's soak tooling (Tools/soak/) and nothing else: no app target links it.
+        .library(name: "LivepaperSoak", targets: ["LivepaperSoak"]),
         // Linked by the wallpaper extension and nothing else: all private API is here.
         .library(name: "WallpaperAgentBridge", targets: ["WallpaperAgentBridge"]),
     ],
@@ -83,6 +85,15 @@ let package = Package(
         .testTarget(
             name: "LivepaperWorkshopTests",
             dependencies: ["LivepaperWorkshop", "LivepaperImport"],
+            resources: [.copy("Fixtures")],
+            swiftSettings: approachableConcurrency
+        ),
+        // Reads a soak's log, samples and energy measurements into its report (M8-hardening.md). Foundation only.
+        .target(name: "LivepaperSoak", swiftSettings: approachableConcurrency),
+        // Its rows build lines with the product's own wording, so a rename fails here instead of counting zero.
+        .testTarget(
+            name: "LivepaperSoakTests",
+            dependencies: ["LivepaperSoak", "LivepaperPlayback", "LivepaperSystem", "LivepaperCore"],
             resources: [.copy("Fixtures")],
             swiftSettings: approachableConcurrency
         ),

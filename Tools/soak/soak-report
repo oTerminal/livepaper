@@ -1,0 +1,8 @@
+#!/bin/bash
+# The soak's report tool: builds Tools/soak's package once, then runs it.
+#   Tools/soak/soak-report soak --log log.txt --samples samples.csv --events events.csv
+#   Tools/soak/soak-report energy --samples energy.csv [--watts watts.csv] [--scene]
+set -euo pipefail
+here="$(cd "$(dirname "$0")" && pwd)"
+swift build --package-path "$here" --configuration release --product soak-report --quiet >&2
+exec "$(swift build --package-path "$here" --configuration release --show-bin-path)/soak-report" "$@"

@@ -4,10 +4,12 @@ included:
   - Gallery
   - CLI
   - Packages
+  - Tools/soak
 
 excluded:
   - Packages/LivepaperKit/.build
   - Packages/DesignSystem/.build
+  - Tools/soak/.build
   - Spikes
   - build
 
