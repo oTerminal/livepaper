@@ -200,7 +200,7 @@ struct EnergyBudgetTests {
         Row("about 0 %", idle("idleApp", "Livepaper") { $0 == 7 ? 0.9 : 0.05 }, .pass),
         Row("one sample over 1 %", idle("idleApp", "Livepaper") { $0 == 7 ? 1.2 : 0 }, .fail),
         Row("a mean over 0.1 %", idle("idleApp", "Livepaper") { _ in 0.2 }, .fail),
-        Row("fewer than 60 samples", idle("idleApp", "Livepaper", cpu: { _ in 0 }, count: 40), .inconclusive("40 samples of 60")),
+        Row("fewer than 12 samples", idle("idleApp", "Livepaper", cpu: { _ in 0 }, count: 8), .inconclusive("8 samples of 12")),
         Row("not run", [], .notMeasured),
     ]
 

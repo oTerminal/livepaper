@@ -5,7 +5,7 @@ The scripts behind M8's soak, energy suite and hot-plug loop. [M8-hardening.md](
 | Script | Does |
 |---|---|
 | `clips.sh` | Makes the 1080p60 and 4K60 HEVC test clips, frame counter burned in, in `build/soak-clips/` |
-| `soak.sh` | Drives the 24-hour soak and keeps its record: `start`, `mark`, `night`, `displaysleep`, `lock`, `status`, `stop` |
+| `soak.sh` | Drives the two-hour soak and keeps its record: `start`, `mark`, `night`, `displaysleep`, `lock`, `status`, `stop` |
 | `energy.sh` | S2's energy suite on product code: `video`, `scene`, `idle` |
 | `display-mode.swift` | `list` shows every display's ID, UUID and modes; `set` changes one for this login session |
 | `soak-report` | Turns a soak's or a suite's record into the report |
@@ -17,10 +17,10 @@ The scripts behind M8's soak, energy suite and hot-plug loop. [M8-hardening.md](
 3. The built-in display shows a playlist of all six, shuffled, every 5 minutes and on wake. The external shows the 4K60 clip.
 4. `Tools/soak/soak.sh start`, in a terminal left open, or `nohup Tools/soak/soak.sh start > ~/soak.out 2>&1 &`, then quit Livepaper and open it again. The soak's clock starts at the host's live, which the report reads from the log `start` exports, so a Livepaper live already must go live once more. From then it keeps Log Playback Metrics on, samples every 5 minutes, exports the log every hour, and holds `caffeinate -i` so that the Mac never idle-sleeps. If it is stopped by accident, `soak.sh start` again carries on the same run.
 5. The scripted rows, from another terminal:
-   - `soak.sh night --from 23:00 --to 07:00`: a sleep every 20 minutes, one of them 30 minutes long. sudo asks once, to schedule every wake.
-   - `soak.sh displaysleep`: ten display sleeps, each woken 30 seconds later.
-   - `soak.sh lock`: eight lock screens, then `soak.sh lock --person` twice, locking with ctrl-cmd-Q. Lock Screen settings must ask for the password immediately. With that on, `displaysleep`'s wakes also land on the lock screen; unlock once it is done.
-6. The person's rows, each marked just before it is done (the script says which length is next):
+   - `soak.sh night --from 23:00 --to 07:00`, if a soak runs overnight: a sleep every 20 minutes, one of them 30 minutes long. sudo asks once, to schedule every wake. M8 cut it (M8-hardening.md, The soak).
+   - `soak.sh displaysleep [count]`: display sleeps, each woken 30 seconds later; one by default.
+   - `soak.sh lock [count]`: lock screens, one by default; `soak.sh lock --person` locks with ctrl-cmd-Q. Lock Screen settings must ask for the password immediately. With that on, `displaysleep`'s wakes also land on the lock screen; unlock once it is done.
+6. The person's rows, each marked just before it is done (the script says which length is next). M8 carried the lid cycles, fast user switching and the hot-plug loop to M10-1.0.md:
    - 20 lid cycles, closed 10 seconds and 2 minutes by turns: `soak.sh mark lid` before each close.
    - Fast user switching once, 5 minutes in a second account: `soak.sh mark fus`.
    - Each recovery drill, once, both displays live: `soak.sh mark drill <which>` just before it (`soak.sh mark drill "killall the extension"`). A drill's episodes are listed apart in the report and judged by its row in M8's "Recovery drills", not by the soak's zero unrecovered.

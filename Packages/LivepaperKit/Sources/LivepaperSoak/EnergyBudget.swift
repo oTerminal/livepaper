@@ -70,7 +70,7 @@ public struct EnergyBudget: Sendable {
     /// Spikes/results/S2.md's numbers, and M8's reading of the roadmap's "about 0 %".
     public static let s2 = EnergyBudget(
         extensionCPU: 4, extensionPower: 5, decoderCPU: 5, decoderPower: 5, windowServerOverPaused: 25, returnSeconds: 5,
-        idleMeanCPU: 0.1, idlePeakCPU: 1, idleSamples: 60
+        idleMeanCPU: 0.1, idlePeakCPU: 1, idleSamples: 12
     )
 
     /// Every line, in the report's order. A scene has no decoder, so after covering and display sleep

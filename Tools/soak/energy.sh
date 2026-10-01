@@ -1,7 +1,7 @@
 #!/bin/bash
 # usage: energy.sh video <wallpaper> [--watts]   the 4K60 clip: paused, playing, covered, display asleep
 #        energy.sh scene <wallpaper> [--watts]   the same four phases with a scene
-#        energy.sh idle                          the app, then the extension covered, 5 minutes each
+#        energy.sh idle                          the app, then the extension covered, 1 minute each
 #
 # S2's energy suite on product code (docs/specs/M8-hardening.md, Energy, idle and memory). <wallpaper>
 # is a name or UUID in the library, as `livepaper set` takes it. One display, mains, the machine
@@ -345,13 +345,13 @@ wallpaper_run() { # wallpaper
 
 idle_run() {
   local t0
-  ask "idleApp: close Livepaper's popover and every Livepaper window, then press return; 5 minutes, hands off."
+  ask "idleApp: close Livepaper's popover and every Livepaper window, then press return; 1 minute, hands off."
   t0=$(date +%s)
-  start_top 60 5
+  start_top 12 5
   finish_top idleApp "$t0" 0 999
-  ask "idleExtension: a wallpaper playing on every display, a fullscreen app over each, then return; 5 minutes."
+  ask "idleExtension: a wallpaper playing on every display, a fullscreen app over each, then return; 1 minute."
   t0=$(date +%s)
-  start_top 60 5
+  start_top 12 5
   finish_top idleExtension "$t0" 0 999
 }
 

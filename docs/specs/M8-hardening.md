@@ -28,11 +28,11 @@ A lid cannot be closed by a script, and `pmset schedule` and `pmset relative` ne
 
 | Event | Driven by | Stands in for |
 |---|---|---|
-| Sleep every 20 minutes overnight: `sudo pmset relative wake 120`, then `pmset sleepnow`; once scheduled 30 minutes out | Script | The wake path and S4's long sleep. `relative wake` cannot be cancelled and is imprecise (`man pmset`), so times come from the log. Not the lid: no clamshell, no display leaving |
-| 20 lid cycles, 10 s and 2 minutes closed by turns (`S4.md` left them here; one cycle played "instantly") | Person | Nothing else can. With the external attached the Mac may stay awake on it alone while the built-in display leaves; the report counts both kinds apart |
-| `pmset displaysleepnow`, woken by a key, ten times | Script | A display asleep: `.suspend` and the decoder's release |
-| `open -a ScreenSaverEngine`, password required immediately, ten times, back with `caffeinate -u -t 5` | Script | The locked surface, nobody at the keyboard; a person does two of the ten with ctrl-cmd-Q |
-| Fast user switching once: a second account, 5 minutes, back | Person | Nothing else can: accessibility is ruled out, and whether `CGSession -suspend` still exists on macOS 27 is checked here, not assumed. Recorded, not passed |
+| Sleep every 20 minutes overnight: `sudo pmset relative wake 120`, then `pmset sleepnow`; once scheduled 30 minutes out. Cut on 2026-10-01: the two-hour soak ran in the day, and the wake path is M5's and M7's, tested there | Not run | The wake path and S4's long sleep. `relative wake` cannot be cancelled and is imprecise (`man pmset`), so times come from the log. Not the lid: no clamshell, no display leaving |
+| 20 lid cycles, 10 s and 2 minutes closed by turns (`S4.md` left them here; one cycle played "instantly"). Carried to M10-1.0.md on 2026-10-01, with the external display they need | Carried | Nothing else can. With the external attached the Mac may stay awake on it alone while the built-in display leaves; the report counts both kinds apart |
+| `pmset displaysleepnow`, woken by a key, once (cut from ten on 2026-10-01) | Script | A display asleep: `.suspend` and the decoder's release |
+| `open -a ScreenSaverEngine`, password required immediately, once, back with `caffeinate -u -t 5` (cut from ten on 2026-10-01) | Script | The locked surface, nobody at the keyboard |
+| Fast user switching once: a second account, 5 minutes, back. Carried to M10-1.0.md on 2026-10-01 | Carried | Nothing else can: accessibility is ruled out, and whether `CGSession -suspend` still exists on macOS 27 is checked here, not assumed. Recorded, not passed |
 
 A **stall** is a watchdog check on a surface on screen and not covered whose verdict is `.recover(_)`, or the host's status leaving `.live` for `.recovering(_)`. An **episode** opens there and closes at the next `.healthy` for that surface, or `.live` for the host. It is **unrecovered** when it never closes, is open at the end, or reaches `.restartAgent`: a restart redraws every desktop, is allowed once per 600 s, and cures the install hazard, not a wake. Recovered episodes pass, each listed with its trigger and level; a pattern is a defect fixed here.
 
@@ -40,7 +40,7 @@ A **stall** is a watchdog check on a surface on screen and not covered whose ver
 
 ## Hot-plug loop
 
-Once during the soak, both displays live, a person on the cable.
+Once during the soak, both displays live, a person on the cable. Carried to M10-1.0.md on 2026-10-01: the development Mac has no external display, and the loop needs one.
 
 | Step | Count | Pass when |
 |---|---|---|
@@ -59,10 +59,10 @@ Once during the soak, both displays live, a person on the cable.
 | The 4K60 clip, one display, desktop visible, machine idle | Inside the S2 budget, line for line |
 | Then a fullscreen app over it, then `pmset displaysleepnow` | All three back at paused levels within 5 s; decoder kept when covered, `VTDecoderXPCService` gone when the display sleeps |
 | A scene on one display, desktop visible, then covered, then `pmset displaysleepnow` | First measured here, as M11 left it: `top` and, with `sudo`, `powermetrics`' GPU power, recorded as a baseline; the link stopped and the GPU back at paused levels within 5 s of covering or sleep |
-| Idle 5 minutes each (60 samples): the app with popover and window closed, then the extension with every display covered | The roadmap's "about 0 %" read as a mean at or under 0.1 % CPU, no sample above 1 % |
+| Idle 1 minute each (12 samples; cut from 5 minutes on 2026-10-01): the app with popover and window closed, then the extension with every display covered | The roadmap's "about 0 %" read as a mean at or under 0.1 % CPU, no sample above 1 % |
 | Memory over the soak | The last quarter hour's mean RSS at most 10 % over the second's, app and extension; the first is warm-up; under 100 samples, inconclusive |
 
-Two questions are then measured and either fixed or accepted in writing. The 60 fps late frame: 200 loops of the 4K60 clip on the desktop surface with the probe on, machine idle, plus the soak's metrics lines. No mid-pass gap over 1.5 frame durations means load, accepted, recorded with its count; any gap is the engine's, fixed here. The audio seam click, only if M5-engine.md's Audio row recorded one: 20 seams at volume 0.5. Heard, it is fixed in the importer's audio trim (M4-import.md) or the engine's audio timeline, with a before-and-after pair; not heard, closed in the report.
+Two questions are then measured and either fixed or accepted in writing. The 60 fps late frame: 60 loops of the 4K60 clip (cut from 200 on 2026-10-01) on the desktop surface with the probe on, machine idle, plus the soak's metrics lines. No mid-pass gap over 1.5 frame durations means load, accepted, recorded with its count; any gap is the engine's, fixed here. The audio seam click, only if M5-engine.md's Audio row recorded one: 20 seams at volume 0.5. Heard, it is fixed in the importer's audio trim (M4-import.md) or the engine's audio timeline, with a before-and-after pair; not heard, closed in the report.
 
 ## Recovery drills
 
@@ -91,7 +91,7 @@ One row per bug the roadmap's Context reports in Wallper and per row of its Risk
 | Bug or risk | Proved by |
 |---|---|
 | Playback not resuming after sleep; the watchdog | The soak, zero unrecovered episodes |
-| The black flash at the loop seam | The largest gap per wallpaper; the 200-loop row (the file itself by M4-import.md) |
+| The black flash at the loop seam | The largest gap per wallpaper; the 60-loop row (the file itself by M4-import.md) |
 | Menu-bar tint mismatch | Not ours in extension mode (roadmap): a menu-bar capture per wallpaper, light and dark |
 | The library emptying on restart | The manifest, mid-commit and missing-folder drills |
 | WallpaperAgent wedging | The kill drill; 50 switches in 10 s (M5-engine.md's S7 row); the spiral count |
@@ -103,7 +103,7 @@ One row per bug the roadmap's Context reports in Wallper and per row of its Risk
 | The private API moved; the store's format | M10-1.0.md's checklist; the self-check's line is read once in the soak |
 | Restoring an Aerial | Record 0003 and M7-system-integration.md's leaving flow |
 
-What this finds is fixed here and listed under "As found" in the PR: what found it, the cause, the fix, a before-and-after pair, a re-run of the drill, and the 200-loop row if the engine was touched. A fix must not add a feature or a pause rule, change a record or a schema version, put private API outside `WallpaperAgentBridge`, add a poll that runs while nothing changes, or raise a threshold to meet it: a wrong threshold is re-measured and the report says so.
+What this finds is fixed here and listed under "As found" in the PR: what found it, the cause, the fix, a before-and-after pair, a re-run of the drill, and the 60-loop row if the engine was touched. A fix must not add a feature or a pause rule, change a record or a schema version, put private API outside `WallpaperAgentBridge`, add a poll that runs while nothing changes, or raise a threshold to meet it: a wrong threshold is re-measured and the report says so.
 
 ## Seams for test-first work
 
@@ -118,9 +118,9 @@ Swift Testing table tests in `LivepaperSoak`, no display and no clock of their o
 
 ## Done when
 
-- The soak report is committed under `docs/reports/` with zero unrecovered episodes; the loop, the suite, the two questions and every drill have a row in the PR with evidence.
+- The soak report is committed under `docs/reports/` with zero unrecovered episodes; the suite, the two questions and every drill have a row in the PR with evidence.
 - The idle, memory and 4K60 numbers meet the tables above; the watts are in the report, or it says why there are none.
-- One accessibility table per screen is in the PR, nothing left open, and the PR shows a screenshot of every state the drills name and of each appearance the pass covers, a wake recovering and a lid cycle as a GIF with the MP4 beside it, and a before-and-after pair per fix (CLAUDE.md).
+- One accessibility table per screen is in the PR, nothing left open, and the PR shows a screenshot of every state the drills name and of each appearance the pass covers, a wake recovering as a GIF with the MP4 beside it, and a before-and-after pair per fix (CLAUDE.md).
 - `LivepaperSoak`'s tables pass with `swift test --package-path Packages/LivepaperKit`, and `make gen build test lint` is green locally and in CI.
 
 ## As built
@@ -135,7 +135,7 @@ The tooling, and what it decided where this file left a choice, for the soak and
 - **Markers.** `events.csv` (`time,kind,note`): `soak.sh` writes what it does (`sleep`, `displaysleep`, `lock`), and the person marks what they are about to do (`soak.sh mark lid`, `replug`, `fus`, `drill <which>`). A system wake is a lid cycle only after a `lid` marker that no scripted sleep followed. Times come from the log; a marker only names the cause.
 - **Gaps.** An engine's metrics run from its start on a video, so each run's last line holds its counts, and a line with no more loops than the one before starts a new run. The largest gap per wallpaper folder is the largest any line gave; it is at a seam when that line's `at a seam` equals it. Beside it the report gives the engine's own largest seam step and smallest seam lead: a late seam picture with a step of 1.00 and a lead to spare was queued on time and shown late.
 - **Memory.** Quarter hour *n* is the *n*th after the first `host: status live`. Fewer than 100 samples of a process, or none in minutes 15–30 or 105–120, is inconclusive.
-- **Verdict.** A log with no `host: status live` is no soak. It fails on an unrecovered episode, a memory rule failed, two agent restarts by the app under 600 s apart, or a recover verdict on a covered display. A drill's episodes do not count here: the killall-the-extension drill climbs to the restart by design, and each drill is judged by its own row in "Recovery drills", its episodes listed apart. It is incomplete when there are no metrics lines (the largest gap per wallpaper is the loop seam's proof) or a memory rule is inconclusive; otherwise it passes. Late frames, at a seam or mid-pass, do not fail it: they are the late-frame question's, which the 200-loop row on an idle machine settles as load or the engine's, and the report records them with their counts.
+- **Verdict.** A log with no `host: status live` is no soak. It fails on an unrecovered episode, a memory rule failed, two agent restarts by the app under 600 s apart, or a recover verdict on a covered display. A drill's episodes do not count here: the killall-the-extension drill climbs to the restart by design, and each drill is judged by its own row in "Recovery drills", its episodes listed apart. It is incomplete when there are no metrics lines (the largest gap per wallpaper is the loop seam's proof) or a memory rule is inconclusive; otherwise it passes. Late frames, at a seam or mid-pass, do not fail it: they are the late-frame question's, which the 60-loop row on an idle machine settles as load or the engine's, and the report records them with their counts.
 - **Energy.** The Mac runs a `VTDecoderXPCService` per client. The extension's own, the one in its launchd domain, is `VTDecoderXPCService` in `energy.csv`, and every other instance `VTDecoderXPCService.others`. S2 summed them all ("VTDecoderXPCService (all)", "(summed)"), so the two decoder ceilings sum both, line for line; the return to paused levels and the decoder kept or gone read the extension's own alone, since the others' would sit in every sample and hide ours leaving. A process is back at its paused level when its CPU and power score are at or under its highest paused sample, from a second to the phase's end; a process not running counts as 0, and two samples of one process in one second are averaged. The decoder is kept when covered if its service is in every sample. M5-engine.md found the service itself never exits, "gone" meaning no session and no buffers, so after display sleep a service that exits passes or fails by when, and one still running is recorded with its footprint at the end against its footprint while playing, for a person to read: a footprint threshold would be a number first measured here. A scene's ceilings are recorded as a baseline, held to nothing. A scene has no decoder, so its report has no kept or gone lines; after covering and after display sleep it has two others, each within 5 s. The GPU is back at paused levels when `powermetrics`' GPU power is at or under its highest paused second, from a second to the phase's end; without watts it is not measured. The link has stopped at the extension's first `stopped drawing at` line after the event (`EngineLog.sceneStopped`), which `energy.sh` reads from the log into `link.csv`; with that file given, a phase with no such line fails.
 
 ### Tools/soak

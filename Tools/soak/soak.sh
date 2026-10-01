@@ -3,8 +3,8 @@
 #        soak.sh mark <kind> [note]                   a person's row, just before the act:
 #                                                     lid, replug, fus, drill, lock or note
 #        soak.sh night [--from HH:MM] [--to HH:MM]    sleeps every 20 minutes (sudo once, for the wakes)
-#        soak.sh displaysleep [count]                 display sleep, woken 30 s later (default 10)
-#        soak.sh lock [count] | lock --person         the lock screen (default 8; the person's 2)
+#        soak.sh displaysleep [count]                 display sleep, woken 30 s later (default 1)
+#        soak.sh lock [count] | lock --person         the lock screen (default 1)
 #        soak.sh stop                                 ends the soak, writes docs/reports/soak-<date>.md
 #        soak.sh status
 #
@@ -355,7 +355,7 @@ cmd_night() {
 }
 
 cmd_displaysleep() {
-  local count=${1:-10} i=1
+  local count=${1:-1} i=1
   [[ $count =~ ^[0-9]+$ ]] || usage
   open_run
   if [[ $(screen_lock) == "delay is immediate" ]]; then
@@ -402,7 +402,7 @@ cmd_lock() {
     wait_for_unlock
     return
   fi
-  count=${1:-8}
+  count=${1:-1}
   [[ $count =~ ^[0-9]+$ ]] || usage
   [[ $(screen_lock) == "delay is immediate" ]] ||
     say "warning: the password is not asked for at once (Lock Screen settings), so the screen saver will not lock"
