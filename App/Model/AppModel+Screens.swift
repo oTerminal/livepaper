@@ -18,7 +18,8 @@ extension AppModel {
             render: renderState,
             isPausedAll: isPausedAll,
             host: services.host.capabilities,
-            now: Date()
+            now: Date(),
+            hasFiles: services.hasFiles
         )
     }
 

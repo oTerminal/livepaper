@@ -201,3 +201,36 @@ struct NowPlayingTests {
         #expect(try Self.card(Situation(state: row.input)).canSkip == row.expected)
     }
 }
+
+// MARK: A wallpaper whose files have gone
+
+extension NowPlayingTests {
+    @Test func `a card whose wallpaper's files have gone says so, whatever the pause`() throws {
+        let library = try Self.library()
+        let state = Self.state()
+        let live = RenderState.make(library: library, state: state, connected: [Self.first], conditions: nil, previous: nil)
+
+        for isPausedAll in [false, true] {
+            let cards = nowPlaying(
+                library: library, state: state, connected: [Self.first], render: live, isPausedAll: isPausedAll,
+                host: Self.host, now: Self.now, hasFiles: { _ in false }
+            )
+
+            #expect(cards.map(\.status) == ["Files missing"])
+            #expect(cards.map(\.isPlaying) == [false])
+        }
+    }
+
+    @Test func `a card whose wallpaper has its files plays as before`() throws {
+        let library = try Self.library()
+        let state = Self.state()
+        let live = RenderState.make(library: library, state: state, connected: [Self.first], conditions: nil, previous: nil)
+
+        let cards = nowPlaying(
+            library: library, state: state, connected: [Self.first], render: live, host: Self.host, now: Self.now, hasFiles: { _ in true }
+        )
+
+        #expect(cards.map(\.status) == [nil])
+        #expect(cards.map(\.isPlaying) == [true])
+    }
+}

@@ -72,7 +72,7 @@ Each once during the soak, both displays live. "Seen in" is where the user sees 
 |---|---|---|
 | `killall WallpaperAgent` | Back within 2 s, one acquire per surface, right wallpapers, no spiral. launchd may spawn the agent twice (`docs/research/wallper.md`); that is not a failure | One redraw |
 | `killall` the extension | The ladder climbs; live inside lifetime plus three steps plus the restart | `StatusLine`, then clear |
-| Replace the bundle, launch twice | Live inside grace plus one step; assignments and playlist intact | `StatusLine` |
+| Replace the bundle, launch twice | Live inside grace plus one step plus the restart (the agent, then the extension's first picture: about 1 s, measured on 2026-10-01); assignments and playlist intact | `StatusLine` |
 | Truncate `render-state.json`, then garbage | It keeps what it shows; the app's next apply heals it | Nothing |
 | Delete a playing wallpaper's folder | Its poster, else the neutral colour; the app says the files are missing | The card's status |
 | Disk full mid-import (`mkfile`); a source cut in half | Both fail with a reason; `.staging/` empty; `library.json` unchanged | `ImportProgressRow` |

@@ -104,6 +104,7 @@ final class Fakes {
             },
             displayName: { Self.names[$0.identity] ?? "Display \($0.displayID)" },
             trash: { _ in },
+            hasFiles: { _ in true },
             isPlaybackMetricsOn: { [weak self] in self?.isPlaybackMetricsOn ?? false },
             setPlaybackMetrics: { [weak self] in self?.isPlaybackMetricsOn = $0 },
             // No socket: the `livepaper` tool must not reach a fake world. `fakes.sh door socket` stands in.
