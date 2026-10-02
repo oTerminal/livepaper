@@ -14,6 +14,7 @@ build: gen
 	$(XCODEBUILD) -scheme Livepaper build
 	$(XCODEBUILD) -scheme Gallery build
 	$(XCODEBUILD) -scheme livepaper-cli build
+	swift build --package-path Tools/soak --quiet
 
 test:
 	swift test --package-path Packages/LivepaperKit
@@ -35,4 +36,4 @@ shader-tools:
 	Helpers/shader-tools/build.sh
 
 clean:
-	rm -rf build $(PROJECT) Packages/*/.build
+	rm -rf build $(PROJECT) Packages/*/.build Tools/soak/.build

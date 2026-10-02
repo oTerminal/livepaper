@@ -43,6 +43,8 @@ public struct NowPlaying: Equatable, Sendable, Identifiable {
 /// Pause All pauses every display as its own pause does, and reads "Paused";
 /// so does the stopped state Quit leaves (record 0003), until a live one
 /// follows it. With none applied yet, only the user's pauses count.
+/// A wallpaper whose files have gone from the library reads "Files missing"
+/// before any pause: the desktop holds its poster, else the neutral colour.
 public func nowPlaying(
     library: Library,
     state: AppState,
@@ -50,7 +52,8 @@ public func nowPlaying(
     render: RenderState? = nil,
     isPausedAll: Bool = false,
     host: HostCapabilities,
-    now: Date
+    now: Date,
+    hasFiles: (Wallpaper) -> Bool = { _ in true }
 ) -> [NowPlaying] {
     connected.map { display in
         var card = NowPlaying(
@@ -63,7 +66,11 @@ public func nowPlaying(
             card.playlist = id
             card.canSkip = playlist.wallpapers.count { library[$0] != nil } >= 2
         }
-        guard card.wallpaper != nil else { return card }
+        guard let wallpaper = card.wallpaper else { return card }
+        guard hasFiles(wallpaper) else {
+            card.status = "Files missing"
+            return card
+        }
         guard render?.isStopped != true else {
             card.status = PauseReason.user.words
             return card

@@ -42,6 +42,8 @@ struct AppServices {
     var displayName: (ConnectedDisplay) -> String
     /// Moves a deleted wallpaper's folder to the Trash, once its undo is gone.
     var trash: (WallpaperID) throws -> Void
+    /// Whether a wallpaper's files are still in the library; a card reads "Files missing" when not.
+    var hasFiles: (Wallpaper) -> Bool
     /// "Log Playback Metrics", the extension's probe: never kept, so every launch starts with it off.
     var isPlaybackMetricsOn: () -> Bool
     var setPlaybackMetrics: (Bool) -> Void
@@ -107,6 +109,7 @@ extension AppServices {
                 let folder = location.wallpapers.appending(path: id.description, directoryHint: .isDirectory)
                 try FileManager.default.trashItem(at: folder, resultingItemURL: nil)
             },
+            hasFiles: { FileManager.default.fileExists(atPath: location.url(for: $0.optimisedCopy).path) },
             isPlaybackMetricsOn: { host.isPlaybackMetricsOn },
             setPlaybackMetrics: { host.setPlaybackMetrics($0) },
             commandSocket: location.commandSocket(fallback: .temporaryDirectory),

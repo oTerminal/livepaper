@@ -224,8 +224,14 @@ public actor LoopEngine {
     /// its own readers when it can. For a rebuild, where another engine takes the layer over,
     /// and for an owner that goes away.
     public nonisolated func retire() {
-        // Its audio renderer comes off the layer's clock as the gate closes: the last call there.
-        gate.close { $0.letAudioGo() }
+        // The last calls there, as the gate closes: the renderer stops asking for data, since its
+        // pull callback would otherwise go on reaching an engine that can no longer answer it, as
+        // fast as the renderer is ready (M8 found an app at 100 % CPU so), and the audio renderer
+        // comes off the layer's clock. An engine that takes the layer over asks again for itself.
+        gate.close { access in
+            access.renderer.stopRequestingMediaData()
+            access.letAudioGo()
+        }
         Task { await self.windDown() }
     }
 
