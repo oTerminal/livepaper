@@ -159,13 +159,13 @@ public struct EnergyMeasurement: Equatable, Sendable {
 
     /// The processes summed at each second of the phase, then the mean over every second, as `mean(_:in:)`.
     public func mean(_ processes: [String], in phase: String) -> Load? {
-        let seconds = seconds(in: phase)
-        guard !seconds.isEmpty else { return nil }
-        let loads = processes.map { loads($0, in: phase) }
-        let total = seconds.reduce(Load.zero) { sum, second in
-            loads.reduce(sum) { $0 + ($1[second] ?? .zero) }
+        let phaseSeconds = seconds(in: phase)
+        guard !phaseSeconds.isEmpty else { return nil }
+        let perProcess = processes.map { loads($0, in: phase) }
+        let total = phaseSeconds.reduce(Load.zero) { sum, second in
+            perProcess.reduce(sum) { $0 + ($1[second] ?? .zero) }
         }
-        let count = Double(seconds.count)
+        let count = Double(phaseSeconds.count)
         return Load(cpu: total.cpu / count, power: total.power / count, memoryKilobytes: total.memoryKilobytes / count)
     }
 

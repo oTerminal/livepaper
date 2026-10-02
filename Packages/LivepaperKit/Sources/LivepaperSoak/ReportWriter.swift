@@ -148,10 +148,10 @@ extension ReportWriter {
         for trigger in replugs {
             guard let display = trigger.display else { continue }
             let others = displays.subtracting([display]).sorted().map { "\($0): \(firstVerdict(on: $0, after: trigger.time, log: log))" }
-            let shown = shown(on: display, after: trigger.time, log: log)
+            let onScreen = shown(on: display, after: trigger.time, log: log)
             let verdict = firstVerdict(on: display, after: trigger.time, log: log)
             let elsewhere = others.isEmpty ? "none" : others.joined(separator: "; ")
-            add("| \(time(trigger.time)) | \(display) | \(shown) | \(verdict) | \(elsewhere) |")
+            add("| \(time(trigger.time)) | \(display) | \(onScreen) | \(verdict) | \(elsewhere) |")
         }
         add("")
     }
